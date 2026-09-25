@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Binding trial 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "trial_key",
+    "scene_family_id",
+    "condition",
+    "status",
+    "raw",
+    "scores",
+    "clean_correct",
+    "image_sha256",
+    "donor_image_sha256",
+    "patch_scope"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "skipped"
+      ]
+    },
+    "scores": {
+      "type": "object",
+      "required": [
+        "strict",
+        "synonym"
+      ]
+    },
+    "condition": {
+      "enum": [
+        "clean",
+        "self_q",
+        "self_v",
+        "self_qv",
+        "q",
+        "v",
+        "qv",
+        "random_q",
+        "random_qv"
+      ]
+    }
+  }
+}

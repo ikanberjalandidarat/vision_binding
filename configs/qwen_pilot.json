@@ -1,0 +1,14 @@
+{
+  "model_id": "Qwen/Qwen2-VL-7B-Instruct",
+  "revision": null,
+  "load_in_4bit": true,
+  "seed": 731,
+  "layers": [21, 22, 23, 24, 25, 26, 27],
+  "query_heads": null,
+  "kv_heads": null,
+  "min_pixels": 125440,
+  "max_pixels": 125440,
+  "max_new_tokens": 16,
+  "task": "pair",
+  "aliases": {}
+}

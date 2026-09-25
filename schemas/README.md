@@ -1,0 +1,1 @@
+Versioned executable JSON schemas live in `src/mc_binding/schemas/` so they are included in installed packages. Dataset validation and trial checkpointing apply them automatically. Image hashes and semantic constraints are checked in addition to schema validation.
