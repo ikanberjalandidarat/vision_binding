@@ -13,6 +13,8 @@ export PATH="$MC_RENDER_ENV/bin:$PATH"
 export JAVA_HOME="$MC_RENDER_ENV"
 export XDG_CACHE_HOME="$MC_BINDING_SCRATCH/cache"
 export HF_HOME="$MC_BINDING_SCRATCH/huggingface"
+export MINESTUDIO_DIR="$MC_BINDING_SCRATCH/minestudio"
+mkdir -p "$MINESTUDIO_DIR" "$HF_HOME" "$XDG_CACHE_HOME"
 export PYTHONUNBUFFERED=1
 command -v xvfb-run >/dev/null || { echo 'xvfb-run unavailable: load a site module or use a CCV-supported container'; exit 1; }
-xvfb-run -a "$MC_RENDER_ENV/bin/python" -m mc_binding smoke --backend minestudio --output "$MC_BINDING_SCRATCH/render-smoke-${SLURM_JOB_ID}"
+xvfb-run -a "$MC_RENDER_ENV/bin/python" -m mc_binding smoke --backend minestudio --output "$MC_BINDING_SCRATCH/runs/render-smoke-${SLURM_JOB_ID}"
