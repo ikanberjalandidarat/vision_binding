@@ -43,6 +43,18 @@ def json_value(value):
     return value
 
 
+def verify_pose(info, expected, yaw):
+    pose = json_value(info.get('player_pos'))
+    if not isinstance(pose, dict):
+        raise RuntimeError('Missing player position telemetry')
+    actual = [pose.get(k, float('nan')) for k in ('x', 'y', 'z')]
+    if not np.allclose(actual, expected, atol=0.1, rtol=0):
+        raise RuntimeError(f'Arena placement failed: expected feet {expected}, got {actual}; inspect command errors in saved frame')
+    delta = (float(pose.get('yaw', float('nan')))-yaw+180) % 360-180
+    if not abs(delta) < 0.1 or not abs(float(pose.get('pitch', float('nan')))) < 0.1:
+        raise RuntimeError(f'Camera orientation mismatch: expected yaw {yaw}, pitch 0; got {pose}')
+
+
 def smoke(output, seed=731):
     try:
         from minestudio.simulator import MinecraftSim
@@ -52,10 +64,24 @@ def smoke(output, seed=731):
     root = Path(output)
     root.mkdir(parents=True, exist_ok=False)
     spec, commands = smoke_scene(seed)
-    report = {'environment': environment(), 'commands': commands, 'scene': spec, 'is_minecraft': True, 'labels_validated': False, 'camera_calibrated': False, 'captures': []}
+    bootstrap = ['/gamemode creative', '/forceload add -20 -5 20 25',
+                 '/tp @p 0.5 200 0.5 0 0']
+    report = {'environment': environment(), 'bootstrap_commands': bootstrap, 'chunk_settle_ticks': 200, 'commands': commands, 'scene': spec, 'is_minecraft': True, 'labels_validated': False, 'camera_calibrated': False, 'captures': []}
+
+    class LoadThenBuild(CommandsCallback):
+        def after_reset(self, sim, obs, info):
+            # Reset can spawn far from the arena. Commands cannot edit unloaded
+            # chunks; move there first, tick the world, then build and reposition.
+            obs, info = CommandsCallback(commands=bootstrap).after_reset(sim, obs, info)
+            for _ in range(200):
+                obs, _, done, truncated, info = sim.step(sim.noop_action())
+                if done or truncated:
+                    raise RuntimeError('Simulator terminated while loading arena chunks')
+            return super().after_reset(sim, obs, info)
+
     sim = None
     try:
-        sim = MinecraftSim(action_type='env', obs_size=(448, 280), render_size=(448, 280), seed=seed, callbacks=[CommandsCallback(commands=commands)])
+        sim = MinecraftSim(action_type='env', obs_size=(448, 280), render_size=(448, 280), seed=seed, callbacks=[LoadThenBuild(commands=commands)])
         for repeat in range(2):
             obs, info = sim.reset()
             for _ in range(100):
@@ -68,6 +94,7 @@ def smoke(output, seed=731):
             path = root/f'reset-{repeat}.png'
             Image.fromarray(frame).save(path)
             report['captures'].append({'file': path.name, 'sha256': file_hash(path), 'info_keys': sorted(info), 'location_stats': json_value(info.get('location_stats')), 'player_pos': json_value(info.get('player_pos'))})
+            verify_pose(info, spec['camera']['position'], 0)
         action = sim.noop_action()
         action['camera'] = np.array([0., 15.], dtype=np.float32)
         obs, _, _, _, info = sim.step(action)
@@ -77,6 +104,7 @@ def smoke(output, seed=731):
                 raise RuntimeError('Simulator terminated after camera turn')
         Image.fromarray(np.asarray(obs['image'])).save(root/'camera-turn.png')
         report['camera_turn'] = {'requested_action': [0., 15.], 'player_pos': json_value(info.get('player_pos')), 'location_stats': json_value(info.get('location_stats'))}
+        verify_pose(info, spec['camera']['position'], 15)
         report['state'] = 'captured_unvalidated'
         report['repeat_hash_equal'] = report['captures'][0]['sha256'] == report['captures'][1]['sha256']
     except BaseException as exc:
