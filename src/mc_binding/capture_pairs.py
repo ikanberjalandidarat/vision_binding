@@ -13,6 +13,7 @@ CROP = (0, 40, 448, 195)
 CROSSHAIR = (218, 134, 229, 146)
 CLEANUP = {'version': 'static_v1', 'raw_size': [448, 280], 'crop': list(CROP),
            'crosshair_box_raw': list(CROSSHAIR), 'crosshair_fill_rgb': [128, 128, 128]}
+ANNOTATION_VERSION = 'color_threshold_v2'
 
 
 def color_mask(frame, color):
@@ -24,7 +25,9 @@ def color_mask(frame, color):
     if color == 'green':
         return (g > 35) & (g > 1.2*r) & (g > 1.15*b)
     if color == 'yellow':
-        return (r > 65) & (g > 55) & (r > 1.5*b) & (g > 1.5*b) & (r < 1.8*g)
+        # Yellow wool has R > G; olive-green wool also has R,G >> B.
+        # Without this lower R/G bound, both objects enter one yellow box.
+        return (r > 65) & (g > 55) & (r > 1.5*b) & (g > 1.5*b) & (r > 1.05*g) & (r < 1.8*g)
     raise ValueError(color)
 
 
@@ -49,7 +52,8 @@ def clean_frame(frame, objects):
         if x0 < c and x1 > a and y0 < d and y1 > b:
             raise ValueError('Crosshair cover overlaps candidate structure')
         obj.update(bbox_raw=box, bbox=[x0, y0-CROP[1], x1, y1-CROP[1]],
-                   roi_method='color_threshold_candidate_not_segmentation', detected_pixels=len(xs))
+                   roi_method='color_threshold_candidate_not_segmentation',
+                   annotation_version=ANNOTATION_VERSION, detected_pixels=len(xs))
     annotated.sort(key=lambda o: o['bbox'][0]+o['bbox'][2])
     if len(annotated) == 2 and annotated[0]['bbox'][2] >= annotated[1]['bbox'][0]:
         raise ValueError('Candidate structures overlap in screen X')

@@ -66,6 +66,16 @@ def test_counterbalance_and_disjoint_descriptions():
     assert len(assignments) == 4
 
 
+def test_yellow_does_not_merge_with_olive_green_wool():
+    ctx = pilot_contexts(0, 731)[3]
+    raw = frame_for(ctx['objects'])
+    raw[100:165, 290:330] = [70, 85, 21]  # previously also classified yellow
+    raw[100:165, 90:130] = [197, 153, 28]
+    _, objects = clean_frame(raw, ctx['objects'])
+    assert [(o['color'], o['bbox_raw']) for o in objects] == [
+        ('yellow', [90, 100, 130, 165]), ('green', [290, 100, 330, 165])]
+
+
 class Fake:
     def __init__(self):
         self.calls = 0
