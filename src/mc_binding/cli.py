@@ -20,6 +20,15 @@ def main():
         p.add_argument('--split', choices=['debug', 'calibration', 'test'], default='debug')
     p = sub.add_parser('validate')
     p.add_argument('dataset')
+    p = sub.add_parser('capture-pairs')
+    p.add_argument('--output', required=True)
+    p.add_argument('--n', type=int, default=4)
+    p.add_argument('--seed', type=int, default=731)
+    p = sub.add_parser('recognize')
+    p.add_argument('--dataset', required=True)
+    p.add_argument('--output', required=True)
+    p.add_argument('--config', default='configs/qwen_pilot.json')
+    p.add_argument('--reviewed-captures', action='store_true')
     for name in ('baseline', 'patch'):
         p = sub.add_parser(name)
         p.add_argument('--dataset', required=True)
@@ -47,6 +56,12 @@ def main():
         else:
             from .dataset import generate
             print(generate(args.output, args.n, args.seed, args.split))
+    elif args.command == 'capture-pairs':
+        from .capture_pairs import capture_pairs
+        capture_pairs(args.output, args.n, args.seed)
+    elif args.command == 'recognize':
+        from .recognition import recognize
+        recognize(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures)
     elif args.command == 'validate':
         from .dataset import validate
         data = validate(args.dataset)

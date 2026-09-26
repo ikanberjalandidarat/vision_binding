@@ -46,3 +46,7 @@ Runs save immutable settings, model/processor metadata, library versions, image 
 Analysis reports baseline eligibility, skipped and invalid counts, all-scene and clean-correct transfer rates, Wilson intervals and paired family bootstrap intervals. Q versus random Q-only is primary; other contrasts are secondary. Synonym aliases start empty and must be frozen from stimulus validation. No response-dependent aliases or pink-to-magenta rule is applied.
 
 See [Oscar setup](docs/OSCAR.md) and [implementation status](docs/IMPLEMENTATION.md) for the remaining gates and provenance.
+
+## Next after the successful V3 smoke
+
+See [recognition calibration](docs/RECOGNITION.md) for the new `capture-pairs` and `recognize` commands. They generate raw/clean recipient and disjoint-donor frames plus isolated-object controls, then score color/type/pair prompts on saved RGB. This is a separate fixed-pose calibration dataset; it is not yet accepted by the patch runner. Native HUD suppression is not assumed: a documented fixed crop and small crosshair cover are applied consistently, with raw captures retained.
