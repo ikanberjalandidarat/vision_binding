@@ -50,3 +50,5 @@ See [Oscar setup](docs/OSCAR.md) and [implementation status](docs/IMPLEMENTATION
 ## Next after the successful V3 smoke
 
 See [recognition calibration](docs/RECOGNITION.md) for the new `capture-pairs` and `recognize` commands. They generate raw/clean recipient and disjoint-donor frames plus isolated-object controls, then score color/type/pair prompts on saved RGB. This is a separate fixed-pose calibration dataset; it is not yet accepted by the patch runner. Native HUD suppression is not assumed: a documented fixed crop and small crosshair cover are applied consistently, with raw captures retained.
+
+For the first color-only decoder intervention, see [Q color pilot](docs/Q_COLOR_PILOT.md). `q-pilot` uses reviewed recorded pairs, checks clean and exact self-Q baselines, and compares donor Q with norm-matched random Q using the validated BF16 model settings. It does not require ROI-token mapping.

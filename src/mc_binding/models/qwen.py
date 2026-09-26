@@ -80,8 +80,17 @@ class Qwen:
     @torch.inference_mode()
     def answer(self, inp, specs=()):
         length = inp['input_ids'].shape[1]
+        check = self.config.get('check_finite_scores', False)
         with patch_hooks(self.module, specs, length):
-            out = self.model.generate(**inp, max_new_tokens=self.config['max_new_tokens'], do_sample=False, use_cache=True)
+            out = self.model.generate(**inp, max_new_tokens=self.config['max_new_tokens'], do_sample=False, use_cache=True,
+                                      return_dict_in_generate=check, output_scores=check)
+        if check:
+            for scores in out.scores:
+                # -inf may represent intentionally suppressed tokens; NaN/+inf
+                # or an entirely unusable vocabulary is a numerical failure.
+                if torch.isnan(scores).any() or torch.isposinf(scores).any() or not torch.isfinite(scores).any(dim=-1).all():
+                    raise RuntimeError('Non-finite generation scores; stop before interpreting intervention results')
+            out = out.sequences
         return self.processor.tokenizer.decode(out[0, length:], skip_special_tokens=True).strip()
 
     def manifest(self):

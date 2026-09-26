@@ -29,6 +29,11 @@ def main():
     p.add_argument('--output', required=True)
     p.add_argument('--config', default='configs/qwen_pilot.json')
     p.add_argument('--reviewed-captures', action='store_true')
+    p = sub.add_parser('q-pilot')
+    p.add_argument('--dataset', required=True)
+    p.add_argument('--output', required=True)
+    p.add_argument('--config', required=True)
+    p.add_argument('--reviewed-captures', action='store_true')
     for name in ('baseline', 'patch'):
         p = sub.add_parser(name)
         p.add_argument('--dataset', required=True)
@@ -62,6 +67,9 @@ def main():
     elif args.command == 'recognize':
         from .recognition import recognize
         recognize(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures)
+    elif args.command == 'q-pilot':
+        from .q_pilot import q_pilot
+        q_pilot(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures)
     elif args.command == 'validate':
         from .dataset import validate
         data = validate(args.dataset)
