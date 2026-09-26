@@ -9,11 +9,18 @@ class Qwen:
             raise RuntimeError("Qwen runner requires a CUDA allocation; use fixture smoke on CPU")
         if not config.get('revision') or config['revision'] == 'main':
             raise ValueError("Set revision to an immutable Hugging Face commit hash")
+        dtype_name = config.get('dtype', 'float16')
+        if dtype_name not in ('float16', 'bfloat16', 'float32'):
+            raise ValueError('dtype must be float16, bfloat16 or float32')
+        dtype = getattr(torch, dtype_name)
+        if dtype == torch.bfloat16 and not torch.cuda.is_bf16_supported():
+            raise RuntimeError('BF16 is not supported by this GPU')
         self.config = config
         torch.manual_seed(config['seed'])
-        self.processor = AutoProcessor.from_pretrained(config['model_id'], revision=config['revision'])
-        quant = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.float16) if config['load_in_4bit'] else None
-        self.model = Qwen2VLForConditionalGeneration.from_pretrained(config['model_id'], revision=config['revision'], torch_dtype=torch.float16, device_map='auto', quantization_config=quant, attn_implementation='eager').eval()
+        self.processor = AutoProcessor.from_pretrained(config['model_id'], revision=config['revision'],
+                                                      use_fast=config.get('use_fast', True))
+        quant = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=dtype) if config['load_in_4bit'] else None
+        self.model = Qwen2VLForConditionalGeneration.from_pretrained(config['model_id'], revision=config['revision'], torch_dtype=dtype, device_map='auto', quantization_config=quant, attn_implementation='eager').eval()
         for path in ('model.language_model.layers', 'model.layers', 'language_model.model.layers'):
             obj = self.model
             try:
