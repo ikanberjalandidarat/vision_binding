@@ -1,0 +1,15 @@
+{
+  "model_id": "Qwen/Qwen2-VL-7B-Instruct",
+  "revision": "eed13092ef92e448dd6875b2a00151bd3f7db0ac",
+  "load_in_4bit": false,
+  "dtype": "bfloat16",
+  "use_fast": true,
+  "check_finite_scores": true,
+  "seed": 731,
+  "layers": [],
+  "vision_layers": [0, 7, 15, 23, 31],
+  "min_pixels": 125440,
+  "max_pixels": 125440,
+  "max_new_tokens": 8,
+  "mask_threshold": 0.5
+}

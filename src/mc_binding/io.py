@@ -33,7 +33,7 @@ def atomic_json(path, value):
 
 def environment():
     versions = {}
-    for package in ("mc-binding", "torch", "transformers", "Pillow", "numpy", "bitsandbytes", "minestudio", "minedojo"):
+    for package in ("mc-binding", "torch", "torchvision", "transformers", "Pillow", "numpy", "bitsandbytes", "minestudio", "minedojo"):
         try:
             versions[package] = importlib.metadata.version(package)
         except importlib.metadata.PackageNotFoundError:

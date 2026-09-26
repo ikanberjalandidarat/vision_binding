@@ -90,7 +90,7 @@ def pilot_contexts(index, seed):
     return contexts
 
 
-def capture_pairs(output, n=4, seed=731):
+def capture_pairs(output, n=4, seed=731, *, vision=False):
     if not 1 <= n <= 4:
         raise ValueError('Recognition pilot supports 1–4 balanced configurations, not independent test worlds')
     from minestudio.simulator import MinecraftSim
@@ -99,7 +99,7 @@ def capture_pairs(output, n=4, seed=731):
     root.mkdir(parents=True, exist_ok=False)
     (root/'raw').mkdir()
     (root/'frames').mkdir()
-    manifest = {'schema_version': 'recognition_pilot_v1', 'is_minecraft': True,
+    manifest = {'schema_version': 'vision_swap_v1' if vision else 'recognition_pilot_v1', 'is_minecraft': True,
                 'state': 'running', 'labels_validated': False, 'environment': environment(),
                 'source_hash': source_hash(), 'cleanup': CLEANUP, 'seed': seed,
                 'scope': 'fixed-pose recognition calibration; not independent test families', 'records': []}
@@ -118,7 +118,8 @@ def capture_pairs(output, n=4, seed=731):
             return obs, info
         obs, info = settle(200)
         for i in range(n):
-            for context in pilot_contexts(i, seed):
+            from .vision_data import swap_contexts
+            for context in (swap_contexts(i, seed) if vision else pilot_contexts(i, seed)):
                 obs, info = CommandsCallback(commands=context['commands']).after_reset(sim, obs, info)
                 obs, info = settle(200)
                 ident = f'{len(manifest["records"]):06d}'

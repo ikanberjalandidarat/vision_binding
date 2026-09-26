@@ -1,0 +1,5 @@
+# Install PyTorch/Torchvision from https://download.pytorch.org/whl/cu128 first.
+# Apply this constraint file when installing the project's model extra on Oscar.
+torch==2.8.0+cu128
+torchvision==0.23.0+cu128
+transformers==4.55.0
