@@ -24,4 +24,4 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.setuptools.package-data]
-mc_binding = ["schemas/*.json"]
+mc_binding = ["schemas/*.json", "*.html"]

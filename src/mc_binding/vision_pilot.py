@@ -1,5 +1,6 @@
 """Exploratory spatial vision-block patch sweep, with frozen language readout."""
 import json
+from contextlib import ExitStack
 from pathlib import Path
 import numpy as np
 import torch
@@ -14,6 +15,20 @@ from .io import RunStore, atomic_json, digest, source_hash, environment
 def color(raw):
     parsed = parse(raw, task='color')['parsed']
     return parsed['color'] if parsed else None
+
+
+def patch_sets(config, depth):
+    singles = config.get('vision_layers', [])
+    groups = config.get('vision_layer_groups', [])
+    sets = [[l] for l in singles] + groups
+    if not sets or any(not isinstance(g, list) or not g for g in sets):
+        raise ValueError('Invalid vision patch sets')
+    for g in sets:
+        if any(type(l) is not int or l < 0 or l >= depth for l in g) or g != sorted(set(g)):
+            raise ValueError('Vision patch layers must be unique, increasing and in range')
+    if len({tuple(g) for g in sets}) != len(sets):
+        raise ValueError('Duplicate vision patch sets')
+    return [('layer'+f'{g[0]:02d}' if len(g)==1 else 'group'+'-'.join(f'{l:02d}' for l in g), g) for g in sets]
 
 
 def vision_pilot(dataset, output, config, reviewed=False):
@@ -32,19 +47,18 @@ def vision_pilot(dataset, output, config, reviewed=False):
     from .models.qwen import Qwen
     model = Qwen(config)
     visual, path = vision_backbone(model.model)
-    layers = config['vision_layers']
-    if not layers or len(set(layers)) != len(layers) or any(not isinstance(l,int) or l<0 or l>=len(visual.blocks) for l in layers):
-        raise ValueError('Invalid vision layers')
+    sets = patch_sets(config, len(visual.blocks))
+    layers = sorted({l for _, group in sets for l in group})
     atomic_json(out/'model.json', {**model.manifest(), 'vision_path': path,
         'vision_depth': len(visual.blocks), 'hook_site': 'vision block output after attention and MLP residuals, before merger',
-        'vision_layers': layers, 'weights_frozen': True})
+        'vision_layers': layers, 'patch_sets': dict(sets), 'weights_frozen': True})
     for p in model.model.parameters():
         p.requires_grad_(False)
     status = {'state': 'running'}
     atomic_json(out/'status.json', status)
     try:
         for fid, records in groups.items():
-            if all(store.completed(f'{fid}-layer{layer:02d}') for layer in layers):
+            if all(store.completed(f'{fid}-{name}') for name, _ in sets):
                 continue
             pairs = {r['context']: r for r in records if r['kind']=='pair'}
             inputs, clean, images, rows = {}, {}, {}, []
@@ -96,8 +110,9 @@ def vision_pilot(dataset, output, config, reviewed=False):
                     model.model(**inputs[ctx,0], use_cache=False)
                 if any(v.shape[0]!=h*w for v in caps[ctx].values()):
                     raise ValueError('Activation count disagrees with spatial mapping')
-            for layer in layers:
-                unit = f'{fid}-layer{layer:02d}'
+            for set_name, layer_set in sets:
+                unit = f'{fid}-{set_name}'
+                layer = layer_set[0] if len(layer_set)==1 else None
                 if store.completed(unit):
                     continue
                 rows = []
@@ -114,22 +129,31 @@ def vision_pilot(dataset, output, config, reviewed=False):
                             pos = sorted(map(int,rng.choice(background,n,replace=False)))
                         else:
                             pos = selected[target]
-                        if layer == layers[0] and condition in ('target', 'other_object', 'background'):
+                        if set_name == sets[0][0] and condition in ('target', 'other_object', 'background'):
                             overlay(images['recipient'], pos, h, w, merge, audit/f'patch-{condition}-target{target}.png')
-                        seed = config['seed']+layer*10+target
-                        value, delta = replacement(caps['recipient'][layer], caps['color_swap'][layer], pos, condition, seed)
+                        values, patches = {}, []
+                        for l in layer_set:
+                            seed = config['seed']+l*10+target
+                            value, delta = replacement(caps['recipient'][l], caps['color_swap'][l], pos, condition, seed)
+                            values[l] = value
+                            patches.append({'layer': l, 'module': f'{path}.blocks.{l}',
+                                'replacement_delta_norm_float32': delta,
+                                'random_seed': seed if condition=='random' else None})
                         answers = []
                         for side in (0,1):
-                            with patch_block(visual.blocks[layer], pos, value, h*w):
+                            with ExitStack() as stack:
+                                for l in layer_set:
+                                    stack.enter_context(patch_block(visual.blocks[l], pos, values[l], h*w))
                                 raw = model.answer(inputs['recipient',side])
                             answers.append(raw)
                         if condition=='self' and any(answers[s]!=clean['recipient',s] for s in (0,1)):
                             raise RuntimeError(f'{fid} layer {layer}: exact self-patch failed')
-                        row = {'trial_key': f'{unit}:{condition}:{target}', 'family': fid, 'layer': layer,
+                        row = {'trial_key': f'{unit}:{condition}:{target}', 'family': fid, 'layer': layer, 'layer_set': layer_set, 'patch_set': set_name, 'patches': patches,
                             'condition': condition, 'target_side': target, 'positions': pos, 'token_count': len(pos),
-                            'module': f'{path}.blocks.{layer}', 'all_channels': True,
-                            'replacement_delta_norm_float32': delta,
-                            'random_seed': seed if condition=='random' else None,
+                            'module': ', '.join(p['module'] for p in patches), 'all_channels': True,
+                            'replacement_delta_norm_float32': sum(p['replacement_delta_norm_float32']**2 for p in patches)**.5,
+                            'delta_reference': 'clean recipient at each layer; aggregate is root sum of squares, not live grouped perturbation',
+                            'random_seed': patches[0]['random_seed'] if len(patches)==1 else None,
                             'answers': answers, 'parsed_colors': [color(a) for a in answers],
                             'target_transferred': color(answers[target])==pairs['color_swap']['objects'][target]['color'],
                             'neighbor_preserved': color(answers[1-target])==rec['objects'][1-target]['color'],
@@ -141,14 +165,14 @@ def vision_pilot(dataset, output, config, reviewed=False):
                 store.export()
         results = store.export()
         totals = []
-        for layer in layers:
+        for set_name, layer_set in sets:
             for condition in ('target','random','other_object','background'):
-                rows = [r for r in results if r.get('layer')==layer and r['condition']==condition]
-                totals.append({'layer': layer,'condition': condition,'n':len(rows),
+                rows = [r for r in results if r.get('patch_set')==set_name and r['condition']==condition]
+                totals.append({'patch_set': set_name, 'layer_set': layer_set,'condition': condition,'n':len(rows),
                     'specific_transfers':sum(r['target_transferred'] and r['neighbor_preserved'] for r in rows)})
         atomic_json(out/'summary.json', {'counts': totals, 'interpretation': 'Exploratory spatial color transfer. Repeated sides/layouts are not independent scenes; shape binding untested.'})
         from .vision_report import report
-        report(out)
+        report(out, root)
         status = {'state': 'complete', 'rows': len(results)}
     except BaseException as exc:
         store.export()

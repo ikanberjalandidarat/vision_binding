@@ -1,0 +1,106 @@
+<style>
+.vx{margin:32px 0;padding:24px;background:#f6f8fc;border:1px solid #dce4ef;border-radius:16px}.vx h2{margin-top:0}.vx .flow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.vx .box{background:white;border:1px solid #ccd6e5;border-radius:10px;padding:14px;flex:1;min-width:135px}.vx .hot{border:2px solid #e68a21;background:#fff5e7}.vx .small{font-size:14px;color:#526176}.vx select{padding:8px;margin:5px 16px 5px 0;font-size:16px}.vx svg{width:100%;height:auto}.vx .checks{display:grid;grid-template-columns:1fr 1fr;gap:16px}.vx .pass{border-left:6px solid #2c8b59}.vx .fail{border-left:6px solid #c24848}.vx .legend span{display:inline-block;padding:8px}.vx .readout{font-size:21px;font-weight:650}.vx code{white-space:normal}.vx .layer{display:inline-block;text-align:center;width:27px;margin:2px;padding:7px 0;background:#e3e8ef;border-radius:4px}.vx .sampled{background:#ffd7a1}.vx .active{outline:3px solid #ab5600}.vx details{margin:14px 0}.vx .matrix{font-family:monospace;line-height:1.8;background:white;padding:14px;border:1px solid #cad5e4}.vx .matrix strong{color:#a25200} @media(max-width:700px){.vx .checks{grid-template-columns:1fr}}
+</style>
+<section class="vx">
+<h2>Where the intervention happens</h2>
+<p>The image goes through a vision transformer before its visual representations reach the language decoder. The question joins at the decoder. All model weights remain fixed; we edit intermediate activations during inference.</p>
+<div class="flow">
+<div class="box">Minecraft image<br><span class="small" id="vx-grid"></span></div><b>→</b>
+<div class="box">Patch embedding<br><span class="small" id="vx-width"></span></div><b>→</b>
+<div class="box hot">Vision blocks 0–31<br><b>Patch selected block outputs</b></div><b>→</b>
+<div class="box">Visual merger<br><span class="small" id="vx-merge"></span></div><b>→</b>
+<div class="box">Language decoder<br>+ question → answer</div>
+</div>
+<p class="small">Dimensions below come from this run’s model metadata. The architecture drawing is schematic, not an activation heatmap.</p>
+<h3>Inside each vision block</h3>
+<div class="flow"><div class="box">Input H</div><b>→</b><div class="box">LayerNorm → self-attention<br>Q, K, V → attention output<br><b>+ input residual</b></div><b>→</b><div class="box">LayerNorm → MLP<br><b>+ residual</b></div><b>→</b><div class="box hot">Block output H′<br><b>Our replacement hook</b></div></div>
+<p>We replace complete selected rows of H′, after both residual additions. Q/K/V exist inside attention, but this experiment does not edit them individually. Later attention can spread the effect beyond the selected positions.</p>
+<p class="small">Architecture reference: <a href="https://github.com/huggingface/transformers/blob/v4.55.0/src/transformers/models/qwen2_vl/modeling_qwen2_vl.py">pinned Transformers Qwen2-VL implementation</a>.</p>
+<h3>Layer selection: initial pilot versus expanded sweep</h3>
+<p>The initial pilot used 0, 7, 15, 23 and 31, chosen in advance as a coarse depth sweep: the first block, roughly quarter-depth, midpoint, three-quarter-depth, and final block of this 32-block vision encoder. Five sites make the first pilot manageable. We did not identify these as special “color layers” or select them because they worked. Layer numbers are zero-based: layer 0 is the first block’s output; layer 31 is the last output before the merger.</p>
+<div id="vx-layers" aria-label="32 vision layers"></div>
+<p class="small">Orange = tested layers; outlined = currently selected trial. A single-layer trial edits one output. A group (shown with + signs) edits every listed output in the same forward pass, using that layer’s clean donor states. The expanded sweep tests all 32 individual layers and eight four-layer groups. Untested layers are not known to be ineffective.</p>
+</section>
+<section class="vx" id="vx-viewer">
+<h2>Explore one recorded intervention</h2>
+<label>Family <select id="vx-family"></select></label>
+<label>Vision layer <select id="vx-layer"></select></label>
+<label>Target side <select id="vx-target"><option value="0">Left (target0)</option><option value="1">Right (target1)</option></select></label>
+<label>Condition <select id="vx-condition"><option value="target">target — copy at target</option><option value="other_object">other_object — copy at neighbor</option><option value="background">background — copy away from objects</option><option value="self">self — copy recipient back</option><option value="random">random — add matched noise</option></select></label>
+<p><b>Target = which object we evaluate for transfer.</b> <b>Condition = what intervention we perform.</b> The condition is an experimental operation, not an object in the picture. In a background trial, the target is still an object, even though we patch background tokens.</p>
+<div class="legend"><span style="color:#00798a">▣ Cyan outline: evaluated target</span><span style="color:#657385">▣ Dashed gray: neighbor</span><span style="color:#ae5b00">▦ Orange cells: actual edited token positions</span></div>
+<div id="vx-images"></div>
+<p id="vx-operation"></p>
+<div class="flow">
+<div class="box matrix" id="vx-source"></div><b style="color:#bd6b0b">→ replace selected rows →</b><div class="box matrix" id="vx-dest"></div>
+</div>
+<p class="small">Matrix rows are symbolic: vector values were not saved. The token positions and counts are actual recorded values. Images stay unchanged during the model run; orange cells indicate activation edits, not repainted pixels or measured attention.</p>
+<h3>Read both answers after the same intervention</h3>
+<p>“Left answer” comes from asking “What color is the leftmost structure? Answer with color only.” “Right answer” asks about the rightmost structure. These are two separate forward passes with the same patch, not one two-part response.</p>
+<div class="checks"><div class="box"><div>LEFT answer</div><div class="readout" id="vx-left"></div></div><div class="box"><div>RIGHT answer</div><div class="readout" id="vx-right"></div></div></div>
+<div class="checks" style="margin-top:16px"><div class="box" id="vx-transfer"></div><div class="box" id="vx-preserve"></div></div>
+<p id="vx-combined"></p>
+<details><summary>Exact recorded token indices and hook</summary><p id="vx-hook"></p><code id="vx-indices"></code></details>
+</section>
+<section class="vx">
+<h2>What are patch-background-target0 and patch-background-target1?</h2>
+<p><b>target0 = evaluate the left object; target1 = evaluate the right object.</b> For each, the runner randomly selects background positions equal in number to that target’s object tokens. It excludes both object bounding boxes (with a margin) and the crosshair-cover region. It copies donor background states at those same positions into the recipient.</p>
+<p>The two filenames identify different control sets, not two background objects. Their token counts can differ because the two objects occupy different areas. The seed is fixed per target, so each target’s background set is reused across layers. Select <b>background</b> above, then switch target side to see exactly where each set lies.</p>
+<p>Even with visually identical background pixels, later donor background states can contain information about the differently colored objects through attention. This control asks whether copying away from the object produces the target-color effect. Background controls match token count, not perturbation magnitude. For grouped random controls, magnitude is referenced to each clean recipient layer, not the already-modified live trajectory. Later overwrites may erase earlier effects; stronger group effects alone do not prove cooperation. Other-object controls use the neighbor’s natural token count. Random controls match target-patch delta magnitude in float32 before BF16 rounding.</p>
+<h3>Reading the results table</h3>
+<table><tr><th>Column</th><th>Meaning</th></tr>
+<tr><td>Vision layer</td><td>Zero-based vision block whose output was edited; one block for singles; all listed blocks in one forward pass for groups.</td></tr>
+<tr><td>Condition</td><td>The intervention rule: target, other_object, background, self, or random.</td></tr>
+<tr><td>Target side</td><td>The object evaluated for donor-color transfer, even if the condition edits somewhere else.</td></tr>
+<tr><td>Tokens</td><td>Number of edited spatial hidden-state rows. Not words, channels, or attention heads.</td></tr>
+<tr><td>Left / Right answer</td><td>Actual generated text for each fixed side question after the intervention.</td></tr>
+<tr><td>Target transferred</td><td>Does the parsed target-side answer equal the donor target’s color?</td></tr>
+<tr><td>Neighbor preserved</td><td>Does the parsed other-side answer equal the recipient neighbor’s original color?</td></tr></table>
+<p>Both flags must be true for the “specific transfer” count. False does not automatically mean a broken control: a self-patch is expected to preserve the original answers, and an other-object patch can change the neighbor instead. Neither flag measures shape preservation, object identity, or a reconstructed image.</p>
+<p><b>Earlier Q pilot:</b> decoder final-prompt-token Q vectors, layers 21–27 together, testing answer selection. <b>This pilot:</b> spatial vision-block hidden states, individual layers or explicitly listed groups, testing color transfer with fixed side questions. Results from one scene are exploratory; repeated sides/layers are not independent replications.</p>
+</section>
+<script type="application/json" id="vx-data">__TRIAL_DATA__</script>
+<script>
+(()=>{
+const D=JSON.parse(document.getElementById('vx-data').textContent), $=id=>document.getElementById('vx-'+id);
+const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function options(id,values){$(id).innerHTML=values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}
+options('family',Object.keys(D.families)); options('layer',D.layers);
+$('layer').value=String(D.layers.includes(15)?15:D.layers[0]);
+function cells(t){const [,h,w]=t.grid_thw[0],m=t.merge,out=[];for(let r=0;r<h;r+=m)for(let c=0;c<w;c+=m)for(let dr=0;dr<m;dr++)for(let dc=0;dc<m;dc++)out.push([r+dr,c+dc]);return out}
+function panel(f,ctx,r,title,patch){
+ const frame=f[ctx], t=f.tokens, [,h,w]=t.grid_thw[0], coords=cells(t);
+ let s=`<svg viewBox="0 0 448 208" role="img" aria-label="${esc(title)}"><text x="4" y="19" font-size="14" fill="#23344a">${esc(title)}</text><image href="${frame.image}" x="0" y="30" width="448" height="155"/>`;
+ if(patch) for(const i of r.positions){const [y,x]=coords[i];s+=`<rect x="${x*448/w}" y="${30+y*155/h}" width="${448/w}" height="${155/h}" fill="#ed9828" fill-opacity=".3" stroke="#fdb83a" stroke-width=".65"/>`}
+ frame.objects.forEach((o,i)=>{const [x0,y0,x1,y1]=o.bbox,target=i===r.target_side;s+=`<rect x="${x0-2}" y="${y0+28}" width="${x1-x0+4}" height="${y1-y0+4}" fill="none" stroke="${target?'#38e2f2':'#ddd'}" stroke-width="2" ${target?'':'stroke-dasharray="4 3"'}/><text x="${x0}" y="201" fill="${target?'#00798a':'#536071'}" font-size="12">${target?'TARGET':'neighbor'} · ${esc(o.color)}</text>`});return s+'</svg>';
+}
+function render(){
+ const r=D.rows.find(r=>r.family===$('family').value&&String(r.layer)===$('layer').value&&r.target_side===Number($('target').value)&&r.condition===$('condition').value);
+ if(!r){$('operation').textContent='No recorded trial for this selection.';return}
+ const f=D.families[r.family],t=f.tokens,[,h,w]=t.grid_thw[0],target=r.target_side,neighbor=1-target,side=['left','right'], rec=f.recipient.objects,don=f.color_swap.objects,V=D.vision;
+ $('grid').textContent=`Actual patch grid: ${h} × ${w} = ${h*w} tokens`;
+ $('width').textContent=`${V.embed_dim??'unknown'} components per token; ${V.num_heads??'unknown'} attention heads per vision block`;
+ $('merge').textContent=`${t.merge} × ${t.merge} grouping → ${h*w/(t.merge*t.merge)} visual tokens, width ${V.hidden_size??'unknown'}`;
+ $('layers').innerHTML=Array.from({length:V.depth||32},(_,i)=>`<span class="layer ${D.rows.some(v=>v.layer_set.includes(i))?'sampled':''} ${r.layer_set.includes(i)?'active':''}">${i}</span>`).join('');
+ const source=r.condition==='self'?'recipient':'color_swap';
+ $('images').innerHTML=`<div class="flow"><div style="flex:1;min-width:260px">${panel(f,'recipient',r,'1 · Original recipient input',false)}</div><div style="flex:1;min-width:260px">${panel(f,source,r,r.condition==='self'?'2 · Self-source recipient':r.condition==='random'?'2 · Donor sets noise magnitude':'2 · Donor source positions',true)}</div><div style="flex:1;min-width:260px">${panel(f,'recipient',r,'3 · Recipient: activation edit locations',true)}</div></div>`;
+ const op={target:'Copy donor states at the target object’s positions.',other_object:'Copy donor states at the NEIGHBOR’s positions; the evaluated target stays the same.',background:'Copy donor states at sampled BACKGROUND positions; the evaluated target stays the same.',self:'Copy recipient states back into the target positions (identity control).',random:'Add seeded random noise at target positions; match the donor-minus-recipient delta norm. Donor vectors are not copied.'}[r.condition];
+ $('operation').textContent=`Layer ${r.layer} · target = ${side[target]} ${rec[target].type} · condition = ${r.condition}. ${op}`;
+ const formula=r.condition==='random'?'recipient[S, :] + matched noise':r.condition==='self'?'recipient[S, :]':'donor[S, :]';
+ $('source').innerHTML=`Replacement source<br><strong>${esc(formula)}</strong><br>${r.token_count} rows × ${V.embed_dim??'?'} components`;
+ $('dest').innerHTML=`Recipient block output(s) ${r.layer}<br><strong>H′[S, :] ← replacement</strong><br>Other ${h*w-r.token_count} rows unchanged at this hook`;
+ $('left').textContent=`“${r.answers[0]}” · ${target===0?'evaluated target':'neighbor'}`;
+ $('right').textContent=`“${r.answers[1]}” · ${target===1?'evaluated target':'neighbor'}`;
+ $('transfer').className='box '+(r.target_transferred?'pass':'fail');
+ $('transfer').innerHTML=`<b>Target transferred: ${r.target_transferred?'TRUE':'FALSE'}</b><p>${side[target]} answer “${esc(r.answers[target])}” compared with donor ${side[target]} color <b>${esc(don[target].color)}</b>.</p><span class="small">Original recipient target color: ${esc(rec[target].color)}.</span>`;
+ $('preserve').className='box '+(r.neighbor_preserved?'pass':'fail');
+ $('preserve').innerHTML=`<b>Neighbor preserved: ${r.neighbor_preserved?'TRUE':'FALSE'}</b><p>${side[neighbor]} answer “${esc(r.answers[neighbor])}” compared with original recipient ${side[neighbor]} color <b>${esc(rec[neighbor].color)}</b>.</p>`;
+ $('combined').textContent=r.target_transferred&&r.neighbor_preserved?'Both checks pass: counted as a specific color transfer.':'Not counted as a specific color transfer. Interpret this alongside the selected control condition.';
+ $('hook').textContent=`${r.module} output; ${r.token_count} token rows; all channels. Root-sum-square delta norm relative to clean recipient states: ${r.replacement_delta_norm_float32.toFixed(3)}.`;
+ $('indices').textContent=JSON.stringify(r.positions);
+}
+for(const name of ['family','layer','target','condition'])$(name).addEventListener('change',render);
+window.visionSelectTrial=key=>{const r=D.rows.find(r=>r.trial_key===key);if(!r)return;$('family').value=r.family;$('layer').value=String(r.layer);$('target').value=String(r.target_side);$('condition').value=r.condition;render();$('viewer').scrollIntoView({behavior:'smooth'})};
+render();
+})();
+</script>

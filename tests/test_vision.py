@@ -111,11 +111,13 @@ def test_runner_controls_checkpoint_resume_and_report(tmp_path, monkeypatch):
         def __init__(self):
             super().__init__()
             self.visual=torch.nn.Module()
-            self.visual.blocks=torch.nn.ModuleList([torch.nn.Identity()])
+            self.visual.blocks=torch.nn.ModuleList([torch.nn.Identity(), torch.nn.Identity()])
             self.visual.merger=torch.nn.Identity()
             self.visual.spatial_merge_size=2
         def forward(self, pixels, **kwargs):
-            return self.visual.blocks[0](pixels)
+            for block in self.visual.blocks:
+                pixels = block(pixels)
+            return pixels
     class Fake:
         calls=0
         def __init__(self,config):
@@ -162,6 +164,17 @@ def test_runner_controls_checkpoint_resume_and_report(tmp_path, monkeypatch):
     with pytest.raises(ValueError,match='Resume refused'):
         vision_pilot(root,out,bad_config,True)
 
+    grouped=tmp_path/'grouped'
+    group_config={**config, 'vision_layers': [], 'vision_layer_groups': [[0,1]]}
+    vision_pilot(root,grouped,group_config,True)
+    group_rows=json.loads((grouped/'families'/'f0000-group00-01.json').read_text())
+    assert len(group_rows)==10
+    assert all(r['layer_set']==[0,1] and r['layer'] is None and len(r['patches'])==2 for r in group_rows)
+    assert '0 + 1' in (grouped/'report.html').read_text()
+    before=Fake.calls
+    vision_pilot(root,grouped,group_config,True)
+    assert Fake.calls==before
+
     monkeypatch.setattr(Fake, 'answer', lambda self, inp: 'invalid')
     failed=tmp_path/'failed'
     with pytest.raises(RuntimeError,match='clean color gate failed'):
@@ -169,3 +182,36 @@ def test_runner_controls_checkpoint_resume_and_report(tmp_path, monkeypatch):
     assert json.loads((failed/'status.json').read_text())['state']=='error'
     assert not list((failed/'families').glob('*.json'))
     assert len(json.loads((failed/'diagnostics'/'f0000-baseline.json').read_text()))==8
+
+
+def test_patch_set_validation():
+    from mc_binding.vision_pilot import patch_sets
+    sets=patch_sets({'vision_layers':[0,1], 'vision_layer_groups':[[0,1],[2,3]]},4)
+    assert sets==[('layer00',[0]),('layer01',[1]),('group00-01',[0,1]),('group02-03',[2,3])]
+    for config in ({'vision_layers':[0,0]}, {'vision_layers':[4]},
+                   {'vision_layer_groups':[[1,0]]}, {'vision_layer_groups':[[]]},
+                   {'vision_layers':[0], 'vision_layer_groups':[[0]]}):
+        with pytest.raises(ValueError): patch_sets(config,4)
+
+
+def test_simultaneous_hooks_use_each_layers_donor_and_cleanup():
+    from contextlib import ExitStack
+    blocks=torch.nn.Sequential(torch.nn.Identity(),torch.nn.Identity())
+    x=torch.zeros(3,2)
+    seen=[]
+    observer=blocks[1].register_forward_pre_hook(lambda module,args:seen.append(args[0].clone()))
+    with ExitStack() as stack:
+        stack.enter_context(patch_block(blocks[0],[1],torch.full((1,2),10.),3))
+        stack.enter_context(patch_block(blocks[1],[1],torch.full((1,2),20.),3))
+        y=blocks(x)
+    observer.remove()
+    assert torch.equal(seen[0][1],torch.full((2,),10.))
+    assert torch.equal(y[1],torch.full((2,),20.))
+    assert torch.equal(y[[0,2]],x[[0,2]])
+    assert all(not b._forward_hooks for b in blocks)
+    with pytest.raises(ValueError):
+        with ExitStack() as stack:
+            stack.enter_context(patch_block(blocks[0],[1],torch.ones(1,2),3))
+            stack.enter_context(patch_block(blocks[1],[1],torch.ones(1,3),3))
+            blocks(x)
+    assert all(not b._forward_hooks for b in blocks)
