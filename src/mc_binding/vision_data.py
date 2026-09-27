@@ -9,8 +9,29 @@ from .backends.minestudio_smoke import verify_pose
 from .io import file_hash
 
 
-def swap_contexts(index, seed):
+def swap_contexts(index, seed, scene_set="original"):
+    if scene_set not in ("original", "depth_spacing_v1"):
+        raise ValueError("Unknown scene set")
     originals = pilot_contexts(index, seed)[:3]
+    if scene_set == 'depth_spacing_v1':
+        # Held-out geometry relative to original z=12 spacing; camera stays fixed.
+        dz = 1 + index
+        def move(x,y,z):
+            return [x + (1 if x>0 else -1), y, z+dz]
+        for row in originals:
+            row['scene_set'] = scene_set
+            for obj in row['objects']:
+                obj['blocks'] = [move(*p) for p in obj['blocks']]
+                obj['bounds'] = [[min(p[k] for p in obj['blocks']) for k in range(3)],
+                                 [max(p[k] for p in obj['blocks'])+1 for k in range(3)]]
+            commands=[]
+            for command in row['commands']:
+                parts=command.split()
+                if parts[0]=='/setblock':
+                    xyz=move(*map(int,parts[1:4]))
+                    command='/setblock '+' '.join(map(str,xyz))+' '+' '.join(parts[4:])
+                commands.append(command)
+            row['commands']=commands
     donor = copy.deepcopy(originals)
     for row in donor:
         row['context'] = 'color_swap'

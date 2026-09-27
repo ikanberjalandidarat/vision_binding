@@ -39,7 +39,7 @@
 <p>“Left answer” comes from asking “What color is the leftmost structure? Answer with color only.” “Right answer” asks about the rightmost structure. These are two separate forward passes with the same patch, not one two-part response.</p>
 <div class="checks"><div class="box"><div>LEFT answer</div><div class="readout" id="vx-left"></div></div><div class="box"><div>RIGHT answer</div><div class="readout" id="vx-right"></div></div></div>
 <div class="checks" style="margin-top:16px"><div class="box" id="vx-transfer"></div><div class="box" id="vx-preserve"></div></div>
-<p id="vx-combined"></p>
+<p id="vx-combined"></p><div id="vx-scores"></div>
 <details><summary>Exact recorded token indices and hook</summary><p id="vx-hook"></p><code id="vx-indices"></code></details>
 </section>
 <section class="vx">
@@ -88,7 +88,7 @@ function render(){
  $('operation').textContent=`Layer ${r.layer} · target = ${side[target]} ${rec[target].type} · condition = ${r.condition}. ${op}`;
  const formula=r.condition==='random'?'recipient[S, :] + matched noise':r.condition==='self'?'recipient[S, :]':'donor[S, :]';
  $('source').innerHTML=`Replacement source<br><strong>${esc(formula)}</strong><br>${r.token_count} rows × ${V.embed_dim??'?'} components`;
- $('dest').innerHTML=`Recipient block output(s) ${r.layer}<br><strong>H′[S, :] ← replacement</strong><br>Other ${h*w-r.token_count} rows unchanged at this hook`;
+ $('dest').innerHTML=`Recipient ${D.kind==='residual'?'block output':D.kind.toUpperCase()+' projection'} at layer(s) ${r.layer}<br><strong>${D.kind==='residual'?'H′':D.kind.toUpperCase()}[S, :] ← replacement</strong><br>Other ${h*w-r.token_count} rows unchanged at this hook`;
  $('left').textContent=`“${r.answers[0]}” · ${target===0?'evaluated target':'neighbor'}`;
  $('right').textContent=`“${r.answers[1]}” · ${target===1?'evaluated target':'neighbor'}`;
  $('transfer').className='box '+(r.target_transferred?'pass':'fail');
@@ -96,6 +96,9 @@ function render(){
  $('preserve').className='box '+(r.neighbor_preserved?'pass':'fail');
  $('preserve').innerHTML=`<b>Neighbor preserved: ${r.neighbor_preserved?'TRUE':'FALSE'}</b><p>${side[neighbor]} answer “${esc(r.answers[neighbor])}” compared with original recipient ${side[neighbor]} color <b>${esc(rec[neighbor].color)}</b>.</p>`;
  $('combined').textContent=r.target_transferred&&r.neighbor_preserved?'Both checks pass: counted as a specific color transfer.':'Not counted as a specific color transfer. Interpret this alongside the selected control condition.';
+ if(r.color_scores?.length){
+   $('scores').innerHTML='<h3>How much probability goes to each color?</h3><p>First answer token only; fixed spelling variants. These bars do not sum to 100% because other tokens are possible.</p>'+r.color_scores.map((s,i)=>`<div class="box"><b>${side[i]} answer score</b><p>Original ${esc(s.original_color)}: <meter min="0" max="1" value="${s.probability[s.original_color]}"></meter> ${(100*s.probability[s.original_color]).toFixed(2)}%<br>Donor ${esc(s.donor_color)}: <meter min="0" max="1" value="${s.probability[s.donor_color]}"></meter> ${(100*s.probability[s.donor_color]).toFixed(2)}%</p><p>Donor-minus-original log odds: ${s.donor_minus_original_log_odds.toFixed(3)}; change from clean: ${s.change_from_clean.toFixed(3)}. Positive change means the patch moved preference toward the donor color.</p></div>`).join('');
+ }else $('scores').textContent='Answer probabilities were not recorded in this older run. They cannot be reconstructed from its generated answers.';
  $('hook').textContent=`${r.module} output; ${r.token_count} token rows; all channels. Root-sum-square delta norm relative to clean recipient states: ${r.replacement_delta_norm_float32.toFixed(3)}.`;
  $('indices').textContent=JSON.stringify(r.positions);
 }

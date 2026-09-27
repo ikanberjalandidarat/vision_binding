@@ -41,6 +41,12 @@ def explainer(root, rows, dataset=None):
                        'layer': row['layer'] if len(group)==1 else ' + '.join(map(str, group))})
     payload = {'families': families, 'rows': trials,
                'vision': model.get('model_config', {}).get('vision_config', {}),
+               'kind': manifest['config'].get('vision_patch_kind','residual'),
                'layers': list(dict.fromkeys(r['layer'] for r in trials))}
     template = Path(__file__).with_name('vision_explainer.html').read_text()
+    kind = manifest['config'].get('vision_patch_kind', 'residual')
+    if kind != 'residual':
+        template = template.replace('We replace complete selected rows of H′, after both residual additions. Q/K/V exist inside attention, but this experiment does not edit them individually.', f'This run replaces only the {kind.upper()} slice of the fused attention projection, before reshape and rotary position encoding. The residual-output diagram above describes the earlier sweep; the hook for this run is inside self-attention, after its QKV linear projection. The other two projection slices are unchanged at the hook.')
+        template = template.replace('Block output H′<br><b>Our replacement hook</b>', f'Block output H′<br><b>This run hooks {kind.upper()} inside attention</b>')
+        template = template.replace('Patch selected block outputs', f'Patch {kind.upper()} projection slice')
     return template.replace('__TRIAL_DATA__', json.dumps(payload).replace('<','\\u003c'))

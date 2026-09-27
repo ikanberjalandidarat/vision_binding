@@ -17,14 +17,14 @@ def vision_backbone(model):
 
 
 @contextmanager
-def capture_blocks(blocks, layers, values):
+def capture_blocks(blocks, layers, values, kind="residual"):
     handles = []
     try:
         for index in layers:
             def save(module, args, out, index=index):
                 if out.ndim != 2 or not torch.isfinite(out).all() or index in values:
                     raise RuntimeError('Expected one finite 2D vision-block output')
-                values[index] = out.detach().float().cpu().clone()
+                values[index] = out[:, projection_slice(out.shape[1], kind)].detach().float().cpu().clone()
             handles.append(blocks[index].register_forward_hook(save))
         yield
         if set(values) != set(layers):
@@ -35,7 +35,7 @@ def capture_blocks(blocks, layers, values):
 
 
 @contextmanager
-def patch_block(block, positions, value, expected_tokens):
+def patch_block(block, positions, value, expected_tokens, kind="residual"):
     fired = 0
     if not positions or len(set(positions)) != len(positions) or min(positions)<0 or max(positions)>=expected_tokens:
         raise ValueError('Invalid vision token positions')
@@ -44,13 +44,15 @@ def patch_block(block, positions, value, expected_tokens):
         fired += 1
         if fired != 1 or out.ndim != 2 or out.shape[0] != expected_tokens:
             raise RuntimeError('Expected exactly one full-image vision forward')
-        if value.shape != (len(positions), out.shape[1]) or not torch.isfinite(value).all():
+        selected = projection_slice(out.shape[1], kind)
+        width = out[:, selected].shape[1]
+        if value.shape != (len(positions), width) or not torch.isfinite(value).all():
             raise ValueError('Invalid replacement tensor')
         result = out.clone()
         cast = value.to(device=out.device, dtype=out.dtype)
         if not torch.isfinite(cast).all():
             raise RuntimeError('Replacement overflow after cast')
-        result[positions] = cast
+        result[positions, selected] = cast
         return result
     handle = block.register_forward_hook(edit)
     try:
@@ -69,3 +71,13 @@ def replacement(recipient, donor, positions, condition, seed):
         noise = torch.randn(original.shape, generator=torch.Generator().manual_seed(seed))
         value = original + noise * ((value-original).norm()/noise.norm().clamp_min(1e-12))
     return value, float((value-original).norm())
+
+
+def projection_slice(width, kind):
+    if kind == 'residual':
+        return slice(0, width)
+    if kind not in ('q','k','v') or width % 3:
+        raise ValueError('Expected fused vision QKV width divisible by three')
+    d = width // 3
+    start = {'q':0,'k':1,'v':2}[kind]*d
+    return slice(start, start+d)

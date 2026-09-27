@@ -135,6 +135,9 @@ def test_runner_controls_checkpoint_resume_and_report(tmp_path, monkeypatch):
                 elif rgb[2]>rgb[0]: colors.append('blue')
             answer=colors[0] if 'rightmost' not in prompt else colors[-1]
             return {'pixels':pixels,'answer':answer,'image_grid_thw':torch.tensor([[1,16,32]])}
+        def color_scores(self,inp):
+            self.model(**inp)
+            return {'method':'test_double','log_probability':{'red':-1.,'blue':-1.},'probability':{'red':.3679,'blue':.3679}}
         def answer(self,inp):
             Fake.calls+=1
             self.model(**inp)
@@ -165,12 +168,14 @@ def test_runner_controls_checkpoint_resume_and_report(tmp_path, monkeypatch):
         vision_pilot(root,out,bad_config,True)
 
     grouped=tmp_path/'grouped'
-    group_config={**config, 'vision_layers': [], 'vision_layer_groups': [[0,1]]}
+    group_config={**config, 'vision_layers': [], 'vision_layer_groups': [[0,1]], 'record_color_scores': True}
     vision_pilot(root,grouped,group_config,True)
     group_rows=json.loads((grouped/'families'/'f0000-group00-01.json').read_text())
     assert len(group_rows)==10
     assert all(r['layer_set']==[0,1] and r['layer'] is None and len(r['patches'])==2 for r in group_rows)
     assert '0 + 1' in (grouped/'report.html').read_text()
+    assert all(len(r['color_scores'])==2 for r in group_rows)
+    assert 'Answer-score changes' in (grouped/'report.html').read_text()
     before=Fake.calls
     vision_pilot(root,grouped,group_config,True)
     assert Fake.calls==before
@@ -215,3 +220,40 @@ def test_simultaneous_hooks_use_each_layers_donor_and_cleanup():
             stack.enter_context(patch_block(blocks[1],[1],torch.ones(1,3),3))
             blocks(x)
     assert all(not b._forward_hooks for b in blocks)
+
+
+def test_qkv_slice_only_changes_requested_projection():
+    from mc_binding.vision_hooks import projection_slice
+    x=torch.arange(36,dtype=torch.float32).reshape(3,12)
+    for kind,sl in [('q',slice(0,4)),('k',slice(4,8)),('v',slice(8,12))]:
+        block=torch.nn.Identity();values={}
+        with capture_blocks([block],[0],values,kind): block(x)
+        assert torch.equal(values[0],x[:,sl])
+        with patch_block(block,[1],torch.full((1,4),-1.),3,kind): y=block(x)
+        expected=x.clone();expected[1,sl]=-1
+        assert torch.equal(y,expected)
+        assert not block._forward_hooks
+
+
+def test_color_scores_probability_mass_and_margin():
+    from mc_binding.vision_scores import score_colors, compare_scores
+    class Tokenizer:
+        def encode(self,s,add_special_tokens=False):return [{'red':0,'Red':1,' red':2,' Red':3,'blue':4,'Blue':5,' blue':6,' Blue':7}[s]]
+    clean=score_colors(torch.zeros(9),Tokenizer())
+    patched=score_colors(torch.tensor([0.,0,0,0,2,2,2,2,0]),Tokenizer())
+    result=compare_scores(patched,clean,'red','blue')
+    assert result['donor_minus_original_log_odds']==pytest.approx(2.)
+    assert result['change_from_clean']==pytest.approx(2.)
+    assert clean['probability']['red']==pytest.approx(4/9)
+    assert sum(patched['probability'].values())<1
+
+
+def test_new_scene_geometry_matches_donor_and_changes_original():
+    for i in range(4):
+        old=swap_contexts(i,731);new=swap_contexts(i,731,'depth_spacing_v1')
+        assert new[0]['objects'][0]['blocks']!=old[0]['objects'][0]['blocks']
+        for a,b in zip(new[:3],new[3:]):
+            assert a['requested_camera']==b['requested_camera']
+            for x,y in zip(a['objects'],b['objects']):assert x['blocks']==y['blocks']
+            cmd={tuple(map(int,s.split()[1:4])) for s in a['commands'] if s.startswith('/setblock ')}
+            assert cmd=={tuple(p) for o in a['objects'] for p in o['blocks']}

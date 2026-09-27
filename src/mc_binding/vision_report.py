@@ -13,11 +13,15 @@ def report(output, dataset=None):
         '<style>body{font:16px system-ui;max-width:1100px;margin:40px auto;padding:20px;color:#203044}table{border-collapse:collapse}td,th{padding:9px;border:1px solid #ccc}img{max-width:100%}figure{display:inline-block;margin:10px}code{background:#eee;padding:5px}</style>',
         '<h1>Spatial patches inside the vision transformer</h1>',
         '<p>Recipient image → vision blocks → visual merger → language decoder → color answer.</p>',
-        '<p>At the selected vision block(s), copy donor hidden-state rows into recipient spatial-token rows, across all channels. All weights remain frozen. Single-layer trials edit one block; grouped trials edit every listed block in the same forward pass. The question stays fixed between clean and patched runs.</p>',
+        '<p>At the selected vision block(s), copy donor rows into recipient spatial-token rows, across all channels of the chosen representation (block output or Q/K/V slice). All weights remain frozen. Single-layer trials edit one block; grouped trials edit every listed block in the same forward pass. The question stays fixed between clean and patched runs.</p>',
         '<p>Orange cells show selected spatial tokens, not attention strengths. Masks use reviewed red/blue color evidence with ≥50% patch coverage; boundary tokens can include background. Both objects are queried in separate forward passes with the identical intervention.</p>',
         '<p>Target: donor rows at the target object. Other object: donor rows at the neighbor. Background: equal-count spatial control. Random: target-row noise matched to donor-delta norm before BF16 casting. Self: recipient rows copied back exactly.</p>',
         '<p>Exploratory fixed-camera color transfer; shape binding and camera invariance are not measured. Repeated sides and layouts are not independent scenes. The other-object control may contain a different token count.</p>']
+    if (root/'analysis'/'explained.html').exists():
+        body.append('<p><a href="analysis/explained.html">Open the ELI5 picture guide and layer graphs</a></p>')
     from .vision_explainer import explainer
+    kind=json.loads((root/'manifest.json').read_text())['config'].get('vision_patch_kind','residual')
+    body.append('<p><b>Intervention for this run: '+esc(kind.upper())+'</b>. For Q/K/V runs, only the named projection slice is replaced before rotary position encoding; the earlier residual-output sweep is a different intervention.</p>')
     body.append(explainer(root, rows, dataset))
     body.append('<h2>Comparison across patch sets</h2><p>Cells show target transferred AND neighbor preserved / recorded trials. Counts pool repeated layouts and sides, not independent scenes. Compare groups to their member layers; larger groups perform more edits.</p>')
     body.append('<table><tr><th>Vision layer(s)</th><th>Target copy</th><th>Random</th><th>Other object</th><th>Background</th></tr>')
@@ -31,6 +35,13 @@ def report(output, dataset=None):
             cells.append(f'<td>{successes} / {n}<br><meter min="0" max="{max(1,n)}" value="{successes}">{successes}/{n}</meter></td>')
         body.append('<tr>'+''.join(cells)+'</tr>')
     body.append('</table>')
+    scored=[r for r in rows if r.get('color_scores') and 'family' in r]
+    if scored:
+        body.append('<h2>Answer-score changes</h2><p>First-answer-token probability mass over fixed red/Red/leading-space and blue/Blue/leading-space variants. These are not full-answer probabilities or normalized two-choice confidence. Positive donor-minus-original log odds favors donor color; change is relative to the clean recipient. Both side scores are saved in JSON.</p><table><tr><th>Trial</th><th>Target donor log odds</th><th>Change from clean</th><th>Neighbor change toward its donor color</th></tr>')
+        for r in scored:
+            t=r['target_side'];a=r['color_scores'][t];b=r['color_scores'][1-t]
+            body.append('<tr><td>'+esc(r['trial_key'])+'</td><td>'+format(a['donor_minus_original_log_odds'],'.3f')+'</td><td>'+format(a['change_from_clean'],'.3f')+'</td><td>'+format(b['change_from_clean'],'.3f')+'</td></tr>')
+        body.append('</table>')
     body.append('<h2>Recorded trial table</h2><p>Click a condition to display that trial in the interactive diagram.</p>')
     for family in sorted({r['family'] for r in rows if 'family' in r}):
         body.append('<h2>'+esc(family)+'</h2>')

@@ -8,6 +8,7 @@ from PIL import Image
 from .vision_data import load_swaps, regions, overlay, object_mask
 from .vision_hooks import vision_backbone, capture_blocks, patch_block, replacement
 from .q_pilot import question
+from .vision_scores import compare_scores
 from .scoring import parse
 from .io import RunStore, atomic_json, digest, source_hash, environment
 
@@ -47,10 +48,15 @@ def vision_pilot(dataset, output, config, reviewed=False):
     from .models.qwen import Qwen
     model = Qwen(config)
     visual, path = vision_backbone(model.model)
+    kind = config.get('vision_patch_kind', 'residual')
+    if kind not in ('residual','q','k','v'):
+        raise ValueError('Unknown vision_patch_kind')
+    sites = visual.blocks if kind == 'residual' else [b.attn.qkv for b in visual.blocks]
+    scored = config.get('record_color_scores', False)
     sets = patch_sets(config, len(visual.blocks))
     layers = sorted({l for _, group in sets for l in group})
     atomic_json(out/'model.json', {**model.manifest(), 'vision_path': path,
-        'vision_depth': len(visual.blocks), 'hook_site': 'vision block output after attention and MLP residuals, before merger',
+        'vision_depth': len(visual.blocks), 'vision_patch_kind': kind, 'hook_site': 'vision block output after residual additions' if kind=='residual' else 'fused vision qkv projection slice before reshape and RoPE',
         'vision_layers': layers, 'patch_sets': dict(sets), 'weights_frozen': True})
     for p in model.model.parameters():
         p.requires_grad_(False)
@@ -62,6 +68,7 @@ def vision_pilot(dataset, output, config, reviewed=False):
                 continue
             pairs = {r['context']: r for r in records if r['kind']=='pair'}
             inputs, clean, images, rows = {}, {}, {}, []
+            clean_scores = {}
             for record in records:
                 with Image.open(root/record['image']) as im:
                     image = im.convert('RGB')
@@ -75,6 +82,9 @@ def vision_pilot(dataset, output, config, reviewed=False):
                     if record['kind']=='pair':
                         key = (record['context'], side)
                         inputs[key], clean[key] = inp, raw
+                        if scored:
+                            clean_scores[key] = model.color_scores(inp)
+                            rows[-1]['color_scores'] = clean_scores[key]
                         images[record['context']] = image
             atomic_json(out/'diagnostics'/f'{fid}-baseline.json', rows)
             if not all(r['correct'] for r in rows):
@@ -106,7 +116,7 @@ def vision_pilot(dataset, output, config, reviewed=False):
             caps = {}
             for ctx in ('recipient','color_swap'):
                 caps[ctx] = {}
-                with torch.inference_mode(), capture_blocks(visual.blocks, layers, caps[ctx]):
+                with torch.inference_mode(), capture_blocks(sites, layers, caps[ctx], kind):
                     model.model(**inputs[ctx,0], use_cache=False)
                 if any(v.shape[0]!=h*w for v in caps[ctx].values()):
                     raise ValueError('Activation count disagrees with spatial mapping')
@@ -136,19 +146,29 @@ def vision_pilot(dataset, output, config, reviewed=False):
                             seed = config['seed']+l*10+target
                             value, delta = replacement(caps['recipient'][l], caps['color_swap'][l], pos, condition, seed)
                             values[l] = value
-                            patches.append({'layer': l, 'module': f'{path}.blocks.{l}',
+                            patches.append({'layer': l, 'module': f'{path}.blocks.{l}'+('' if kind=='residual' else '.attn.qkv:'+kind),
                                 'replacement_delta_norm_float32': delta,
                                 'random_seed': seed if condition=='random' else None})
-                        answers = []
+                        answers, answer_scores = [], []
                         for side in (0,1):
                             with ExitStack() as stack:
                                 for l in layer_set:
-                                    stack.enter_context(patch_block(visual.blocks[l], pos, values[l], h*w))
+                                    stack.enter_context(patch_block(sites[l], pos, values[l], h*w, kind))
                                 raw = model.answer(inputs['recipient',side])
                             answers.append(raw)
+                            if scored:
+                                with ExitStack() as stack:
+                                    for l in layer_set:
+                                        stack.enter_context(patch_block(sites[l], pos, values[l], h*w, kind))
+                                    scores = model.color_scores(inputs['recipient',side])
+                                answer_scores.append(compare_scores(scores, clean_scores['recipient',side],
+                                    rec['objects'][side]['color'], pairs['color_swap']['objects'][side]['color']))
+                        if condition=='self' and scored and any(abs(s['change_from_clean'])>1e-4 for s in answer_scores):
+                            raise RuntimeError('Self-patch color-score gate failed')
                         if condition=='self' and any(answers[s]!=clean['recipient',s] for s in (0,1)):
                             raise RuntimeError(f'{fid} layer {layer}: exact self-patch failed')
                         row = {'trial_key': f'{unit}:{condition}:{target}', 'family': fid, 'layer': layer, 'layer_set': layer_set, 'patch_set': set_name, 'patches': patches,
+                            'vision_patch_kind': kind, 'color_scores': answer_scores,
                             'condition': condition, 'target_side': target, 'positions': pos, 'token_count': len(pos),
                             'module': ', '.join(p['module'] for p in patches), 'all_channels': True,
                             'replacement_delta_norm_float32': sum(p['replacement_delta_norm_float32']**2 for p in patches)**.5,
