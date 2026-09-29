@@ -14,7 +14,7 @@ def report(output, dataset=None):
         '<h1>Spatial patches inside the vision transformer</h1>',
         '<p>Recipient image → vision blocks → visual merger → language decoder → color answer.</p>',
         '<p>At the selected vision block(s), copy donor rows into recipient spatial-token rows, across all channels of the chosen representation (block output or Q/K/V slice). All weights remain frozen. Single-layer trials edit one block; grouped trials edit every listed block in the same forward pass. The question stays fixed between clean and patched runs.</p>',
-        '<p>Orange cells show selected spatial tokens, not attention strengths. Masks use reviewed red/blue color evidence with ≥50% patch coverage; boundary tokens can include background. Both objects are queried in separate forward passes with the identical intervention.</p>',
+        '<p>Orange cells show selected spatial tokens, not attention strengths. Masks use reviewed object-color evidence with ≥50% patch coverage; boundary tokens can include background. Both objects are queried in separate forward passes with the identical intervention.</p>',
         '<p>Target: donor rows at the target object. Other object: donor rows at the neighbor. Background: equal-count spatial control. Random: target-row noise matched to donor-delta norm before BF16 casting. Self: recipient rows copied back exactly.</p>',
         '<p>Exploratory fixed-camera color transfer; shape binding and camera invariance are not measured. Repeated sides and layouts are not independent scenes. The other-object control may contain a different token count.</p>']
     if (root/'analysis'/'explained.html').exists():
@@ -37,7 +37,7 @@ def report(output, dataset=None):
     body.append('</table>')
     scored=[r for r in rows if r.get('color_scores') and 'family' in r]
     if scored:
-        body.append('<h2>Answer-score changes</h2><p>First-answer-token probability mass over fixed red/Red/leading-space and blue/Blue/leading-space variants. These are not full-answer probabilities or normalized two-choice confidence. Positive donor-minus-original log odds favors donor color; change is relative to the clean recipient. Both side scores are saved in JSON.</p><table><tr><th>Trial</th><th>Target donor log odds</th><th>Change from clean</th><th>Neighbor change toward its donor color</th></tr>')
+        body.append('<h2>Answer-score changes</h2><p>First-answer-token probability mass over configured color spellings (lowercase, capitalized, and leading-space variants). These are not full-answer probabilities or normalized two-choice confidence. Positive donor-minus-original log odds favors donor color; change is relative to the clean recipient. Both side scores are saved in JSON.</p><table><tr><th>Trial</th><th>Target donor log odds</th><th>Change from clean</th><th>Neighbor change toward its donor color</th></tr>')
         for r in scored:
             t=r['target_side'];a=r['color_scores'][t];b=r['color_scores'][1-t]
             body.append('<tr><td>'+esc(r['trial_key'])+'</td><td>'+format(a['donor_minus_original_log_odds'],'.3f')+'</td><td>'+format(a['change_from_clean'],'.3f')+'</td><td>'+format(b['change_from_clean'],'.3f')+'</td></tr>')

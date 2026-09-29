@@ -12,3 +12,4 @@ logs/
 cache/
 *.sif
 *.md
+!scripts/REPLICATION_BEHAVIOR.md

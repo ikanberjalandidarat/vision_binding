@@ -28,12 +28,23 @@ def main():
     p.add_argument('--output', required=True)
     p.add_argument('--n', type=int, default=4)
     p.add_argument('--seed', type=int, default=731)
-    p.add_argument('--scene-set', choices=['original','depth_spacing_v1'], default='original')
+    p.add_argument('--scene-set', choices=['original','depth_spacing_v1','replication_v1'], default='original')
     p = sub.add_parser('vision-pilot')
     p.add_argument('--dataset', required=True)
     p.add_argument('--output', required=True)
     p.add_argument('--config', default='configs/vision_pilot.json')
     p.add_argument('--reviewed-captures', action='store_true')
+    p = sub.add_parser('destination')
+    p.add_argument('--dataset', required=True)
+    p.add_argument('--output', required=True)
+    p.add_argument('--config', default='configs/vision_replication_v.json')
+    p.add_argument('--reviewed-captures', action='store_true')
+    p = sub.add_parser('approach')
+    p.add_argument('--dataset', required=True)
+    p.add_argument('--decisions', required=True)
+    p.add_argument('--trial', required=True)
+    p.add_argument('--output', required=True)
+    p.add_argument('--max-steps', type=int, default=400)
     p = sub.add_parser('recognize')
     p.add_argument('--dataset', required=True)
     p.add_argument('--output', required=True)
@@ -80,6 +91,12 @@ def main():
     elif args.command == 'vision-pilot':
         from .vision_pilot import vision_pilot
         vision_pilot(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures)
+    elif args.command == 'destination':
+        from .destination import destination
+        destination(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures)
+    elif args.command == 'approach':
+        from .approach import approach
+        approach(args.dataset, args.decisions, args.trial, args.output, args.max_steps)
     elif args.command == 'recognize':
         from .recognition import recognize
         recognize(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures)

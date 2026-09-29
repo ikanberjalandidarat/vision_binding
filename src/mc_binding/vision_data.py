@@ -9,10 +9,46 @@ from .backends.minestudio_smoke import verify_pose
 from .io import file_hash
 
 
+def replication_contexts(index, seed):
+    """24 prespecified conditions: 3 palettes × 2 shape pairs × 2 poses × 2 assignments.
+
+    Poses here mean object placement; the observer camera stays fixed.
+    These share an arena and are not independent Minecraft worlds.
+    """
+    from .scenes import blocks
+    if not 0 <= index < 24:
+        raise ValueError('replication_v1 has exactly 24 configurations')
+    assignment = index % 2
+    placement = (index // 2) % 2
+    shape_pair = (index // 4) % 2
+    palette = index // 8
+    colors = list((('yellow', 'blue'), ('red', 'yellow'), ('red', 'blue'))[palette])
+    kinds = (('stairs', 'pillar'), ('arch', 'tower'))[shape_pair]
+    if assignment:
+        colors.reverse()
+    origins = ((-7, 200, 13), (5, 200, 13)) if placement == 0 else ((-5, 200, 15), (6, 200, 14))
+    rows = pilot_contexts(index, seed)[:3]
+    objects = []
+    for slot, (color, kind, origin) in enumerate(zip(colors, kinds, origins)):
+        xyz = blocks(kind, origin)
+        objects.append({'object_id': f'f{index:04d}-recipient-{slot}', 'color': color,
+                        'type': kind, 'blocks': xyz,
+                        'bounds': [[min(p[k] for p in xyz) for k in range(3)],
+                                   [max(p[k] for p in xyz)+1 for k in range(3)]]})
+    for row, selected in zip(rows, (objects, objects[:1], objects[1:])):
+        arena = [s for s in row['commands'] if not s.startswith(('/setblock ', '/tp '))]
+        row['objects'] = copy.deepcopy(selected)
+        row['commands'] = arena + [f"/setblock {x} {y} {z} minecraft:{o['color']}_wool"
+                                   for o in selected for x, y, z in o['blocks']] + ['/tp @p 0.5 200 0.5 0 0']
+        row['scene_set'] = 'replication_v1'
+        row['factors'] = dict(palette=palette, shape_pair=shape_pair, placement=placement, assignment=assignment)
+    return rows
+
+
 def swap_contexts(index, seed, scene_set="original"):
-    if scene_set not in ("original", "depth_spacing_v1"):
+    if scene_set not in ("original", "depth_spacing_v1", "replication_v1"):
         raise ValueError("Unknown scene set")
-    originals = pilot_contexts(index, seed)[:3]
+    originals = replication_contexts(index, seed) if scene_set == "replication_v1" else pilot_contexts(index, seed)[:3]
     if scene_set == 'depth_spacing_v1':
         # Held-out geometry relative to original z=12 spacing; camera stays fixed.
         dz = 1 + index
@@ -32,12 +68,15 @@ def swap_contexts(index, seed, scene_set="original"):
                     command='/setblock '+' '.join(map(str,xyz))+' '+' '.join(parts[4:])
                 commands.append(command)
             row['commands']=commands
+    colors = [o['color'] for o in originals[0]['objects']]
+    swap = dict(zip(colors, reversed(colors)))
     donor = copy.deepcopy(originals)
     for row in donor:
         row['context'] = 'color_swap'
         for obj in row['objects']:
-            obj['color'] = {'red': 'blue', 'blue': 'red'}[obj['color']]
-        row['commands'] = [s.replace('red_wool', 'SWAP_wool').replace('blue_wool', 'red_wool').replace('SWAP_wool', 'blue_wool') for s in row['commands']]
+            obj['color'] = swap[obj['color']]
+        row['commands'] = [' '.join(s.split()[:-1] + ['minecraft:'+swap[s.split()[-1].split(':')[-1][:-5]]+'_wool'])
+                           if s.startswith('/setblock ') else s for s in row['commands']]
     return originals + donor
 
 
@@ -130,8 +169,11 @@ def load_swaps(root):
             if {r['objects'][0]['object_id'] for r in iso} != {o['object_id'] for o in p[0]['objects']}:
                 raise ValueError('Isolated identities mismatch')
             pairs[context] = p[0]
+        palette = [o['color'] for o in pairs['recipient']['objects']]
+        if len(set(palette)) != 2 or not set(palette) <= {'red','blue','yellow','green'}:
+            raise ValueError('Expected two distinct supported colors')
         for a,b in zip(pairs['recipient']['objects'], pairs['color_swap']['objects']):
-            if any(a[k]!=b[k] for k in ('object_id','type','blocks','bounds')) or {a['color'],b['color']}!={'red','blue'}:
+            if any(a[k]!=b[k] for k in ('object_id','type','blocks','bounds')) or {a['color'],b['color']}!=set(palette):
                 raise ValueError('Donor must preserve geometry/identity and swap colors')
             if max(abs(x-y) for x,y in zip(a['bbox'],b['bbox'])) > 2:
                 raise ValueError('Recipient/donor image alignment failed')

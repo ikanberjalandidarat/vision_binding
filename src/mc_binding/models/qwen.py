@@ -98,7 +98,7 @@ class Qwen:
         # Fixed first-answer-token event: sum probability of spelling variants.
         from ..vision_scores import score_colors
         logits = self.model(**inp, use_cache=False).logits[0, -1].float()
-        return score_colors(logits, self.processor.tokenizer)
+        return score_colors(logits, self.processor.tokenizer, self.config.get("score_colors", ["red", "blue"]))
 
     def manifest(self):
         return {'model_class': type(self.model).__name__, 'model_config': self.model.config.to_dict(), 'processor': self.processor.image_processor.to_dict(), 'decoder_path': self.layer_path, 'quantized_4bit': bool(getattr(self.model, 'is_loaded_in_4bit', False)), 'hook_site': 'q/k/v projection output before reshape and RoPE; o projection input', 'cache': True, 'patch_scope': 'prefill_only', 'projection_shapes': {f'{l}:{k}': list(self.module(l, k).weight.shape) for l in self.config['layers'] for k in ('q', 'v')}}

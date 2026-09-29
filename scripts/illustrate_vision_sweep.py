@@ -19,20 +19,58 @@ def illustrate(run,dataset):
     trials=[r for r in rows if r['condition']=='target']
     out=run/'analysis';out.mkdir(exist_ok=True)
     pair={r['context']:r for r in groups['f0000'] if r['kind']=='pair'}
-    fig,axes=plt.subplots(2,3,figsize=(16,8),gridspec_kw={'height_ratios':[1,1.15]})
-    images=[dataset/pair['recipient']['image'],dataset/pair['color_swap']['image'],run/'alignment/f0000/patch-target-target0.png']
-    titles=['1. Original picture: blue arch + red tower','2. Donor picture: red arch + blue tower','3. Copy internal numbers at orange cells']
-    for ax,path,title in zip(axes[0],images,titles):
-        ax.imshow(Image.open(path));ax.axis('off');ax.set_title(title,fontsize=12)
-    examples=[(15,0),(31,0),(31,1)]
-    for ax,(layer,target) in zip(axes[1],examples):
+    from matplotlib.patches import FancyArrowPatch, Rectangle
+    def picture(fig, rect, path, title, box=None):
+        ax=fig.add_axes(rect)
+        ax.imshow(Image.open(path));ax.axis('off');ax.set_title(title,fontsize=13,pad=12)
+        if box is not None:
+            x0,y0,x1,y1=box
+            ax.add_patch(Rectangle((x0,y0),x1-x0,y1-y0,fill=False,edgecolor='#ffb52c',linewidth=2.5))
+        return ax
+    def arrow(fig, start, end):
+        fig.add_artist(FancyArrowPatch(start,end,transform=fig.transFigure,
+            arrowstyle='-|>',mutation_scale=22,color='#ac6416',linewidth=2))
+    rec_path=dataset/pair['recipient']['image']
+    donor_path=dataset/pair['color_swap']['image']
+    # The general process stands alone: no trial outputs aligned under unrelated inputs.
+    fig=plt.figure(figsize=(15,8),facecolor='white')
+    fig.suptitle('The process: move internal vectors from donor to recipient',fontsize=21,y=.97)
+    picture(fig,[.05,.57,.4,.28],rec_path,'Original recipient input: blue arch + red tower')
+    picture(fig,[.55,.57,.4,.28],donor_path,'Donor input: red arch + blue tower',pair['color_swap']['objects'][0]['bbox'])
+    fig.text(.25,.49,'Run recipient to chosen vision layer L',ha='center',fontsize=13)
+    fig.text(.75,.49,'Run donor to the SAME vision layer L',ha='center',fontsize=13)
+    arrow(fig,(.25,.57),(.25,.43));arrow(fig,(.75,.57),(.75,.43))
+    fig.text(.25,.36,'Recipient internal vectors\nReplace only the arch-location rows',ha='center',va='center',fontsize=14,
+        bbox=dict(boxstyle='round,pad=.8',facecolor='#eaf4f4',edgecolor='#319599'))
+    fig.text(.75,.36,'Saved donor internal vectors\nSelect the arch-location rows',ha='center',va='center',fontsize=14,
+        bbox=dict(boxstyle='round,pad=.8',facecolor='#fff1dc',edgecolor='#e3a04a'))
+    arrow(fig,(.59,.36),(.42,.36));fig.text(.505,.41,'COPY VECTORS',ha='center',fontsize=12,color='#915010')
+    arrow(fig,(.25,.28),(.25,.21))
+    fig.text(.25,.14,'Continue recipient processing\nAsk left color and right color separately',ha='center',fontsize=14)
+    fig.text(.61,.14,'The input pixels stay blue arch + red tower.\nOnly the model’s answers may change.',ha='left',fontsize=13)
+    fig.text(.05,.035,'L is the intervention layer in BOTH runs. This process applies separately to each trial below. No recolored “model view” was recorded.',fontsize=11)
+    fig.savefig(out/'eli5-how-it-works.png',dpi=160);plt.close(fig)
+    example_files=[]
+    for layer,target in [(15,0),(31,0),(31,1)]:
         r=next(r for r in trials if r['family']=='f0000' and r['layer_set']==[layer] and r['target_side']==target)
-        ax.axis('off')
-        text=f"Layer {layer} | edit {'arch (left)' if target==0 else 'tower (right)'}\n\nLeft answer: {r['answers'][0]}\nRight answer: {r['answers'][1]}\n\nTarget changed to donor color: {'YES' if r['target_transferred'] else 'NO'}\nNeighbor kept original color: {'YES' if r['neighbor_preserved'] else 'NO'}"
-        ax.text(.05,.92,text,va='top',fontsize=16,linespacing=1.65,bbox=dict(boxstyle='round,pad=.8',facecolor='#edf5f1',edgecolor='#b0ccc1'))
-    fig.suptitle('We change the model’s internal numbers—not the Minecraft pixels',fontsize=20)
-    fig.text(.03,.015,'Actual saved images and answers. Orange = edited token positions, not an attention map. No training or pixel recoloring.',fontsize=12)
-    fig.tight_layout(rect=[0,.05,1,.94]);fig.savefig(out/'eli5-how-it-works.png',dpi=160);plt.close(fig)
+        rec_objects=pair['recipient']['objects'];don_objects=pair['color_swap']['objects']
+        obj=rec_objects[target];neighbor=rec_objects[1-target];side=['left','right']
+        fig=plt.figure(figsize=(16,8),facecolor='white')
+        fig.suptitle(f"ONE RECORDED TRIAL — layer {layer}, patch the {side[target]} {obj['type']}",fontsize=21,y=.97)
+        picture(fig,[.025,.55,.29,.29],rec_path,'Recipient input (actual screenshot)',obj['bbox'])
+        picture(fig,[.355,.55,.29,.29],donor_path,f'Donor: take layer {layer} vectors here',don_objects[target]['bbox'])
+        picture(fig,[.685,.55,.29,.29],run/f'alignment/f0000/patch-target-target{target}.png',f'Recipient: overwrite layer {layer} rows')
+        arrow(fig,(.64,.70),(.685,.70))
+        fig.text(.5,.48,'Orange marks the selected positions. Copy hidden vectors here—not an image cutout.',ha='center',fontsize=13)
+        fig.text(.045,.35,'What is actually in the recipient image?\nLEFT: '+rec_objects[0]['color']+'    RIGHT: '+rec_objects[1]['color'],fontsize=16,va='top')
+        fig.text(.365,.35,'What did the patched model answer?\nLEFT: “'+r['answers'][0]+'”    RIGHT: “'+r['answers'][1]+'”',fontsize=16,va='top',
+            bbox=dict(boxstyle='round,pad=.65',facecolor='#f0f4fa',edgecolor='#9facbf'))
+        target_status='YES' if r['target_transferred'] else 'NO'
+        neighbor_status='YES' if r['neighbor_preserved'] else 'NO'
+        fig.text(.70,.36,f"Target borrowed donor color? {target_status}\n{side[target]} answer: {r['answers'][target]} | donor: {don_objects[target]['color']}\n\nNeighbor kept original answer? {neighbor_status}\n{side[1-target]} answer: {r['answers'][1-target]} | original: {neighbor['color']}",fontsize=13,va='top')
+        fig.text(.045,.10,'“Successful transfer” means the intended answer change occurred. It does not mean the answer became more accurate.\nEach answer comes from a separate question with the identical patch. Images are unchanged; no hidden mental image is inferred.',fontsize=12)
+        name=f'eli5-trial-layer{layer:02d}-target{target}.png';example_files.append(name)
+        fig.savefig(out/name,dpi=160);plt.close(fig)
     fig=plt.figure(figsize=(16,11));grid=fig.add_gridspec(3,4,height_ratios=[1,1.35,1.35])
     for i,(fid,records) in enumerate(sorted(groups.items())):
         ax=fig.add_subplot(grid[0,i]);rec=next(r for r in records if r['context']=='recipient' and r['kind']=='pair')
@@ -49,9 +87,9 @@ def illustrate(run,dataset):
     fig.text(.05,.013,'Eight cases reuse four layouts (including reversed donor/recipient pairs), not eight independent scenes.\nThis measures reported color transfer; it does not establish shape binding or a unique color layer.',fontsize=11)
     fig.tight_layout(rect=[0,.06,1,.96]);fig.savefig(out/'eli5-layer-results.png',dpi=160);plt.close(fig)
     body=['<!doctype html><meta charset="utf-8"><title>Vision sweep explained</title><style>body{font:18px system-ui;max-width:1400px;margin:30px auto;padding:20px}img{width:100%}</style><h1>Vision sweep: pictures first</h1>']
-    for name in ['eli5-how-it-works.png','eli5-layer-results.png']:
+    for name in ['eli5-how-it-works.png',*example_files,'eli5-layer-results.png']:
         body.append('<img alt="'+name+'" src="data:image/png;base64,'+base64.b64encode((out/name).read_bytes()).decode()+'">')
-    body.append('<p>Original screenshots remain unchanged. We copy internal states, then ask separately about the left and right objects. The first figure shows three measured examples, not three sequential processing stages in its bottom row.</p><p>Random and background controls: 0/320 target transfers each. Exact self-patch checks: 320/320 pass. Other-object interventions reproduce the opposite target intervention and are not independent replications.</p>')
+    body.append('<p>Original screenshots remain unchanged. We copy internal states, then ask separately about the left and right objects. The first figure shows only the general process. Each following trial figure has its own layer, images, patch location and measured answers.</p><p>Random and background controls: 0/320 target transfers each. Exact self-patch checks: 320/320 pass. Other-object interventions reproduce the opposite target intervention and are not independent replications.</p>')
     (out/'explained.html').write_text('\n'.join(body))
 
 if __name__=='__main__':

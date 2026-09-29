@@ -91,8 +91,9 @@ def pilot_contexts(index, seed):
 
 
 def capture_pairs(output, n=4, seed=731, *, vision=False, scene_set="original"):
-    if not 1 <= n <= 4:
-        raise ValueError('Recognition pilot supports 1–4 balanced configurations, not independent test worlds')
+    limit = 24 if vision and scene_set == "replication_v1" else 4
+    if not 1 <= n <= limit:
+        raise ValueError(f'This scene set supports 1–{limit} configurations; these are not independent worlds')
     from minestudio.simulator import MinecraftSim
     from minestudio.simulator.callbacks import CommandsCallback
     root = Path(output)

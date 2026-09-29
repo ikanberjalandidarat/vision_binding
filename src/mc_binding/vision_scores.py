@@ -2,11 +2,13 @@
 import torch
 
 
-def score_colors(logits, tokenizer):
+def score_colors(logits, tokenizer, colors=("red", "blue")):
     if not torch.isfinite(logits).all():
         raise RuntimeError('Non-finite color-score logits')
     candidates = {}
-    for color in ('red','blue'):
+    if len(set(colors)) != len(colors) or len(colors) < 2:
+        raise ValueError('Expected distinct score candidates')
+    for color in colors:
         ids = set()
         for spelling in (color, color.capitalize(), ' '+color, ' '+color.capitalize()):
             encoded = tokenizer.encode(spelling, add_special_tokens=False)
@@ -14,7 +16,7 @@ def score_colors(logits, tokenizer):
                 raise ValueError(f'Color score spelling is not a single token: {spelling!r}')
             ids.add(encoded[0])
         candidates[color] = sorted(ids)
-    if set(candidates['red']) & set(candidates['blue']):
+    if sum(map(len, candidates.values())) != len({i for ids in candidates.values() for i in ids}):
         raise ValueError('Color candidate token sets overlap')
     logp = logits.log_softmax(-1)
     masses = {c:float(torch.logsumexp(logp[ids],0)) for c,ids in candidates.items()}
