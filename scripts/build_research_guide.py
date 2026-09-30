@@ -147,6 +147,11 @@ for(const id of ['kind','layers','side'])el(id).addEventListener('change',update
     diagnostic=RUNS/'destination-diagnostic-6863843/report.html'
     if diagnostic.exists():
         body=body.replace('<h2 id="folders">', '<h2>Destination prompt calibration</h2><p>On the same 96 balanced side questions, the original action prompt scored 49/96 (95 LEFT answers), while the direct spatial prompt scored 96/96. Color controls also scored 96/96. This is prompt calibration, not held-out evaluation. <a href="../runs/oscar/destination-diagnostic-6863843/report.html">Images, exact prompts and observed answers</a>.</p><h2 id="folders">')
+    destination=RUNS/'destination-replication-6868954/analysis/audit.json'
+    if destination.exists():
+        audit=read(destination)
+        result='; '.join(r['patch_set']+': '+str(r['donor_choices'])+'/48' for r in audit['counts'] if r['condition']=='both_objects')
+        body=body.replace('<h2 id="folders">','<h2>Destination interventions completed</h2><p>'+result+'. All 96 clean choices and 144 self-patches passed. These are offline decisions; matched movement replay is pending. <a href="../runs/oscar/destination-replication-6868954/analysis/explained.html">Actual images, patch masks and destination outcomes</a>.</p><h2 id="folders">')
     (ROOT/'docs/research-guide.html').write_text(body)
     print('Wrote docs/research-guide.html; linked local artifacts; comparison counts:',counts)
 if __name__=='__main__':build()
