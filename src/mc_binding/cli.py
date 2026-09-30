@@ -45,6 +45,12 @@ def main():
     p.add_argument('--trial', required=True)
     p.add_argument('--output', required=True)
     p.add_argument('--max-steps', type=int, default=400)
+    p = sub.add_parser('controller-smoke')
+    p.add_argument('--dataset', required=True)
+    p.add_argument('--output', required=True)
+    p.add_argument('--family', default='f0000')
+    p.add_argument('--goal-color', default='yellow')
+    p.add_argument('--max-steps', type=int, default=400)
     p = sub.add_parser('recognize')
     p.add_argument('--dataset', required=True)
     p.add_argument('--output', required=True)
@@ -97,6 +103,9 @@ def main():
     elif args.command == 'approach':
         from .approach import approach
         approach(args.dataset, args.decisions, args.trial, args.output, args.max_steps)
+    elif args.command == 'controller-smoke':
+        from .approach import controller_smoke
+        controller_smoke(args.dataset, args.output, args.family, args.goal_color, args.max_steps)
     elif args.command == 'recognize':
         from .recognition import recognize
         recognize(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures)

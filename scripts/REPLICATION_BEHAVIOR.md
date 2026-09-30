@@ -149,3 +149,21 @@ Measure failure rate across all episodes, choice recovery and destination arriva
 both all-episode results and rescue conditional on a baseline failure. A privileged clean
 counterfactual donor tests mechanism; it is not a deployable autonomous-agent solution.
 Only later test whether a genuinely available past observation supplies a useful memory.
+
+## Controller-only GIF validation (before model-choice replay)
+
+After syncing code to Oscar, submit `sbatch scripts/slurm/controller_smoke.sbatch yellow`.
+This uses f0000's known correct yellow target, not a model prediction. Run `blue` as
+another job after the first movement check passes. Outputs are under
+`runs/controller-smoke-COLOR-JOBID` on scratch. Download the entire folder.
+
+Open `report.html`: `movement.gif` retains the raw inventory bar and adds XYZ/yaw,
+step number and distance to the requested waypoint in a separate header. `trajectory.png`
+plots measured X/Z positions. Raw PNGs are saved every five steps plus the last frame;
+`approach.json` retains per-step telemetry/actions. GIF timing assumes 20 steps per
+playback second and is not a benchmark of wall-clock speed. This is first-person footage.
+
+Check `task_success` and `reached_selected_waypoint`, not just `state=complete`.
+A timeout can complete recording without reaching the target. The live frame must pass
+the original-scene check before movement. Controller camera/forward conventions still
+require this real Oscar validation. No model gate is bypassed by a controller-only run.

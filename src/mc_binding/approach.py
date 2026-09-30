@@ -46,11 +46,32 @@ def approach(dataset, decisions, trial, output, max_steps=400):
     record=next(r for r in groups[row['family']] if r['record_id']==row['record_id'])
     if record['kind']!='pair' or record['context']!=row['input_context']:
         raise ValueError('Decision input scene mismatch')
+    return execute_approach(root, out, data, record, row, max_steps, dict(
+        decision_manifest_hash=digest(manifest), decision_results_sha256=file_hash(run/'results.jsonl')))
+
+
+def controller_smoke(dataset, output, family='f0000', goal_color='yellow', max_steps=400):
+    root=Path(dataset)
+    data,groups=load_swaps(root)
+    if family not in groups:
+        raise ValueError('Unknown scene family')
+    record=next(r for r in groups[family] if r['kind']=='pair' and r['context']=='recipient')
+    matches=[i for i,o in enumerate(record['objects']) if o['color']==goal_color]
+    if len(matches)!=1:
+        raise ValueError('Goal must identify exactly one object')
+    row=dict(trial_key=f'{family}:controller_only:{goal_color}', family=family,
+             record_id=record['record_id'],input_context='recipient',choice_side=matches[0],
+             goal_color=goal_color,condition='controller_only',choice_source='ground_truth_not_model')
+    return execute_approach(root,Path(output),data,record,row,max_steps,{})
+
+
+def execute_approach(root,out,data,record,row,max_steps,provenance):
     if not 1<=max_steps<=2000:
         raise ValueError('max_steps must be 1–2000')
     out.mkdir(parents=True,exist_ok=False)
-    report=dict(state='running',trial=row,dataset_hash=digest(data),decision_manifest_hash=digest(manifest),
-                decision_results_sha256=file_hash(run/'results.jsonl'),environment=environment(),source_hash=source_hash(),
+    report=dict(state='running',trial=row,dataset_hash=digest(data),**provenance,
+                environment=environment(),source_hash=source_hash(),objects=record['objects'],
+                visualization={'frame_stride':5,'playback':'20 simulator steps per playback second; not measured wall-clock speed'},
                 controller='privileged waypoint from known world bounds; choice fixed before movement',
                 scope='Open-loop destination decision, feedback movement via player telemetry; not closed-loop visual autonomy',trajectory=[])
     sim=None
@@ -80,6 +101,8 @@ def approach(dataset, decisions, trial, output, max_steps=400):
             raise RuntimeError('Rebuilt starting frame differs; inspect start images before movement')
         goals=[waypoint(o) for o in record['objects']]
         selected=row['choice_side'];goal=goals[selected]
+        expected=next(i for i,o in enumerate(record['objects']) if o['color']==row['goal_color'])
+        report['goal_side_in_rendered_scene']=expected
         report['waypoints']=goals
         action=sim.noop_action()
         if 'forward' not in action or 'camera' not in action:
@@ -90,9 +113,10 @@ def approach(dataset, decisions, trial, output, max_steps=400):
             distance,turn,forward=steering(pose,goal)
             if not 199.5<=float(pose['y'])<=200.5:
                 raise RuntimeError('Unexpected controller elevation')
-            entry=dict(tick=tick,pose=pose,distance_to_selected=distance)
+            entry=dict(tick=tick,pose=pose,distance_to_selected=distance,
+                       distance_to_requested=math.hypot(float(pose['x'])-goals[expected][0],float(pose['z'])-goals[expected][1]))
             report['trajectory'].append(entry)
-            if tick%20==0 or distance<=.8 or tick==max_steps:
+            if tick%5==0 or distance<=.8 or tick==max_steps:
                 frame=f'frame-{tick:04d}.png';Image.fromarray(np.asarray(obs['image'])).save(out/frame);entry['frame']=frame
                 atomic_json(out/'approach.json',report)
             if distance<=.8:
@@ -109,3 +133,6 @@ def approach(dataset, decisions, trial, output, max_steps=400):
     finally:
         atomic_json(out/'approach.json',report)
         if sim is not None:sim.close()
+        if any('frame' in r for r in report['trajectory']):
+            from .movement_report import movement_report
+            movement_report(out)
