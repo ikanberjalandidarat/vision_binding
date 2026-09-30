@@ -18,7 +18,11 @@ def parse_side(raw):
     return {'left': 0, 'right': 1}.get(value)
 
 
-def destination_prompt(color):
+def destination_prompt(color, mode='original_action'):
+    if mode == 'direct_spatial':
+        return f'In this image, is the {color} structure on the left or the right? Answer left or right only.'
+    if mode != 'original_action':
+        raise ValueError('Unknown destination prompt mode')
     return f'You must walk to the {color} structure. Which side is it on? Answer LEFT or RIGHT only.'
 
 
@@ -30,6 +34,8 @@ def destination(dataset, output, config, reviewed=False):
     from importlib.metadata import version
     if version('transformers') != '4.55.0':
         raise ValueError('Token alignment requires transformers 4.55.0')
+    prompt_mode = config.get('destination_prompt_mode', 'original_action')
+    destination_prompt('blue', prompt_mode)  # Validate before loading the model.
     root, out = Path(dataset), Path(output)
     data, groups = load_swaps(root)
     store = RunStore(out, dict(experiment='destination_choice_v1', dataset_hash=digest(data), config=config,
@@ -52,7 +58,7 @@ def destination(dataset, output, config, reviewed=False):
             pairs = {r['context']: r for r in records if r['kind'] == 'pair'}
             images = {ctx: Image.open(root/r['image']).convert('RGB') for ctx,r in pairs.items()}
             goals = [o['color'] for o in pairs['recipient']['objects']]
-            inputs = {(ctx,c): model.inputs(im, destination_prompt(c)) for ctx,im in images.items() for c in goals}
+            inputs = {(ctx,c): model.inputs(im, destination_prompt(c, prompt_mode)) for ctx,im in images.items() for c in goals}
             rows = []
             clean = {}
             def row(ctx, goal, raw, condition, name='baseline', layer_set=(), pos=(), patches=()):
@@ -61,7 +67,7 @@ def destination(dataset, output, config, reviewed=False):
                 choice = parse_side(raw)
                 return dict(trial_key=f'{fid}:{name}:{condition}:{goal}', family=fid, condition=condition,
                             patch_set=name, layer_set=list(layer_set), positions=list(pos), patches=list(patches),
-                            goal_color=goal, prompt=destination_prompt(goal), raw=raw, choice_side=choice,
+                            goal_color=goal, prompt=destination_prompt(goal, prompt_mode), prompt_mode=prompt_mode, raw=raw, choice_side=choice,
                             original_goal_side=original, donor_goal_side=donor,
                             chose_original=choice==original, chose_donor=choice==donor,
                             input_context=ctx, record_id=pairs[ctx]['record_id'],

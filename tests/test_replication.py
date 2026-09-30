@@ -103,10 +103,11 @@ def test_destination_runner_controls_resume_and_gate(tmp_path,monkeypatch):
     monkeypatch.setattr(qwen,'Qwen',Fake)
     real=importlib.metadata.version
     monkeypatch.setattr(importlib.metadata,'version',lambda name:'4.55.0' if name=='transformers' else real(name))
-    config=dict(dtype='bfloat16',load_in_4bit=False,use_fast=True,check_finite_scores=True,vision_patch_kind='v',vision_layers=[0,1],vision_layer_groups=[[0,1]],mask_threshold=.5,seed=731)
+    config=dict(dtype='bfloat16',load_in_4bit=False,use_fast=True,check_finite_scores=True,vision_patch_kind='v',vision_layers=[0,1],vision_layer_groups=[[0,1]],mask_threshold=.5,seed=731,destination_prompt_mode='direct_spatial')
     out=tmp_path/'choices';destination(root,out,config,True)
     rows=[json.loads(s) for s in (out/'results.jsonl').read_text().splitlines()]
     assert len(rows)==28 and Fake.calls==28
+    assert all(r['prompt_mode']=='direct_spatial' and r['prompt'].startswith('In this image,') for r in rows)
     assert json.loads((out/'status.json').read_text())['state']=='complete'
     target=next(r for r in rows if r['condition']=='both_objects')
     bg=next(r for r in rows if r['condition']=='background')
@@ -119,3 +120,10 @@ def test_destination_runner_controls_resume_and_gate(tmp_path,monkeypatch):
     with pytest.raises(RuntimeError,match='clean destination gate failed'):destination(root,failed,config,True)
     assert json.loads((failed/'status.json').read_text())['state']=='error'
     assert not list((failed/'families').glob('*.json'))
+
+
+def test_destination_prompt_version_is_explicit():
+    from mc_binding.destination import destination_prompt
+    assert destination_prompt('yellow') == 'You must walk to the yellow structure. Which side is it on? Answer LEFT or RIGHT only.'
+    assert destination_prompt('yellow','direct_spatial') == 'In this image, is the yellow structure on the left or the right? Answer left or right only.'
+    with pytest.raises(ValueError): destination_prompt('yellow','unknown')

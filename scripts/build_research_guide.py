@@ -144,6 +144,9 @@ for(const id of ['kind','layers','side'])el(id).addEventListener('change',update
             '<a href="../runs/oscar/vision-pilot-replication-6853654/analysis/explained.html">Open replication breakdown and failure analysis</a>. '
             'Destination choice and movement remain the next experimental stages.</p>'+
             image('vision-pilot-replication-6853654','analysis/replication-results.png','New-scene V replication: actual screenshots and recorded answers'))+body[end:]
+    diagnostic=RUNS/'destination-diagnostic-6863843/report.html'
+    if diagnostic.exists():
+        body=body.replace('<h2 id="folders">', '<h2>Destination prompt calibration</h2><p>On the same 96 balanced side questions, the original action prompt scored 49/96 (95 LEFT answers), while the direct spatial prompt scored 96/96. Color controls also scored 96/96. This is prompt calibration, not held-out evaluation. <a href="../runs/oscar/destination-diagnostic-6863843/report.html">Images, exact prompts and observed answers</a>.</p><h2 id="folders">')
     (ROOT/'docs/research-guide.html').write_text(body)
     print('Wrote docs/research-guide.html; linked local artifacts; comparison counts:',counts)
 if __name__=='__main__':build()

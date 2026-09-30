@@ -19,8 +19,10 @@ export MC_BINDING_ENV="${MC_BINDING_ENV:-$MC_BINDING_SCRATCH/envs/model}"
 export HF_HOME="$MC_BINDING_SCRATCH/huggingface"
 export XDG_CACHE_HOME="$MC_BINDING_SCRATCH/cache"
 export PYTHONUNBUFFERED=1
+config="configs/vision_replication_v.json"
+if [[ "$task" == destination ]]; then config="configs/destination_direct_v.json"; fi
 "$MC_BINDING_ENV/bin/python" -m mc_binding "$task" \
  --dataset "$MC_BINDING_SCRATCH/runs/$dataset" \
- --config configs/vision_replication_v.json \
+ --config "$config" \
  --output "$MC_BINDING_SCRATCH/runs/${task}-replication-${SLURM_JOB_ID}" \
  --reviewed-captures
