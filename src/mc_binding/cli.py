@@ -9,6 +9,17 @@ from .io import atomic_json, environment
 def main():
     parser = argparse.ArgumentParser(description='Minecraft binding backbone; fixtures are non-Minecraft data')
     sub = parser.add_subparsers(dest='command', required=True)
+    for name in ('visual-extract','visual-train','visual-evaluate'):
+        p=sub.add_parser(name)
+        p.add_argument('--output',required=True)
+        p.add_argument('--config',default='configs/visual_readout.json')
+        if name!='visual-extract': p.add_argument('--cache',required=True)
+        if name!='visual-train':
+            p.add_argument('--dataset',required=True)
+            p.add_argument('--reviewed-captures',action='store_true')
+        if name=='visual-evaluate':
+            p.add_argument('--readout',required=True)
+            p.add_argument('--patch',action='store_true')
     doctor = sub.add_parser('doctor')
     doctor.add_argument('--output', default='runs/environment.json')
     for name in ('smoke', 'generate'):
@@ -80,7 +91,13 @@ def main():
     p = sub.add_parser('analyze')
     p.add_argument('run')
     args = parser.parse_args()
-    if args.command == 'doctor':
+    if args.command.startswith('visual-'):
+        from .visual_readout import extract, train, evaluate
+        config=json.loads(Path(args.config).read_text())
+        if args.command=='visual-extract': extract(args.dataset,args.output,config,args.reviewed_captures)
+        elif args.command=='visual-train': train(args.cache,args.output,config)
+        else: evaluate(args.dataset,args.cache,args.readout,args.output,config,args.reviewed_captures,args.patch)
+    elif args.command == 'doctor':
         report = environment()
         report['executables'] = {k: shutil.which(k) for k in ('java', 'nvidia-smi', 'sbatch', 'xvfb-run')}
         for name, command in [('java', ['java', '-version']), ('gpu', ['nvidia-smi'])]:

@@ -1,0 +1,44 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vision-only experiments</title>
+<style>body{font:17px/1.6 system-ui;max-width:1050px;margin:30px auto;padding:20px;color:#234}pre{padding:20px;background:#eef3f7;overflow:auto}a{color:#126098}td,th{padding:12px;text-align:left;border-bottom:1px solid #ccc}code{overflow-wrap:anywhere}</style>
+<h1>Vision-only readouts, interventions and Grad-CAM</h1>
+<p><a href="research-guide.html">Prior experiments</a> · <a href="research-plan.html">Research roadmap</a></p>
+<p><b>Implemented:</b> direct visual encoder execution, cached spatial features, trained linear attribute readouts, structured conjunction goals, validation-calibrated absent-target rejection, V30/V31 and head interventions, and Grad-CAM at the readout input. No language prompts or generated answers are used. The full Qwen checkpoint is currently loaded for compatibility; this saves decoder computation, not its loading memory. A guard rejects accidental decoder execution.</p>
+<h2>What the model learns</h2><p>Known bounding boxes select spatial tokens; each region is mean-pooled. Two linear classifiers learn color and shape. For a structured goal such as <code>{color: blue, shape: arch}</code>, region scores multiply the two predicted attribute probabilities. The best region is selected if it exceeds a threshold chosen only on validation scenes; otherwise the prediction is absent. This factorized score is a readout design, not an empirically established joint probability or proof that the encoder naturally binds attributes.</p>
+<p>Bounding boxes are privileged proposals derived from capture annotations. Token selection uses box area coverage, not color-specific pixel thresholds. The pipeline therefore measures classification/binding given object regions, not autonomous object discovery. Shape-position geometry groups keep color reversals and duplicated layouts in the same split. Training uses full scenes only; validation/test use full and absent scenes. Isolated images are extracted but excluded from fitting and evaluation.</p>
+<h2>Grad-CAM is not attention</h2><p>The token adaptation uses the gradient of a selected candidate's goal score with respect to the final selected vision-block activations. Channel weights are the spatial mean of that gradient; the map is ReLU of their weighted activation sum. It is computed from cached readout-input tokens, not by backpropagating through earlier vision layers. ROI pooling constrains source gradients. Global channel weighting can still highlight other locations, so a highlight is not proof those pixels caused the choice. Causal activation patches provide a separate test.</p>
+<p>Reports put region scores and Grad-CAM beside the real Minecraft image. Maps are normalized separately for visibility; raw values and maxima are saved in <code>maps.json</code>. Do not compare apparent brightness across maps as equal-scale effect sizes. Zero maps remain uncolored. Even an absent prediction has a best candidate: the caption explicitly identifies the rejected candidate whose score the map explains. Method reference: <a href="https://arxiv.org/abs/1610.02391">Grad-CAM (Selvaraju et al.)</a>.</p>
+<h2>1. One-family extraction smoke</h2><p>After you commit/push and pull on Oscar:</p>
+<pre>cd ~/projects/zef-binding
+mkdir -p logs
+sbatch scripts/slurm/visual_readout.sbatch extract \
+  binding-captures-1-6949019 --reviewed-captures</pre>
+<p>Output: <code>runs/visual-features-binding-captures-1-6949019</code> under Oscar scratch. Check its <code>status.json</code>. This tests real visual encoder execution. Training on that one family is deliberately refused.</p>
+<h2>2. Capture and review 24 configurations</h2>
+<pre>sbatch scripts/slurm/binding_capture.sbatch 24</pre>
+<p>Copy and visually review the resulting <code>binding-captures-24-CAPTURE_JOB_ID</code>. Replace CAPTURE_JOB_ID below with its actual job number. These 24 configurations collapse to only six distinct shape-position patterns; the default split has four training patterns, one validation pattern and one test pattern. The scene remains in the same arena at the same camera pose. This is a development baseline, not a final research test.</p>
+<h2>3. Extract, then train, then evaluate (sequential jobs)</h2>
+<pre>sbatch scripts/slurm/visual_readout.sbatch extract \
+  binding-captures-24-CAPTURE_JOB_ID --reviewed-captures
+
+# Wait for extraction to complete before training.
+sbatch scripts/slurm/visual_readout.sbatch train \
+  binding-captures-24-CAPTURE_JOB_ID
+
+# Wait for training to complete before evaluating.
+sbatch scripts/slurm/visual_readout.sbatch evaluate \
+  binding-captures-24-CAPTURE_JOB_ID --reviewed-captures</pre>
+<p>Feature output: <code>visual-features-DATASET</code>. Training output: <code>visual-trained-DATASET</code>. Evaluation output: <code>visual-evaluate-JOBID</code>. The feature cache resumes with matching provenance; training and evaluation require fresh outputs and refuse overwrite. The training CLI can run on CPU because it uses cached features; this convenience Slurm script requests a GPU for all modes.</p>
+<p>Inspect training <code>summary.json</code> for separate color, shape, target-present and target-absent performance. The report contains a limited number of images for readability; <code>results.json</code> has every held-out goal. Object features are classified without their screen coordinates as explicit classifier inputs, but their encoder representations can still encode position; held-out geometry remains necessary.</p>
+<h2>4. Causal patches after inspecting clean performance</h2>
+<pre>sbatch scripts/slurm/visual_readout.sbatch patch \
+  binding-captures-24-CAPTURE_JOB_ID --reviewed-captures
+
+# Separate head-level follow-up; same cache and trained readout.
+export VISUAL_READOUT_CONFIG=configs/visual_heads.json
+sbatch scripts/slurm/visual_readout.sbatch patch \
+  binding-captures-24-CAPTURE_JOB_ID --reviewed-captures
+unset VISUAL_READOUT_CONFIG</pre>
+<p>All-head preset: V30, V31 and V30+31. Head preset: each individual head plus all heads at V30 and V31. Self, donor, norm-matched random, background and mean-ablation controls are included. Default strength is 1; set <code>alphas</code> in a copied config for a dose sweep. Only held-out full scenes whose clean recipient AND donor choices all pass are patched. Every family's eligibility is recorded; zero eligible families is a failed clean gate, not evidence of a null intervention.</p>
+<p>The patched output is read by the same frozen, trained readout. Reports link the exact patched token overlays and list changes in region scores. A limited subset also has post-intervention Grad-CAM maps. Both donor directions are evaluated. These effects concern the trained visual readout, so they are not directly interchangeable with earlier language-answer transfer percentages.</p>
+<h2>Movement boundary</h2><p>The selection interface returns region indices/scores and an absent decision on each supplied frame. Actual online tracking, fresh region proposals, and reselecting while the Minecraft controller moves are not wired in yet. Existing replays still use saved choices and known coordinates. First validate this visual readout; the next integration must supply current-frame proposals and retain object identity across views rather than reuse stale screen boxes. No claim of lower total compute or autonomous navigation is made by this stage.</p>
+</html>
