@@ -9,9 +9,9 @@
 #SBATCH --output=logs/%x-%j.out
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:?Submit from repository root}"
-mode="${1:?Choose baseline, strength, or heads}"
+mode="${1:?Choose baseline, diagnostic, strength, or heads}"
 dataset="${2:?Supply binding-captures directory name}"
-case "$mode" in baseline) task=binding-baseline;; strength|heads) task=binding-patch;; *) exit 2;; esac
+case "$mode" in baseline) task=binding-baseline;; diagnostic) task=binding-diagnostic;; strength|heads) task=binding-patch;; *) exit 2;; esac
 [[ "$dataset" =~ ^binding-captures-[A-Za-z0-9_-]+$ ]] || exit 2
 [[ "${3:-}" == '--reviewed-captures' ]] || { echo 'Review captures first and pass --reviewed-captures' >&2; exit 2; }
 export MC_BINDING_SCRATCH="${MC_BINDING_SCRATCH:-/oscar/scratch/$USER/zef-binding}"
@@ -19,7 +19,10 @@ export MC_BINDING_ENV="${MC_BINDING_ENV:-$MC_BINDING_SCRATCH/envs/model}"
 export HF_HOME="$MC_BINDING_SCRATCH/huggingface"
 export XDG_CACHE_HOME="$MC_BINDING_SCRATCH/cache"
 export PYTHONUNBUFFERED=1
+config="configs/binding_${mode}.json"
+if [[ "$mode" == diagnostic ]]; then config="configs/binding_baseline.json"; fi
+[[ -f "$MC_BINDING_SCRATCH/runs/$dataset/manifest.json" ]] || { echo "Capture manifest missing: $dataset" >&2; exit 2; }
 "$MC_BINDING_ENV/bin/python" -m mc_binding "$task" \
  --dataset "$MC_BINDING_SCRATCH/runs/$dataset" \
- --config "configs/binding_${mode}.json" \
+ --config "$config" \
  --output "$MC_BINDING_SCRATCH/runs/binding-${mode}-${SLURM_JOB_ID}" --reviewed-captures

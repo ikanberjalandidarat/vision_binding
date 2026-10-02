@@ -33,7 +33,7 @@ def main():
     p.add_argument('--output', required=True)
     p.add_argument('--n', type=int, default=1)
     p.add_argument('--seed', type=int, default=731)
-    for name in ('binding-baseline','binding-patch'):
+    for name in ('binding-baseline','binding-patch','binding-diagnostic'):
         p = sub.add_parser(name)
         p.add_argument('--dataset', required=True)
         p.add_argument('--output', required=True)
@@ -107,6 +107,9 @@ def main():
     elif args.command == 'capture-binding':
         from .capture_pairs import capture_pairs
         capture_pairs(args.output, args.n, args.seed, binding=True, scene_set='binding_v1')
+    elif args.command == 'binding-diagnostic':
+        from .binding_diagnostic import run
+        run(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures)
     elif args.command in ('binding-baseline','binding-patch'):
         from .binding_experiment import binding_experiment
         binding_experiment(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures, args.command=='binding-patch')

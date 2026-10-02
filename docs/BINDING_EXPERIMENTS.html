@@ -25,6 +25,10 @@ rsync -av "zfawnia@ssh.ccv.brown.edu:/oscar/scratch/zfawnia/zef-binding/runs/bin
 <p>Read <code>binding-baseline-MODELJOBID/report.html</code>, <code>summary.json</code> and <code>gates/f0000.json</code>. There are 44 clean questions per family: conjunction selection plus color/shape controls in full and absent scenes. Answers are ordinal digits, not world-coordinate IDs: count visible structures from left to right, starting at 1; 0 means the conjunction is absent. Every clean failure is retained, with the raw answer. Malformed answers are failures.</p>
 <p>If the baseline fails, inspect ordinal parsing, shape recognition and absent-target responses separately. Do not treat a skipped patch run as a null effect. Prompts are fixed in source; any revised prompt constitutes a new development experiment.</p>
 <h2>3. Strength and head experiments</h2>
+<p><b>If the clean baseline fails, run calibration first:</b></p>
+<pre>sbatch scripts/slurm/binding_model.sbatch diagnostic \
+  binding-captures-1-6949019 --reviewed-captures</pre>
+<p>This reuses the reviewed captures and writes a separate <code>binding-diagnostic-JOBID</code> directory. Each family receives 172 diagnostic questions: isolated shape/color checks, identical original prompts at 8 versus 64 generated tokens, concise prompts at 64 tokens, and yes/no conjunction-existence checks. Summary counts separate genuinely absent targets from present targets in three-object scenes. Reports preserve raw answers; original baseline scores and patch gates remain unchanged. This is development calibration, not held-out validation or permission to start patching.</p>
 <pre>sbatch scripts/slurm/binding_model.sbatch strength \
   binding-captures-1-JOBID --reviewed-captures
 
