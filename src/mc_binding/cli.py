@@ -29,6 +29,16 @@ def main():
     p.add_argument('--n', type=int, default=4)
     p.add_argument('--seed', type=int, default=731)
     p.add_argument('--scene-set', choices=['original','depth_spacing_v1','replication_v1'], default='original')
+    p = sub.add_parser('capture-binding')
+    p.add_argument('--output', required=True)
+    p.add_argument('--n', type=int, default=1)
+    p.add_argument('--seed', type=int, default=731)
+    for name in ('binding-baseline','binding-patch'):
+        p = sub.add_parser(name)
+        p.add_argument('--dataset', required=True)
+        p.add_argument('--output', required=True)
+        p.add_argument('--config', default='configs/binding_baseline.json')
+        p.add_argument('--reviewed-captures', action='store_true')
     p = sub.add_parser('vision-pilot')
     p.add_argument('--dataset', required=True)
     p.add_argument('--output', required=True)
@@ -94,6 +104,12 @@ def main():
     elif args.command == 'capture-vision':
         from .capture_pairs import capture_pairs
         capture_pairs(args.output, args.n, args.seed, vision=True, scene_set=args.scene_set)
+    elif args.command == 'capture-binding':
+        from .capture_pairs import capture_pairs
+        capture_pairs(args.output, args.n, args.seed, binding=True, scene_set='binding_v1')
+    elif args.command in ('binding-baseline','binding-patch'):
+        from .binding_experiment import binding_experiment
+        binding_experiment(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures, args.command=='binding-patch')
     elif args.command == 'vision-pilot':
         from .vision_pilot import vision_pilot
         vision_pilot(args.dataset, args.output, json.loads(Path(args.config).read_text()), args.reviewed_captures)

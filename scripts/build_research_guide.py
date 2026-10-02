@@ -59,6 +59,7 @@ body{font:17px/1.6 system-ui;color:#203044;background:#f6f8fb;margin:0}main{max-
 </style><main>
 <h1>What did we patch in Minecraft?</h1>
 <p>A guide to the recorded experiments, their pictures, and the next behavioral tests. Generated from local run files; no new inference performed.</p>
+<p><a href="research-plan.html"><b>Research roadmap: binding → causal mechanisms → closed-loop movement → trained memory and active sensing</b></a></p>
 <nav><a href="#map">Model map</a><a href="#block">Inside a vision block</a><a href="#history">Experiment sequence</a><a href="#figure">Your layer-results PNG</a><a href="#trial">Compare an actual trial</a><a href="#next">Next steps</a><a href="#folders">Folder index</a></nav>
 <div class="warning"><b>Three intervention locations, one model.</b> First we patched Q in the language decoder. Then we patched entire vision-block output vectors. Then we separately patched Q, K, and V inside those vision blocks. “Whole state” is an intervention, not the untouched baseline.</div>
 <h2 id="map">1. Two different stacks of layers</h2>
@@ -142,7 +143,7 @@ for(const id of ['kind','layers','side'])el(id).addEventListener('change',update
         body=body[:start]+('<p><b>Replication complete and audited:</b> '+result_text+
             '. All 192 clean recognition checks passed. Full 24-configuration captures were reviewed locally. '
             '<a href="../runs/oscar/vision-pilot-replication-6853654/analysis/explained.html">Open replication breakdown and failure analysis</a>. '
-            'Destination choice and movement remain the next experimental stages.</p>'+
+            'See the later sections for destination choice and movement evidence.</p>'+
             image('vision-pilot-replication-6853654','analysis/replication-results.png','New-scene V replication: actual screenshots and recorded answers'))+body[end:]
     diagnostic=RUNS/'destination-diagnostic-6863843/report.html'
     if diagnostic.exists():
@@ -151,7 +152,10 @@ for(const id of ['kind','layers','side'])el(id).addEventListener('change',update
     if destination.exists():
         audit=read(destination)
         result='; '.join(r['patch_set']+': '+str(r['donor_choices'])+'/48' for r in audit['counts'] if r['condition']=='both_objects')
-        body=body.replace('<h2 id="folders">','<h2>Destination interventions completed</h2><p>'+result+'. All 96 clean choices and 144 self-patches passed. These are offline decisions; matched movement replay is pending. <a href="../runs/oscar/destination-replication-6868954/analysis/explained.html">Actual images, patch masks and destination outcomes</a>.</p><h2 id="folders">')
+        body=body.replace('<h2 id="folders">','<h2>Destination interventions completed</h2><p>'+result+'. All 96 clean choices and 144 self-patches passed. These are offline decisions. <a href="../runs/oscar/destination-replication-6868954/analysis/explained.html">Actual images, patch masks and destination outcomes</a>.</p><h2 id="folders">')
+    replay=RUNS/'destination-replay-6869428/blue-patched/report.html'
+    if replay.exists():
+        body=body.replace('<h2 id="folders">','<h2>Saved-choice movement replay</h2><p><a href="../runs/oscar/destination-replay-6869428/blue-patched/report.html">Inspect the recorded movement and trajectory</a>. This replay executes a saved destination choice using a known-coordinate controller. The model does not keep looking during movement. Moving region overlays are posthoc references, not continuous activation patches. <a href="research-plan.html">The new plan specifies binding tasks, closed-loop decisions, training and active sensing</a>.</p><h2 id="folders">')
     (ROOT/'docs/research-guide.html').write_text(body)
     print('Wrote docs/research-guide.html; linked local artifacts; comparison counts:',counts)
 if __name__=='__main__':build()

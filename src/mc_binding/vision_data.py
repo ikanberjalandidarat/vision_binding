@@ -111,7 +111,7 @@ def regions(image, record, h, w, merge, threshold=.5):
         raise ValueError('Mask threshold must be in (0, 1]')
     cover = [mask_coverage(object_mask(image, o), h, w, merge) for o in record['objects']]
     selected = [[i for i, v in enumerate(c) if v >= threshold] for c in cover]
-    if any(not s for s in selected) or set(selected[0]) & set(selected[1]):
+    if any(not s for s in selected) or sum(map(len, selected)) != len(set().union(*map(set,selected))):
         raise ValueError('Empty or overlapping object token sets')
     # Background excludes even partial overlap with either object's bounding box,
     # plus the fixed crosshair-cover rectangle. Avoids holes in color masks.

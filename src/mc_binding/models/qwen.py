@@ -100,5 +100,25 @@ class Qwen:
         logits = self.model(**inp, use_cache=False).logits[0, -1].float()
         return score_colors(logits, self.processor.tokenizer, self.config.get("score_colors", ["red", "blue"]))
 
+    @torch.inference_mode()
+    def choice_scores(self, inp):
+        """Fixed first-answer-digit events, not renormalized over valid choices."""
+        logits = self.model(**inp, use_cache=False).logits[0, -1].float()
+        if not torch.isfinite(logits).all():
+            raise RuntimeError('Non-finite choice scores')
+        logp = logits.log_softmax(-1)
+        result, used = {}, set()
+        for label in ('0','1','2','3','4'):
+            ids=set()
+            for spelling in (label, ' '+label):
+                tokens=self.processor.tokenizer.encode(spelling, add_special_tokens=False)
+                if len(tokens)==1: ids.add(tokens[0])
+            if not ids or used & ids:
+                raise ValueError('Choice scoring needs distinct single-token digit events')
+            used |= ids
+            result[label]=float(torch.logsumexp(logp[sorted(ids)],dim=0).cpu())
+        return {'method':'first_answer_digit_log_probability; available single-token variants',
+                'log_probability':result}
+
     def manifest(self):
         return {'model_class': type(self.model).__name__, 'model_config': self.model.config.to_dict(), 'processor': self.processor.image_processor.to_dict(), 'decoder_path': self.layer_path, 'quantized_4bit': bool(getattr(self.model, 'is_loaded_in_4bit', False)), 'hook_site': 'q/k/v projection output before reshape and RoPE; o projection input', 'cache': True, 'patch_scope': 'prefill_only', 'projection_shapes': {f'{l}:{k}': list(self.module(l, k).weight.shape) for l in self.config['layers'] for k in ('q', 'v')}}

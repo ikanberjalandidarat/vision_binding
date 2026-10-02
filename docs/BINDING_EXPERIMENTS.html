@@ -1,0 +1,47 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Run binding and vision-head experiments on Oscar</title>
+<style>body{font:17px/1.6 system-ui;max-width:1000px;margin:35px auto;padding:0 20px;color:#234}pre{background:#eef2f6;padding:18px;overflow:auto}a{color:#126195}td,th{padding:12px;border-bottom:1px solid #ddd;text-align:left}table{border-collapse:collapse}code{overflow-wrap:anywhere}</style>
+<h1>Binding and vision-head experiments: executable stage 1</h1>
+<p><a href="research-plan.html">Research plan</a> · <a href="research-guide.html">Prior evidence</a></p>
+<p>Implemented: real four-object capture generation; isolated-object annotations for repeated colors; complete and absent-conjunction scenes; clean binding/color/shape baselines; gated Q/K/V head patches with strength, reverse direction and ablation controls; checkpointed results and screenshot/token-overlay HTML reports. No new Minecraft rendering or Qwen GPU success is implied by local unit tests.</p>
+<h2>1. Submit one real capture family</h2>
+<p>After you commit/push your changes and pull them on Oscar, submit from the repository root. Existing environments are reused.</p>
+<pre>cd ~/projects/zef-binding
+git pull --ff-only origin main
+mkdir -p logs
+sbatch scripts/slurm/binding_capture.sbatch 1</pre>
+<p>The output is <code>/oscar/scratch/$USER/zef-binding/runs/binding-captures-1-JOBID</code>. Monitor:</p>
+<pre>sacct -j JOBID --format=JobID,State,ExitCode,Elapsed
+tail -F /oscar/home/zfawnia/projects/zef-binding/logs/binding-capture-JOBID.out</pre>
+<p>One family has 12 captures: four isolates, a full scene and an absent-object scene, for each of recipient and color-swapped donor. The manifest must finish with <code>captured_needs_visual_review</code>. Review the full/absent frames and boxes: all structures must be visible and separate, and no box may include its same-colored neighbor or the crosshair cover.</p>
+<p>From your Mac (replace JOBID):</p>
+<pre>cd /Users/lianfei/Documents/RES/Minecraft-Binding
+mkdir -p runs/oscar/binding-captures-1-JOBID
+rsync -av "zfawnia@ssh.ccv.brown.edu:/oscar/scratch/zfawnia/zef-binding/runs/binding-captures-1-JOBID/" \
+  runs/oscar/binding-captures-1-JOBID/</pre>
+<h2>2. Run clean baselines before patches</h2>
+<pre>sbatch scripts/slurm/binding_model.sbatch baseline \
+  binding-captures-1-JOBID --reviewed-captures</pre>
+<p>Read <code>binding-baseline-MODELJOBID/report.html</code>, <code>summary.json</code> and <code>gates/f0000.json</code>. There are 44 clean questions per family: conjunction selection plus color/shape controls in full and absent scenes. Answers are ordinal digits, not world-coordinate IDs: count visible structures from left to right, starting at 1; 0 means the conjunction is absent. Every clean failure is retained, with the raw answer. Malformed answers are failures.</p>
+<p>If the baseline fails, inspect ordinal parsing, shape recognition and absent-target responses separately. Do not treat a skipped patch run as a null effect. Prompts are fixed in source; any revised prompt constitutes a new development experiment.</p>
+<h2>3. Strength and head experiments</h2>
+<pre>sbatch scripts/slurm/binding_model.sbatch strength \
+  binding-captures-1-JOBID --reviewed-captures
+
+sbatch scripts/slurm/binding_model.sbatch heads \
+  binding-captures-1-JOBID --reviewed-captures</pre>
+<table><tr><th>Preset</th><th>Scope</th></tr>
+<tr><td>baseline</td><td>All families in the dataset. No patches.</td></tr>
+<tr><td>strength</td><td>First family only. V30, V31, V30+31; all heads; α = 0, .25, .5, .75, 1. Both intervention directions.</td></tr>
+<tr><td>heads</td><td>First family only. V30 and V31 independently; all heads plus each of 16 single heads; α = 1. Both directions.</td></tr></table>
+<p>Both patch presets include exact self controls, donor replacement, selected-channel norm-matched random perturbations, equally many background tokens, and image-token mean ablation. All four object regions are patched together for donor trials, preserving a well-defined counterfactual permutation of the four conjunctions. This is not a single-object specificity test. Mean ablation is a nonspecific disruption screen; apparent impairment alone does not establish a binding circuit.</p>
+<p>Strength interpolates against the <em>live</em> recipient activations. In a group, the later block therefore interpolates its already-affected state with its independently captured donor value. α=0 and self replacement must reproduce the clean answer and digit scores. Errors stop the run and remove hooks.</p>
+<p>Projection channels follow fused QKV order, then contiguous head channels. Q and K are supported by changing <code>vision_patch_kind</code> in a copied configuration; never overwrite a completed run's config. Each model run records source/config/environment/dataset hashes and refuses incompatible resume. The hook interface remains backward compatible with previous full-channel experiments.</p>
+<p>Scores sum available single-token spellings for each first-answer digit, without renormalizing over the five choices. Report donor-minus-original log-probability and its change from the clean input. This is not the probability of a complete multi-token answer.</p>
+<h2>4. Expand only after the smoke checks</h2>
+<pre>sbatch scripts/slurm/binding_capture.sbatch 24</pre>
+<p>This makes 288 images, with 24 permutations balancing each conjunction across four world slots. These are fixed-camera, same-arena development configurations, not independent worlds or held-out transfer scenes. After review, run the baseline on all 24. The intervention presets intentionally retain <code>family_limit: 1</code>; increase it explicitly in a separate config after inspecting the pilot and compute cost. To use that config, invoke <code>python -m mc_binding binding-patch --dataset … --output … --config … --reviewed-captures</code> inside an allocated GPU job.</p>
+<p>Within a family, all 44 clean questions must pass before patching. Failed families are recorded and skipped; complete runs can have zero eligible families. Report both the full baseline denominator and the eligible-family patch denominator. Each complete intervention unit is an atomic checkpoint. Rerun the same CLI command with the same output directory to resume; a fresh sbatch submission otherwise gets a new job-ID output directory.</p>
+<h2>What this code does not yet implement</h2>
+<p>Decoder causal tracing, held-out geometry/viewpoint generators, another model backend, a continuously observing movement policy, learned memory, and training/RL remain later stages in the roadmap. Existing movement replay is still a privileged saved-choice controller. These new commands test binding and the V mechanism; they do not launch or claim autonomous-agent training.</p>
+</html>

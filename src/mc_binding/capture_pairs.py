@@ -38,6 +38,11 @@ def clean_frame(frame, objects):
     annotated = copy.deepcopy(objects)
     for obj in annotated:
         mask = color_mask(frame, obj['color'])
+        if 'annotation_roi_raw' in obj:
+            a,b,c,d = obj['annotation_roi_raw']
+            keep = np.zeros(mask.shape, dtype=bool)
+            keep[b:d,a:c] = True
+            mask &= keep
         # Command text/tutorial pixels outside the retained viewport are not objects.
         mask[:CROP[1]] = False
         mask[CROP[3]:] = False
@@ -90,8 +95,8 @@ def pilot_contexts(index, seed):
     return contexts
 
 
-def capture_pairs(output, n=4, seed=731, *, vision=False, scene_set="original"):
-    limit = 24 if vision and scene_set == "replication_v1" else 4
+def capture_pairs(output, n=4, seed=731, *, vision=False, scene_set="original", binding=False):
+    limit = 24 if binding or (vision and scene_set == "replication_v1") else 4
     if not 1 <= n <= limit:
         raise ValueError(f'This scene set supports 1–{limit} configurations; these are not independent worlds')
     from minestudio.simulator import MinecraftSim
@@ -100,7 +105,7 @@ def capture_pairs(output, n=4, seed=731, *, vision=False, scene_set="original"):
     root.mkdir(parents=True, exist_ok=False)
     (root/'raw').mkdir()
     (root/'frames').mkdir()
-    manifest = {'schema_version': 'vision_swap_v1' if vision else 'recognition_pilot_v1', 'is_minecraft': True,
+    manifest = {'schema_version': 'binding_v1' if binding else 'vision_swap_v1' if vision else 'recognition_pilot_v1', 'is_minecraft': True,
                 'state': 'running', 'labels_validated': False, 'environment': environment(),
                 'source_hash': source_hash(), 'cleanup': CLEANUP, 'seed': seed, 'scene_set': scene_set,
                 'scope': 'fixed-pose recognition calibration; not independent test families', 'records': []}
@@ -120,14 +125,25 @@ def capture_pairs(output, n=4, seed=731, *, vision=False, scene_set="original"):
         obs, info = settle(200)
         for i in range(n):
             from .vision_data import swap_contexts
-            for context in (swap_contexts(i, seed, scene_set) if vision else pilot_contexts(i, seed)):
+            from .binding_data import binding_contexts
+            contexts = binding_contexts(i, seed) if binding else swap_contexts(i, seed, scene_set) if vision else pilot_contexts(i, seed)
+            isolated_boxes = {}
+            for context in contexts:
                 obs, info = CommandsCallback(commands=context['commands']).after_reset(sim, obs, info)
                 obs, info = settle(200)
                 ident = f'{len(manifest["records"]):06d}'
                 raw = root/'raw'/f'{ident}.png'
                 Image.fromarray(np.asarray(obs['image'])).save(raw)
                 verify_pose(info, [0.5, 200, 0.5], 0)
-                cleaned, objects = clean_frame(obs['image'], context['objects'])
+                candidates = copy.deepcopy(context['objects'])
+                if binding and context['kind'] != 'isolated':
+                    for obj in candidates:
+                        obj['annotation_roi_raw'] = isolated_boxes[context['context'],obj['object_id']]
+                cleaned, objects = clean_frame(obs['image'], candidates)
+                if binding and context['kind'] == 'isolated':
+                    isolated_boxes[context['context'],objects[0]['object_id']] = objects[0]['bbox_raw']
+                if binding and any(a['bbox'][2] >= b['bbox'][0] for a,b in zip(objects,objects[1:])):
+                    raise ValueError('Binding objects overlap in screen X; inspect raw capture')
                 path = root/'frames'/f'{ident}.png'
                 cleaned.save(path)
                 manifest['records'].append({**context, 'objects': objects, 'record_id': ident,
