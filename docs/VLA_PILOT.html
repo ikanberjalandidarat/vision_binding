@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Minecraft VLA pilot</title><style>body{font:17px/1.6 system-ui;max-width:1050px;margin:35px auto;padding:20px;color:#234}pre{padding:18px;background:#eef3f8;overflow:auto}table{border-collapse:collapse}td,th{padding:12px;border-bottom:1px solid #ddd;text-align:left}a{color:#126198}</style>
+<h1>First trainable Minecraft VLA</h1><p><a href="research-plan.html">Research plan</a> · <a href="VISUAL_READOUT.html">Visual readout diagnostics</a></p>
+<p><b>Implemented:</b> privileged teacher demonstration collection; frozen visual feature extraction; learned instruction embeddings, visual cross-attention, recurrent memory and action classification; behavior cloning; closed-loop evaluation on held-out geometry. Training and real-world performance have not been established by local synthetic tests.</p>
+<pre>RGB image → frozen Qwen vision encoder → 4 × 8 spatial feature grid
+                                                   ↓
+Instruction → learned word embeddings → cross-attention
+                                                   ↓
+Previous action ──────────────────────→ GRU memory → action logits
+                                                   ↓
+                         Forward / turn left / turn right / stop
+                                                   ↓
+                            2 simulator ticks → new RGB image</pre>
+<p>The policy receives no coordinates, boxes, target object IDs, teacher actions or ground-truth attributes at deployment. A separate render process owns world state for the teacher and evaluator. Language is a deliberately small controlled vocabulary; this is not a general pretrained instruction-following robot. Qwen's full checkpoint is loaded for compatibility but only its frozen visual encoder executes. Existing region classifiers are not used as oracle detectors.</p>
+<h2>Start with a demonstration smoke job</h2><p>After you commit/push and pull on Oscar:</p>
+<pre>cd ~/projects/zef-binding
+mkdir -p logs
+sbatch scripts/slurm/vla.sbatch collect \
+  binding-captures-1-6949019 1 --reviewed-captures</pre>
+<p>This produces <code>vla-demos-JOBID</code>, with 16 episodes (four goals × two color contexts × full/absent scenes). Every rebuilt start must match the reviewed capture within the existing image-error threshold. Each episode includes raw HUD frames, XYZ/yaw telemetry, actions, a movement GIF and trajectory PNG. Inspect <code>status.json</code>, <code>episodes.json</code>, and episode reports. A stopped episode is successful only if it stops within 0.8 blocks of the correct approach waypoint, or correctly stops when the conjunction is absent. Timeouts are failures. The teacher uses known world geometry; its success is not learned-agent success.</p>
+<p>The worker uses the existing render environment for Java/MineStudio; the parent uses the model environment. They exchange explicit JSON messages and frame paths. Model/Java failures remain errors. No new packages are required by this implementation. The launcher currently reserves a GPU in all modes for simplicity, even though demonstration collection and cached-feature training do not require it.</p>
+<h2>Scale only after inspecting the demonstrations</h2><p>Use the reviewed 24-configuration capture set to collect all 24 families:</p>
+<pre>sbatch scripts/slurm/vla.sbatch collect \
+  binding-captures-24-ACTUAL_CAPTURE_JOB_ID 24 --reviewed-captures</pre>
+<p>Replace ACTUAL_CAPTURE_JOB_ID with the actual capture ID. This requests 384 episodes and can take substantial simulator time/storage. Benchmark the one-family run before choosing the batch time limit. The implementation checkpoints episode logs but does not resume incomplete collection or training; use fresh output directories. Failed teacher episodes are reported and excluded from behavior-cloning features.</p>
+<h2>Feature extraction → training → learned rollouts</h2><p>Submit each step only after its input stage completes. Replace each placeholder with the directory produced by the preceding job.</p>
+<pre>sbatch scripts/slurm/vla.sbatch features vla-demos-ACTUAL_DEMO_JOB_ID
+
+sbatch scripts/slurm/vla.sbatch train vla-features-ACTUAL_FEATURE_JOB_ID
+
+sbatch scripts/slurm/vla.sbatch rollout \
+  binding-captures-24-ACTUAL_CAPTURE_JOB_ID \
+  vla-policy-ACTUAL_TRAIN_JOB_ID --reviewed-captures</pre>
+<p>Features use full raw RGB, including HUD, with a consistent processor; no goal-conditioned crop or privileged mask. Vision tokens are reordered correctly before spatial pooling. Each training example contains the text instruction, visual features, previous demonstration action, and next action label. Training uses full recurrent sequences, teacher forcing, gradient clipping, and validation-loss checkpoint selection. The deployed policy uses its own previous actions, so distribution shift is expected and must be measured.</p>
+<p>Geometry groups, including both color directions, stay in one split. One-family demonstrations cannot train an evaluated model: training requires at least three geometry groups and every action class. The 24 permutations provide just six shape-position patterns; this remains a same-arena development pilot. Offline action accuracy is not a substitute for rollout success. Only successful teacher episodes are retained, so inspect any resulting selection bias before interpreting training outcomes.</p>
+<h2>What to inspect in the rollout report</h2><ul>
+<li>Correct arrival versus wrong stop or timeout, separated into present and absent targets.</li>
+<li>Raw movement GIF and trajectory, including XYZ as evaluator annotations only.</li>
+<li>Every chosen action, action probability, instruction and fresh input frame.</li>
+<li>Policy cross-attention GIF: learned instruction query over 32 spatial visual features.</li>
+<li>Action Grad-CAM GIF: gradient of the chosen action logit with respect to the pooled visual features, holding earlier memory fixed.</li></ul>
+<p>Attention and Grad-CAM are different quantities. These maps are separately normalized, and neither is a causal intervention. This Grad-CAM does not backpropagate through the frozen encoder. GIF timing corresponds to simulator ticks, not measured throughput. Logged per-decision duration includes encoder, policy, attribution and visualization overhead; do not report it as bare model latency.</p>
+<h2>Next scientific gates</h2><p>Before attributing behavior to a visual head, establish clean rollout competence and language dependence on held-out layouts. Add matched instruction-swap, image-ablation and memory-ablation controls. Then apply V30/V31 interventions during selected decisions, record exact token sites, and measure trajectory changes. Those closed-loop activation interventions are not implemented in this first policy loop; the separate visual-readout patch runner remains available.</p>
+<p>Reinforcement learning, adaptive observation scheduling, obstacle navigation, broader language, and natural occlusion recovery are future stages. This version is supervised behavior cloning with a fixed observation cadence and flat-arena action set. It does not claim fewer model calls, general Minecraft play, or a solved binding mechanism.</p></html>

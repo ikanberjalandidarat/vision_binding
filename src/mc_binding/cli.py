@@ -9,6 +9,16 @@ from .io import atomic_json, environment
 def main():
     parser = argparse.ArgumentParser(description='Minecraft binding backbone; fixtures are non-Minecraft data')
     sub = parser.add_subparsers(dest='command', required=True)
+    for name in ('vla-collect','vla-features','vla-train','vla-rollout'):
+        p=sub.add_parser(name);p.add_argument('--output',required=True)
+        p.add_argument('--config',default='configs/vla_pilot.json')
+        if name in ('vla-collect','vla-rollout'):
+            p.add_argument('--dataset',required=True);p.add_argument('--render-python',required=True)
+            p.add_argument('--reviewed-captures',action='store_true')
+        if name=='vla-collect':p.add_argument('--n',type=int,default=1)
+        if name=='vla-features':p.add_argument('--demos',required=True)
+        if name=='vla-train':p.add_argument('--cache',required=True)
+        if name=='vla-rollout':p.add_argument('--policy',required=True)
     for name in ('visual-extract','visual-train','visual-evaluate'):
         p=sub.add_parser(name)
         p.add_argument('--output',required=True)
@@ -91,7 +101,14 @@ def main():
     p = sub.add_parser('analyze')
     p.add_argument('run')
     args = parser.parse_args()
-    if args.command.startswith('visual-'):
+    if args.command.startswith('vla-'):
+        from .vla import collect, featurize, train, rollout
+        config=json.loads(Path(args.config).read_text())
+        if args.command=='vla-collect':collect(args.dataset,args.output,args.render_python,config,args.reviewed_captures,args.n)
+        elif args.command=='vla-features':featurize(args.demos,args.output,config)
+        elif args.command=='vla-train':train(args.cache,args.output,config)
+        else:rollout(args.dataset,args.policy,args.output,args.render_python,config,args.reviewed_captures)
+    elif args.command.startswith('visual-'):
         from .visual_readout import extract, train, evaluate
         config=json.loads(Path(args.config).read_text())
         if args.command=='visual-extract': extract(args.dataset,args.output,config,args.reviewed_captures)

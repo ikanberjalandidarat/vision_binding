@@ -1,0 +1,50 @@
+{
+  "model_id": "Qwen/Qwen2-VL-7B-Instruct",
+  "revision": "eed13092ef92e448dd6875b2a00151bd3f7db0ac",
+  "load_in_4bit": false,
+  "dtype": "bfloat16",
+  "use_fast": true,
+  "check_finite_scores": true,
+  "seed": 731,
+  "layers": [],
+  "vision_layers": [
+    30,
+    31
+  ],
+  "min_pixels": 125440,
+  "max_pixels": 125440,
+  "max_new_tokens": 8,
+  "mask_threshold": 0.5,
+  "vision_layer_groups": [
+    [
+      30,
+      31
+    ]
+  ],
+  "vision_patch_kind": "v",
+  "head_sets": [
+    null
+  ],
+  "alphas": [
+    1.0
+  ],
+  "directions": [
+    "recipient",
+    "color_swap"
+  ],
+  "readout_layer": 31,
+  "epochs": 20,
+  "learning_rate": 0.001,
+  "weight_decay": 0.01,
+  "map_records": 8,
+  "conditions": [
+    "donor",
+    "random",
+    "background",
+    "mean_ablation"
+  ],
+  "action_chunk": 2,
+  "max_decisions": 160,
+  "hidden": 64,
+  "evaluation_episodes": 16
+}
