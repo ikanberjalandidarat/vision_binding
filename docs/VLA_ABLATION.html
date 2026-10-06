@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VLA bulk diagnostic and ablations</title><style>body{max-width:1050px;margin:35px auto;padding:20px;font:17px/1.6 system-ui;color:#243447}pre{background:#eef2f5;padding:15px;overflow:auto}table{border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ccc;text-align:left}</style>
+<h1>One submission: diagnose, compare, and evaluate</h1>
+<p><a href="VLA_PILOT.html">VLA pilot</a> · <a href="../runs/oscar/vla-rollout-7052970/analysis/diagnosis.html">Observed navigation failures</a></p>
+<p>This pipeline tests two hypotheses without assuming either will fix navigation. It preserves the original policy, features, captures and demonstration frames. No activation patches or reinforcement learning are included.</p>
+<h2>What gets queued</h2>
+<pre>Matched-input diagnostic (original policy) ──────────────────────┐
+Original raw feature cache → raw / episode training → rollout ──┤
+                           → raw / timestep training → rollout ─┤
+Neutral-band feature extraction → neutral / episode → rollout ──┤
+                               → neutral / timestep → rollout ─┤
+                                                               ↓
+                                                   Combined comparison report</pre>
+<p>Eleven jobs: one diagnostic, one new feature cache, four training runs, four Minecraft rollouts, and one comparison. Independent GPU feature/diagnostic jobs and CPU training jobs can run concurrently subject to Oscar scheduling. Minecraft rollouts are serialized to avoid multiple render processes competing for the shared simulator installation. No repeated manual sbatch commands are needed.</p>
+<table><tr><th>Arm</th><th>Policy input</th><th>Training objective</th></tr><tr><td>raw-episode</td><td>Original full RGB</td><td>Equal episode weight; baseline reproduction</td></tr><tr><td>raw-timestep</td><td>Original full RGB</td><td>Equal timestep weight in the expected sampled gradient</td></tr><tr><td>neutral-episode</td><td>Gray top/bottom bands</td><td>Equal episode weight</td></tr><tr><td>neutral-timestep</td><td>Gray top/bottom bands</td><td>Equal timestep weight</td></tr></table>
+<p>The neutral input replaces rows 0–39 and 195–279 of raw 448×280 RGB with gray, preserving the central 155 rows and image dimensions. It removes tutorial/HUD/hand pixels, but also floor and ceiling information. It is a broad appearance ablation, not a clean identification of which nuisance caused failure. The same transformation is used at feature extraction and live rollout. Raw HUD recordings remain unchanged; attention/Grad-CAM are displayed on the actual transformed policy input.</p>
+<p>Timestep weighting scales each episode's mean loss by episode length divided by mean training-episode length. With uniformly sampled episodes, its expected gradient equals the global per-timestep mean gradient. It retains the same number of optimizer updates, seed, architecture and epoch budget. Adam's adaptive updates mean this is not numerically equivalent to a single giant batch. It does not guarantee better stop/turn learning; minority-action metrics and real rollouts are essential.</p>
+<h2>Submit on Oscar</h2>
+<p>After you commit/push the changes and pull them on Oscar, run the following from the repository root. A preview does not submit jobs or create output directories.</p>
+<pre>cd ~/projects/zef-binding
+export MC_BINDING_ENV="/oscar/scratch/$USER/zef-binding/envs/model"
+
+"$MC_BINDING_ENV/bin/python" scripts/vla_ablation.py submit \
+  --tag navigation-v1 --reviewed-captures --dry-run
+
+"$MC_BINDING_ENV/bin/python" scripts/vla_ablation.py submit \
+  --tag navigation-v1 --reviewed-captures</pre>
+<p>Defaults refer to the reviewed binding-captures-24-6961501, demos-7045999, features-7050533, policy-7052010 and rollout-7052970. Arguments --dataset, --demos, --cache, --policy and --rollout can override their directory names. The existing raw cache must match the original policy/demonstration provenance. All output goes to a new <code>runs/vla-ablation-navigation-v1</code> directory on scratch. An existing tag is rejected.</p>
+<p>The submission JSON records all job IDs and dependency commands. Dependent stages require successful parent completion. Invalid dependencies are configured to cancel rather than wait indefinitely. The final comparison runs after jobs terminate and explicitly reports missing/failed arms, rather than counting them as zero successes. A submission failure records jobs already submitted; inspect that file before retrying. There is no automatic resume of partial feature extraction or training.</p>
+<p>Source code is hashed at submission and checked by each worker. Do not change the checkout while this suite is queued/running; otherwise pending workers deliberately fail to prevent mixing implementations. All stages use the existing environments; they never install packages. As before, a broken environment is an error, not a successful experiment.</p>
+<h2>What the diagnostic measures</h2>
+<ul><li>For each original rollout starting frame, locate the matching teacher scene/goal and verify teacher frame provenance.</li><li>Encode teacher versus live starting images, both raw and with neutral bands. For each, evaluate all four color–shape instructions using fresh recurrent state and identical initial previous action.</li><li>Record expected teacher action, predicted action, four action probabilities, false stops on present targets and correct stops on absent targets.</li><li>Replay original held-out cached teacher sequences with teacher previous actions versus predicted previous actions. The images stay teacher-recorded: this is an offline history diagnostic, not navigation.</li></ul>
+<p>Masking a raw-trained model is itself a distribution change. A prediction change is diagnostic evidence, not proof of causality. Repeated frames/instruction swaps are paired measurements, not independent scenes. The report contains actual input images and every instruction's prediction.</p>
+<h2>Evaluation and decision rule</h2>
+<p>Each arm requests all 64 validation episodes across its four families within one validation geometry group. This replaces the original first-16 test-family rollout for development comparisons. Geometry groups stay together. Report present-target arrival and absent-target stop separately, immediate false stops, timeouts, startup accuracy and per-action recall. The combined report links each arm's raw Minecraft movement GIFs, trajectories, attention and action Grad-CAM. Neither map is a causal intervention.</p>
+<p>Do not choose a revision using the test-family matched diagnostic or offline test scores. Use the validation comparisons to decide what to investigate, then freeze a chosen configuration before evaluating the full test split. A single seed and one arena are insufficient to establish general navigation competence. A “best” arm is not automatically selected, and the pipeline does not guarantee good navigation.</p>
+<h2>Download the suite</h2>
+<pre># On your Mac, after the jobs finish:
+cd ~/Documents/RES/Minecraft-Binding
+mkdir -p runs/oscar/vla-ablation-navigation-v1
+rsync -av \
+  zfawnia@ssh.ccv.brown.edu:/oscar/scratch/zfawnia/zef-binding/runs/vla-ablation-navigation-v1/ \
+  runs/oscar/vla-ablation-navigation-v1/</pre>
+<p>Open report.html for the four-arm comparison and diagnostic/report.html for matched inputs. No PDF is generated. Feature caches may be large; all evidence and checkpoints are retained.</p></html>

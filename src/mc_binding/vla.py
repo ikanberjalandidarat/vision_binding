@@ -24,6 +24,47 @@ def tokenize(text):
     return torch.tensor([VOCAB.index(w) if w in VOCAB else 1 for w in words],dtype=torch.long)
 
 
+def observation_image(image, config):
+    """Versioned policy input transform; recorded raw HUD images remain intact."""
+    mode=config.get('observation_mode','raw')
+    image=image.convert('RGB').copy()
+    if image.size!=(448,280):raise ValueError('Expected raw 448x280 observation')
+    if mode=='neutral_bands_v1':
+        from PIL import ImageDraw
+        draw=ImageDraw.Draw(image)
+        draw.rectangle((0,0,447,39),fill=(128,128,128))
+        draw.rectangle((0,195,447,279),fill=(128,128,128))
+    elif mode!='raw':raise ValueError('Unknown observation_mode')
+    return image
+
+
+def loss_scale(length, mean_length, weighting):
+    if weighting=='episode':return 1.
+    if weighting=='timestep':return length/mean_length
+    raise ValueError('loss_weighting must be episode or timestep')
+
+
+def action_metrics(model, rows, previous_mode='teacher'):
+    """Offline sequence evaluation, including startup and minority action metrics."""
+    if previous_mode not in ('teacher','predicted'):raise ValueError('Unknown previous mode')
+    confusion=np.zeros((4,4),dtype=int);first=np.zeros((4,4),dtype=int)
+    model.eval()
+    with torch.no_grad():
+        for r in rows:
+            state=None;previous=3;instruction=tokenize(r['instruction'])
+            for t,(x,a) in enumerate(zip(r['data']['features'],r['data']['actions'])):
+                logits,state,_=model(x,instruction,previous,state);pred=int(logits.argmax());truth=int(a)
+                confusion[truth,pred]+=1
+                if t==0:first[truth,pred]+=1
+                previous=truth if previous_mode=='teacher' else pred
+    def summary(c):
+        total=int(c.sum())
+        return dict(n=total,accuracy=float(c.trace()/total) if total else None,
+                    confusion=c.tolist(),recall={a:float(c[i,i]/c[i].sum()) if c[i].sum() else None for i,a in enumerate(ACTIONS)})
+    return dict(previous_mode=previous_mode,all_steps=summary(confusion),first_steps=summary(first),
+                scope='Recorded teacher images; predicted previous actions are not a simulator rollout')
+
+
 def action_cam(model,features,instruction,previous,state,action):
     """Grad-CAM at pooled vision features for one action logit, history fixed."""
     x=features.detach().clone().requires_grad_(True)
@@ -154,7 +195,7 @@ def featurize(demos,output,config):
             for s in ep['samples']:
                 p=(root/s['frame']).resolve()
                 if root.resolve() not in p.parents or file_hash(p)!=s['sha256']:raise ValueError('Frame provenance mismatch')
-                with Image.open(p) as im:inputs=enc.inputs(im.convert('RGB'))
+                with Image.open(p) as im:inputs=enc.inputs(observation_image(im,config))
                 _,h,w=map(int,inputs[1][0].tolist())
                 values.append(spatial_pool(enc.features(inputs),(h,w),int(enc.visual.spatial_merge_size)))
             p=out/f'{ep["episode"]}.pt';save_tensor(p,dict(features=torch.stack(values),actions=torch.tensor([s['action'] for s in ep['samples']])))
@@ -184,8 +225,11 @@ def train(cache,output,config):
     torch.manual_seed(config['seed']);torch.set_num_threads(4)
     width=rows[0]['data']['features'].shape[-1];model=Policy(width,config['hidden'])
     optimizer=torch.optim.AdamW(model.parameters(),lr=config['learning_rate'],weight_decay=.01)
+    weighting=config.get('loss_weighting','episode')
+    if config.get('observation_mode','raw')!=fm['config'].get('observation_mode','raw'):raise ValueError('Feature preprocessing mismatch')
     train_rows=[r for r in rows if splits[r['geometry']]=='train'];val=[r for r in rows if splits[r['geometry']]=='validation']
     if set(torch.cat([r['data']['actions'] for r in train_rows]).tolist())!=set(range(4)):raise ValueError('Training demonstrations miss action classes')
+    mean_length=float(np.mean([len(r['data']['actions']) for r in train_rows]));loss_scale(1,mean_length,weighting)
     best=float('inf');best_state=None;history=[]
     def episode_loss(r):
         state=None;prev=3;losses=[];correct=0;instruction=tokenize(r['instruction'])
@@ -198,9 +242,11 @@ def train(cache,output,config):
         for idx in order:
             optimizer.zero_grad();loss,_,_=episode_loss(train_rows[idx])
             if not torch.isfinite(loss):raise RuntimeError('Nonfinite training loss')
-            loss.backward();torch.nn.utils.clip_grad_norm_(model.parameters(),1.);optimizer.step();total+=float(loss.detach())
+            (loss*loss_scale(len(train_rows[idx]['data']['actions']),mean_length,weighting)).backward();torch.nn.utils.clip_grad_norm_(model.parameters(),1.);optimizer.step();total+=float(loss.detach())
         model.eval()
-        with torch.no_grad():v=sum(float(episode_loss(r)[0]) for r in val)/len(val)
+        with torch.no_grad():
+            vals=[(float(episode_loss(r)[0]),len(r['data']['actions'])) for r in val]
+            v=sum(a*(n if weighting=='timestep' else 1) for a,n in vals)/sum(n if weighting=='timestep' else 1 for _,n in vals)
         history.append(dict(epoch=epoch,train_loss=total/len(order),validation_loss=v))
         if v<best:
             best=v;best_state={k:v.detach().clone() for k,v in model.state_dict().items()}
@@ -214,6 +260,7 @@ def train(cache,output,config):
     out.mkdir(parents=True)
     save_tensor(out/'policy.pt',dict(state=best_state,width=width,hidden=config['hidden']))
     atomic_json(out/'manifest.json',dict(experiment='minecraft_vla_bc_v1',config=config,feature_manifest=fm,feature_index_hash=file_hash(root/'index.json'),splits=splits,vocab=VOCAB,actions=ACTIONS,checkpoint_sha256=file_hash(out/'policy.pt'),scope='Controlled-language behavior cloning. Offline teacher-forced accuracy is not navigation success.'))
+    atomic_json(out/'offline-metrics.json',{split:action_metrics(model,[r for r in rows if splits[r['geometry']]==split]) for split in ('validation','test')});
     atomic_json(out/'history.json',history);atomic_json(out/'offline-test.json',results);atomic_json(out/'status.json',{'state':'complete'})
 
 
@@ -226,7 +273,9 @@ def rollout(dataset,policy,output,render_python,config,reviewed=False):
     if config['action_chunk']!=pm['config']['action_chunk']:raise ValueError('Action-chunk mismatch')
     ck=torch.load(p/'policy.pt',map_location='cpu',weights_only=True)
     model=Policy(ck['width'],ck['hidden']);model.load_state_dict(ck['state']);model.eval()
-    jobs=[j for j in plan(groups) if pm['splits'].get(j['geometry'])=='test']
+    evaluation_split=config.get('evaluation_split','test')
+    if evaluation_split not in ('validation','test'):raise ValueError('Invalid evaluation split')
+    jobs=[j for j in plan(groups) if pm['splits'].get(j['geometry'])==evaluation_split]
     if not jobs:raise ValueError('No held-out jobs')
     out=Path(output);out.mkdir(parents=True,exist_ok=False);worker=None;results=[]
     atomic_json(out/'manifest.json',dict(policy=pm,config=config,source_hash=source_hash(),scope='Closed-loop RGB + instruction policy; no teacher requests or coordinate inputs'))
@@ -241,15 +290,16 @@ def rollout(dataset,policy,output,render_python,config,reviewed=False):
             for step in range(config['max_decisions']):
                 started=time.monotonic()
                 with Image.open(obs['frame']) as image:raw=image.convert('RGB')
-                inputs=enc.inputs(raw)
+                policy_image=observation_image(raw,encoder_config)
+                inputs=enc.inputs(policy_image)
                 _,h,w=map(int,inputs[1][0].tolist());features=spatial_pool(enc.features(inputs),(h,w),int(enc.visual.spatial_merge_size))
                 prior_state=state;prior_action=previous
                 with torch.no_grad():logits,state,attention=model(features,instruction,previous,state)
                 action=int(logits.argmax());previous=action
                 cam=action_cam(model,features,instruction,prior_action,prior_state,action)
                 from .visual_readout import heatmap
-                heatmap(raw,attention,4,8,1,maps/f'{step:04d}-attention.png')
-                heatmap(raw,cam,4,8,1,maps/f'{step:04d}-cam.png')
+                heatmap(policy_image,attention,4,8,1,maps/f'{step:04d}-attention.png')
+                heatmap(policy_image,cam,4,8,1,maps/f'{step:04d}-cam.png')
                 for path,frames in [(maps/f'{step:04d}-attention.png',attention_frames),(maps/f'{step:04d}-cam.png',cam_frames)]:
                     with Image.open(path) as im:frames.append(im.convert('RGB'))
                 decisions.append(dict(frame=obs['frame'],action=ACTIONS[action],probabilities=logits.softmax(0).tolist(),cross_attention=attention.tolist(),action_gradcam=cam.tolist(),inference_seconds=time.monotonic()-started))
@@ -262,7 +312,7 @@ def rollout(dataset,policy,output,render_python,config,reviewed=False):
             results.append(dict(episode=f'e{j:05d}',family=job['family'],goal=job['goal'],instruction=job['instruction'],**result))
             atomic_json(out/'results.json',results)
         by_presence=[dict(goal_present=present,n=len(rs),successes=sum(r['success'] for r in rs)) for present in (True,False) for rs in [[r for r in results if r['goal_present']==present]]]
-        atomic_json(out/'summary.json',dict(episodes=len(results),successes=sum(r['success'] for r in results),by_presence=by_presence,scope='Held-out geometry within one arena; not general Minecraft autonomy'))
+        atomic_json(out/'summary.json',dict(evaluation_split=evaluation_split,families=sorted({r['family'] for r in results}),episodes=len(results),successes=sum(r['success'] for r in results),by_presence=by_presence,scope='Held-out geometry within one arena; not general Minecraft autonomy'))
         links=''.join(f'<li>{r["instruction"]}: success={r["success"]} <a href="episodes/{r["episode"]}/report.html">GIF + trajectory</a> · <a href="maps/{r["episode"]}/policy-attention.gif">Policy cross-attention</a> · <a href="maps/{r["episode"]}/action-gradcam.gif">Action Grad-CAM</a></li>' for r in results)
         (out/'report.html').write_text('<!doctype html><meta charset="utf-8"><h1>Closed-loop VLA pilot</h1><p>Learned actions from new RGB observations and instructions. No privileged coordinates are supplied to the policy. Known state is used only for evaluation. Policy cross-attention is distinct from Grad-CAM for the selected action logit at pooled visual features. Neither is an activation intervention. Maps are separately normalized and GIF timing is simulator time, not measured real-time speed.</p><ul>'+links+'</ul>')
         atomic_json(out/'status.json',{'state':'complete'})

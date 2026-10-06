@@ -11,7 +11,7 @@ Previous action ─────────────────────�
                                                    ↓
                             2 simulator ticks → new RGB image</pre>
 <p>The policy receives no coordinates, boxes, target object IDs, teacher actions or ground-truth attributes at deployment. A separate render process owns world state for the teacher and evaluator. Language is a deliberately small controlled vocabulary; this is not a general pretrained instruction-following robot. Qwen's full checkpoint is loaded for compatibility but only its frozen visual encoder executes. Existing region classifiers are not used as oracle detectors.</p>
-<h2>Start with a demonstration smoke job</h2><p>After you commit/push and pull on Oscar:</p>
+<p><a href="VLA_ABLATION.html">Bulk matched-input diagnostic and 2 × 2 navigation ablations</a></p><h2>Start with a demonstration smoke job</h2><p>After you commit/push and pull on Oscar:</p>
 <pre>cd ~/projects/zef-binding
 mkdir -p logs
 sbatch scripts/slurm/vla.sbatch collect \

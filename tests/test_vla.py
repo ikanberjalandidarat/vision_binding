@@ -38,7 +38,8 @@ def test_grid_pool_preserves_locations():
     assert len(plan({'f0000':binding_contexts(0,731)}))==16
 
 
-def test_training_and_rollout_never_request_teacher(tmp_path,monkeypatch):
+@pytest.mark.parametrize('mode,weight', [('raw','episode'),('neutral_bands_v1','timestep')])
+def test_training_and_rollout_never_request_teacher(tmp_path,monkeypatch,mode,weight):
     import mc_binding.vla as vla
     torch.set_num_threads(1)
     groups={f'f{i:04d}':binding_contexts(i,731) for i in range(24)}
@@ -50,7 +51,7 @@ def test_training_and_rollout_never_request_teacher(tmp_path,monkeypatch):
         ep=f'e{i:05d}';p=cache/f'{ep}.pt'
         save_tensor(p,dict(features=torch.randn(4,32,8),actions=torch.arange(4)))
         rows.append(dict(episode=ep,instruction='Go to the blue arch.',family=fid,geometry=vla.geometry_key(rs),file=p.name,sha256=file_hash(p)))
-    config=dict(seed=731,hidden=16,epochs=1,learning_rate=.001,action_chunk=2,max_decisions=2,evaluation_episodes=1)
+    config=dict(seed=731,hidden=16,epochs=1,learning_rate=.001,action_chunk=2,max_decisions=2,evaluation_episodes=1,observation_mode=mode,loss_weighting=weight)
     atomic_json(cache/'manifest.json',dict(config=config,demos_manifest={'dataset_hash':digest(data),'config':config}))
     atomic_json(cache/'index.json',rows);atomic_json(cache/'status.json',{'state':'complete'})
     out=tmp_path/'policy';train(cache,out,config)
