@@ -44,6 +44,23 @@ def loss_scale(length, mean_length, weighting):
     raise ValueError('loss_weighting must be episode or timestep')
 
 
+def decision_weights(actions, config):
+    """Predeclared startup/turn weighting, independent of validation labels."""
+    weights=torch.ones(len(actions),dtype=torch.float32,device=actions.device)
+    startup=float(config.get('startup_weight',1.));turn=float(config.get('turn_weight',1.))
+    if not np.isfinite(startup+turn) or min(startup,turn)<=0:raise ValueError('Positive finite decision weights required')
+    weights[(actions==1)|(actions==2)]*=turn
+    weights[0]*=startup
+    return weights
+
+
+def geometry_splits(keys, config):
+    keys=sorted(set(keys))
+    if len(keys)<3:raise ValueError('Need >=3 geometry groups')
+    np.random.default_rng(config.get('split_seed',config['seed'])).shuffle(keys);n=max(1,len(keys)//5)
+    return {k:'test' if i<n else 'validation' if i<2*n else 'train' for i,k in enumerate(keys)}
+
+
 def action_metrics(model, rows, previous_mode='teacher'):
     """Offline sequence evaluation, including startup and minority action metrics."""
     if previous_mode not in ('teacher','predicted'):raise ValueError('Unknown previous mode')
@@ -216,8 +233,7 @@ def train(cache,output,config):
         raise ValueError('Training action chunk differs from demonstrations')
     rows=json.loads((root/'index.json').read_text());keys=sorted({r['geometry'] for r in rows})
     if len(keys)<3:raise ValueError('Need >=3 geometry groups; one-family demonstrations are smoke only')
-    np.random.default_rng(config['seed']).shuffle(keys);n=max(1,len(keys)//5)
-    splits={k:'test' if i<n else 'validation' if i<2*n else 'train' for i,k in enumerate(keys)}
+    splits=geometry_splits(keys,config)
     for r in rows:
         p=(root/r['file']).resolve()
         if root.resolve() not in p.parents or file_hash(p)!=r['sha256']:raise ValueError('Feature hash mismatch')
@@ -236,7 +252,7 @@ def train(cache,output,config):
         for x,a in zip(r['data']['features'],r['data']['actions']):
             logits,state,_=model(x,instruction,prev,state)
             losses.append(torch.nn.functional.cross_entropy(logits[None],a[None]));correct+=int(logits.argmax()==a);prev=int(a)
-        return torch.stack(losses).mean(),correct,len(losses)
+        return (torch.stack(losses)*decision_weights(r['data']['actions'],config)).mean(),correct,len(losses)
     for epoch in range(config['epochs']):
         model.train();order=torch.randperm(len(train_rows)).tolist();total=0
         for idx in order:
@@ -255,12 +271,12 @@ def train(cache,output,config):
     model.load_state_dict(best_state);model.eval();results=[]
     with torch.no_grad():
         for r in rows:
-            if splits[r['geometry']]=='test':
+            if config.get('report_test_metrics',True) and splits[r['geometry']]=='test':
                 loss,correct,count=episode_loss(r);results.append(dict(episode=r['episode'],correct=correct,n=count,loss=float(loss)))
     out.mkdir(parents=True)
     save_tensor(out/'policy.pt',dict(state=best_state,width=width,hidden=config['hidden']))
     atomic_json(out/'manifest.json',dict(experiment='minecraft_vla_bc_v1',config=config,feature_manifest=fm,feature_index_hash=file_hash(root/'index.json'),splits=splits,vocab=VOCAB,actions=ACTIONS,checkpoint_sha256=file_hash(out/'policy.pt'),scope='Controlled-language behavior cloning. Offline teacher-forced accuracy is not navigation success.'))
-    atomic_json(out/'offline-metrics.json',{split:action_metrics(model,[r for r in rows if splits[r['geometry']]==split]) for split in ('validation','test')});
+    atomic_json(out/'offline-metrics.json',{split:action_metrics(model,[r for r in rows if splits[r['geometry']]==split]) for split in (('validation','test') if config.get('report_test_metrics',True) else ('validation',))});
     atomic_json(out/'history.json',history);atomic_json(out/'offline-test.json',results);atomic_json(out/'status.json',{'state':'complete'})
 
 
@@ -312,7 +328,7 @@ def rollout(dataset,policy,output,render_python,config,reviewed=False):
             results.append(dict(episode=f'e{j:05d}',family=job['family'],goal=job['goal'],instruction=job['instruction'],**result))
             atomic_json(out/'results.json',results)
         by_presence=[dict(goal_present=present,n=len(rs),successes=sum(r['success'] for r in rs)) for present in (True,False) for rs in [[r for r in results if r['goal_present']==present]]]
-        atomic_json(out/'summary.json',dict(evaluation_split=evaluation_split,families=sorted({r['family'] for r in results}),episodes=len(results),successes=sum(r['success'] for r in results),by_presence=by_presence,scope='Held-out geometry within one arena; not general Minecraft autonomy'))
+        atomic_json(out/'summary.json',dict(metric_version='navigation_v2',evaluation_split=evaluation_split,families=sorted({r['family'] for r in results}),episodes=len(results),successes=sum(r['success'] for r in results),by_presence=by_presence,scope='Held-out geometry within one arena; not general Minecraft autonomy'))
         links=''.join(f'<li>{r["instruction"]}: success={r["success"]} <a href="episodes/{r["episode"]}/report.html">GIF + trajectory</a> · <a href="maps/{r["episode"]}/policy-attention.gif">Policy cross-attention</a> · <a href="maps/{r["episode"]}/action-gradcam.gif">Action Grad-CAM</a></li>' for r in results)
         (out/'report.html').write_text('<!doctype html><meta charset="utf-8"><h1>Closed-loop VLA pilot</h1><p>Learned actions from new RGB observations and instructions. No privileged coordinates are supplied to the policy. Known state is used only for evaluation. Policy cross-attention is distinct from Grad-CAM for the selected action logit at pooled visual features. Neither is an activation intervention. Maps are separately normalized and GIF timing is simulator time, not measured real-time speed.</p><ul>'+links+'</ul>')
         atomic_json(out/'status.json',{'state':'complete'})

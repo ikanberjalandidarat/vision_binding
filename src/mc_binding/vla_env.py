@@ -3,6 +3,7 @@ import contextlib
 import json
 import math
 import sys
+import traceback
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw
@@ -67,6 +68,7 @@ class Environment:
         return self.observe()
     def _step(self,a):
         self.obs,_,done,truncated,self.info=self.sim.step(a)
+        if isinstance(self.info,dict) and 'error' in self.info:raise RuntimeError('Simulator returned error/fallback observation: '+str(self.info['error']))
         if done or truncated: raise RuntimeError('Simulator terminated')
     def observe(self):
         pose=json_value(self.info['player_pos'])
@@ -88,8 +90,9 @@ class Environment:
     def finish(self,stopped):
         pose=json_value(self.info['player_pos'])
         distance=None if self.goal is None else math.hypot(float(pose['x'])-self.goal[0],float(pose['z'])-self.goal[1])
-        success=bool(stopped and (self.goal is None or distance<=.8))
-        result=dict(state='complete',**self.metadata,stopped=stopped,success=success,distance=distance,trajectory=self.trace,
+        from .navigation_metrics import score_episode
+        metrics=score_episode(self.trace,self.goal,stopped);success=metrics['success']
+        result=dict(state='complete',**self.metadata,stopped=stopped,**metrics,trajectory=self.trace,
                     scope='Privileged state used only by teacher/evaluator; learned policy receives RGB and instruction')
         atomic_json(self.episode/'episode.json',result)
         self.frames[0].save(self.episode/'movement.gif',save_all=True,append_images=self.frames[1:],duration=self.chunk*50,loop=0)
@@ -101,7 +104,7 @@ class Environment:
             d.ellipse((x-6,y-6,x+6,y+6),fill=o['color']);d.text((x+8,y),o['type'],fill='black')
         d.text((10,10),'Trajectory: -X right, +Z up (initial camera axes)',fill='black');canvas.save(self.episode/'trajectory.png')
         (self.episode/'report.html').write_text('<!doctype html><meta charset="utf-8"><h1>VLA episode</h1><p>Success: '+str(success)+'</p><img src="movement.gif"><img src="trajectory.png"><p>GIF includes raw HUD. Coordinates are evaluator annotations, not policy input.</p>')
-        return {'success':success,'distance':distance,'episode_file':str(self.episode/'episode.json'),'goal_present':self.goal is not None}
+        return dict(metrics,episode_file=str(self.episode/'episode.json'),goal_present=self.goal is not None)
     def close(self):
         if self.sim is not None:
             self.sim.close();self.sim=None
@@ -121,6 +124,7 @@ def main():
                 print(json.dumps({'ok':True,'result':result}),flush=True)
                 if cmd=='close':break
             except BaseException as e:
+                traceback.print_exc(file=sys.stderr)
                 print(json.dumps({'ok':False,'error':repr(e)}),flush=True)
                 break
     finally:
