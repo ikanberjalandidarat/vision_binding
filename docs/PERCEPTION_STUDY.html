@@ -1,0 +1,17 @@
+<!doctype html><meta charset="utf-8"><title>Perception study</title>
+<style>body{font:18px system-ui;max-width:960px;margin:40px auto;line-height:1.5}pre{background:#eee;padding:16px;overflow:auto}</style>
+<h1>Perception before navigation</h1>
+<p>This study asks whether frozen Qwen block-31 features support color and shape recognition when given known object regions. It trains small linear attribute heads, not Qwen. The language decoder is guarded against execution. No Minecraft movement or activation intervention occurs.</p>
+<h2>One submission, five jobs</h2>
+<pre>cd ~/projects/zef-binding
+export MC_BINDING_ENV="/oscar/scratch/$USER/zef-binding/envs/model"
+"$MC_BINDING_ENV/bin/python" scripts/submit_perception_study.py \
+  --tag perception-v1 --reviewed-captures</pre>
+<p>The GPU extraction job validates capture hashes and raw/cropped coordinate alignment, saves all 96 full/absent scene feature records, and creates image/box/grid overlays. Three CPU jobs then compare 4×8, 8×16, and native spatial resolution. A final report runs after those jobs finish. Use --dry-run to inspect submission commands. Outputs are under runs/perception-study-perception-v1 on scratch. Use a fresh tag for a rerun; existing directories are never overwritten. Do not change the checkout during jobs.</p>
+<h2>What each comparison means</h2>
+<p>The same 448×280 raw capture, including HUD, passes through the encoder once. Native tokens are restored to raster order. For pooled grids, adaptive averaging matches the current policy's pooling method. Known raw bounding boxes select features using fractional box/cell overlap. Coarse cells may include background and neighboring objects. All resolutions receive the same privileged boxes; this does not compare autonomous detectors.</p>
+<p>First, each readout must memorize color and shape of four objects in one training image. This is an implementation sanity check, not validation. Next, linear heads train for a fixed 300 epochs with seed 731. Normalization and the absent-rejection threshold are fitted on training data only. Validation geometry is fixed with split seed 731, matching the navigation study; test geometry is not evaluated. Repeated contexts are not independent worlds.</p>
+<p>Structured goals multiply per-region color and shape probabilities. A target is absent if every region's score falls below the training-calibrated threshold. Full and absent scenes test all four conjunctions, including absent combinations whose separate attributes are present. This factorized readout imposes a binding rule; its success would show decodable information with privileged localization, not a native binding mechanism.</p>
+<h2>Review outputs</h2>
+<ul><li>features/alignment.html: every evaluated image with region labels and grids.</li><li>4x8, 8x16, native/tiny-memorization.json: same-example learning check.</li><li>Each arm's train.json and validation.json: separate attribute and target-selection predictions.</li><li>report.html: completion status and validation metrics. Failed gates are shown as errors.</li></ul>
+<p>Raw captures are not live rollout frames. This first study does not settle simulator appearance shift. Next steps depend on its results: feature/label debugging if memorization fails, finer spatial features if only native regions work, or live-frame readout evaluation if captured-scene recognition generalizes. Closed-loop navigation and head-level patches remain gated on clean selection.</p>
