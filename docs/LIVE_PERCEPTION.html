@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8"><title>Live perception diagnostic</title><style>body{font:18px system-ui;max-width:1000px;margin:40px auto}pre{background:#eee;padding:15px;overflow:auto}</style>
+<h1>Frozen 8×16 readout on moving frames</h1><p>No new Minecraft captures or model training. Use the existing timestep-s733 rollout as a development sample. First eight episodes, unique start/middle/end frames. This is not a random or independent sample.</p>
+<h2>Local preparation</h2><pre>PYTHONPATH=src python3 -m mc_binding.live_perception prepare \
+ --rollout runs/oscar/navigation-study-reliability-v1/rollout-timestep-s733 \
+ --output runs/oscar/live-perception-audit-v1 --episodes 8</pre>
+<p>The prepared review.html shows images and known world-object identities. Edit annotations.json: assign visibility per object (visible, occluded, out_of_frame, uncertain). For visible objects supply bbox_raw=[left,top,right,bottom] in the 448×280 frame. Set each frame's reviewed flag to true after review. Do not copy initial boxes across camera motion. Keep uncertainty rather than guessing. Bounding-box quality is a human audit, not automatic detection.</p>
+<h2>Upload reviewed annotations and sampled images from Mac</h2><pre>rsync -av runs/oscar/live-perception-audit-v1/ \
+ zfawnia@ssh.ccv.brown.edu:/oscar/scratch/zfawnia/zef-binding/runs/live-perception-audit-v1/</pre>
+<h2>After committing/pushing and pulling code, submit on Oscar</h2><pre>cd ~/projects/zef-binding
+mkdir -p logs
+sbatch scripts/slurm/live_perception.sbatch \
+ /oscar/scratch/$USER/zef-binding/runs/live-perception-audit-v1</pre>
+<p>The run refuses unreviewed frames and verifies image hashes. It loads the existing 8×16 readout unchanged; no threshold adjustment. Visible-object color/shape recognition is reported even if another object is uncertain. Target-selection scores are omitted for frames containing uncertain or occluded identities, and for frames without any visible regions. Absence is visual absence among audited objects, not physical absence from the arena. No navigation success claim follows from these metrics.</p>
+<p>Outputs: live-perception-JOBID/report.html, summary.json, results.json and provenance manifest. Keep results separate from capture validation metrics because viewpoint, appearance and sampling differ.</p>
