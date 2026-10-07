@@ -13,6 +13,7 @@ export HF_HOME="$MC_BINDING_SCRATCH/huggingface"
 export SSL_CERT_FILE="${SSL_CERT_FILE:-/etc/pki/tls/certs/ca-bundle.crt}"
 export REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE:-$SSL_CERT_FILE}"
 "$MC_BINDING_ENV/bin/python" -m mc_binding.live_perception evaluate \
- --audit "${1:?Reviewed audit folder required}" \
+ --audit "${1:?Projection or reviewed audit folder required}" \
+ --region-mode "${2:-automatic}" \
  --checkpoint "$MC_BINDING_SCRATCH/runs/perception-study-perception-v1/8x16/readout.pt" \
  --output "$MC_BINDING_SCRATCH/runs/live-perception-$SLURM_JOB_ID"

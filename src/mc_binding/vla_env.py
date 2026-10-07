@@ -105,6 +105,22 @@ class Environment:
         d.text((10,10),'Trajectory: -X right, +Z up (initial camera axes)',fill='black');canvas.save(self.episode/'trajectory.png')
         (self.episode/'report.html').write_text('<!doctype html><meta charset="utf-8"><h1>VLA episode</h1><p>Success: '+str(success)+'</p><img src="movement.gif"><img src="trajectory.png"><p>GIF includes raw HUD. Coordinates are evaluator annotations, not policy input.</p>')
         return dict(metrics,episode_file=str(self.episode/'episode.json'),goal_present=self.goal is not None)
+    def reward_distance(self):
+        pose=json_value(self.info['player_pos'])
+        return None if self.goal is None else math.hypot(float(pose['x'])-self.goal[0],float(pose['z'])-self.goal[1])
+    def rl_step(self,index,last=False,mode='sparse',gamma=.99):
+        from .rl_rewards import transition_reward
+        before=self.reward_distance()
+        observation={} if index==3 else self.step(index)
+        terminal=bool(index==3 or last)
+        after=self.reward_distance()
+        result=self.finish(index==3) if terminal else None
+        reward=transition_reward(before,after,terminal,bool(result and result['success']),mode,gamma)
+        # Only scalar reward, terminal flag and RGB path cross into RL collection.
+        # Coordinates and object identities remain in simulator/evaluation files.
+        return dict(observation=observation,reward=reward,terminal=terminal,
+                    success=bool(result['success']) if terminal else None)
+
     def close(self):
         if self.sim is not None:
             self.sim.close();self.sim=None
@@ -119,7 +135,7 @@ def main():
             try:
                 request=json.loads(line);cmd=request.pop('command')
                 with contextlib.redirect_stdout(sys.stderr):
-                    result=getattr(env,cmd)(**request) if cmd in ('reset','teacher','step','finish','close') else None
+                    result=getattr(env,cmd)(**request) if cmd in ('reset','teacher','step','finish','close','rl_step') else None
                 if result is None and cmd!='close': raise ValueError('Unknown worker command')
                 print(json.dumps({'ok':True,'result':result}),flush=True)
                 if cmd=='close':break
