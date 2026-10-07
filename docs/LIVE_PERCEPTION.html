@@ -1,10 +1,23 @@
 <!doctype html><meta charset="utf-8"><title>Live perception diagnostic</title><style>body{font:18px system-ui;max-width:1000px;margin:40px auto}pre{background:#eee;padding:15px;overflow:auto}</style>
 <h1>Frozen 8×16 readout on moving frames</h1><p>No new Minecraft captures or model training. Use the existing timestep-s733 rollout as a development sample. First eight episodes, unique start/middle/end frames. This is not a random or independent sample.</p>
-<h2>Local preparation</h2><pre>PYTHONPATH=src python3 -m mc_binding.live_perception prepare \
+<h2>Expanded development sample</h2><p>The expanded local dataset samples all 64 episodes from timestep-s733 every eight recorded decisions, plus unique start/middle/end frames. Frames from an episode are correlated. This expands views, not the red/blue × arch/pillar vocabulary. Automatic proposals live in live-perception-proposals-64-v1; review-summary.json lists uncertainty, clipping and potential hand/HUD overlap. Next flagged prioritizes these cases; Next unreviewed covers remaining frames. Flags do not grant automatic approval.</p>
+<pre>PYTHONPATH=src python3 -m mc_binding.live_perception prepare \
+ --rollout runs/oscar/navigation-study-reliability-v1/rollout-timestep-s733 \
+ --output runs/oscar/live-perception-audit-64-v1 --episodes 64 --interval 8
+PYTHONPATH=src python3 -m mc_binding.live_projection \
+ --audit runs/oscar/live-perception-audit-64-v1 \
+ --output runs/oscar/live-perception-proposals-64-v1</pre>
+<p>After review/export, upload the proposals-64-v1 folder and supply its remote path to live_perception.sbatch. Browser drafts must be exported to annotations.json before upload. Use fresh output names for reruns. Existing annotations remain intact.</p><pre>rsync -av runs/oscar/live-perception-proposals-64-v1/ \
+ zfawnia@ssh.ccv.brown.edu:/oscar/scratch/zfawnia/zef-binding/runs/live-perception-proposals-64-v1/
+# On Oscar, after pulling your code changes:
+sbatch scripts/slurm/live_perception.sbatch \
+ /oscar/scratch/$USER/zef-binding/runs/live-perception-proposals-64-v1</pre><h2>Original small-sample preparation</h2><pre>PYTHONPATH=src python3 -m mc_binding.live_perception prepare \
  --rollout runs/oscar/navigation-study-reliability-v1/rollout-timestep-s733 \
  --output runs/oscar/live-perception-audit-v1 --episodes 8</pre>
 <p>The prepared review.html shows images and known world-object identities. Edit annotations.json: assign visibility per object (visible, occluded, out_of_frame, uncertain). For visible objects supply bbox_raw=[left,top,right,bottom] in the 448×280 frame. Set each frame's reviewed flag to true after review. Do not copy initial boxes across camera motion. Keep uncertainty rather than guessing. Bounding-box quality is a human audit, not automatic detection.</p>
-<h2>Upload reviewed annotations and sampled images from Mac</h2><pre>rsync -av runs/oscar/live-perception-audit-v1/ \
+<h2>Automatic proposals (preferred)</h2><pre>PYTHONPATH=src python3 -m mc_binding.live_projection \
+ --audit runs/oscar/live-perception-audit-v1 \
+ --output runs/oscar/live-perception-proposals-v1</pre><p>Open projection.html to inspect automatically drawn boxes. Review/correct them in review.html rather than drawing from scratch. Calibration fits initial boxes; raycasts resolve object/object depth. Arena occlusion, hand, HUD, and view bob are not modeled. Color agreement flags some bad proposals. Review flags are never automatically accepted. For this route, upload and submit the proposals folder instead of the audit folder below.</p><h2>Upload reviewed annotations and sampled images from Mac</h2><pre>rsync -av runs/oscar/live-perception-audit-v1/ \
  zfawnia@ssh.ccv.brown.edu:/oscar/scratch/zfawnia/zef-binding/runs/live-perception-audit-v1/</pre>
 <h2>After committing/pushing and pulling code, submit on Oscar</h2><pre>cd ~/projects/zef-binding
 mkdir -p logs

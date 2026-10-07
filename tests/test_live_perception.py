@@ -14,3 +14,13 @@ def test_visibility_and_bounds():
  assert validate_annotation(row('uncertain'),(448,280))==[]
  with pytest.raises(ValueError):validate_annotation(row(box=[0,0,500,30]),(448,280))
  with pytest.raises(ValueError):validate_annotation(row('guessed'),(448,280))
+
+
+def test_interval_sampling_keeps_endpoints_and_unique_middle():
+ from mc_binding.live_perception import sample_steps
+ assert sample_steps(1,8)==[0]
+ assert sample_steps(17,8)==[0,8,16]
+ assert sample_steps(18,8)==[0,8,9,16,17]
+ assert sample_steps(10)==[0,5,9]
+ with pytest.raises(ValueError):sample_steps(0,8)
+ with pytest.raises(ValueError):sample_steps(10,-1)

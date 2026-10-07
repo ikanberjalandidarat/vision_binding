@@ -27,18 +27,23 @@ def validate_annotation(row, size):
     return visible
 
 
-def prepare(rollout, output, count):
+def sample_steps(length, interval=0):
+    if length < 1 or interval < 0: raise ValueError('Invalid sampling parameters')
+    return sorted({0, length//2, length-1} | (set(range(0,length,interval)) if interval else set()))
+
+
+def prepare(rollout, output, count, interval=0):
     root,out=Path(rollout).resolve(),Path(output)
     if count<1:raise ValueError('Positive episode count required')
     if json.loads((root/'status.json').read_text())['state']!='complete':raise ValueError('Incomplete rollout')
     out.mkdir(parents=True,exist_ok=False);(out/'frames').mkdir();rows=[]
     for result in json.loads((root/'results.json').read_text())[:count]:
         eid=result['episode'];ep=json.loads((root/'episodes'/eid/'episode.json').read_text());trace=ep['trajectory']
-        for step in sorted(set([0,len(trace)//2,len(trace)-1])):
+        for step in sample_steps(len(trace), interval):
             src=root/'episodes'/eid/trace[step]['frame'];name=f'{eid}-{step:04d}.png'
             with Image.open(src) as image:image.convert('RGB').save(out/'frames'/name)
-            rows.append(dict(id=f'{eid}-{step:04d}',episode=eid,family=result['family'],step=step,phase='start' if step==0 else 'end' if step==len(trace)-1 else 'middle',image='frames/'+name,image_sha256=file_hash(out/'frames'/name),goal=result['goal'],pose=trace[step]['pose'],reviewed=False,objects=[dict(object_id=o['object_id'],color=o['color'],type=o['type'],visibility='uncertain',bbox_raw=None) for o in ep['objects']]))
-    data=dict(schema='live_regions_v1',rollout=str(root),rollout_manifest_sha256=file_hash(root/'manifest.json'),sampling='first N episodes, unique start/middle/end frames; development subset, not random',frames=rows)
+            rows.append(dict(id=f'{eid}-{step:04d}',episode=eid,family=result['family'],step=step,phase='start' if step==0 else 'end' if step==len(trace)-1 else 'middle' if step==len(trace)//2 else 'interval',image='frames/'+name,image_sha256=file_hash(out/'frames'/name),goal=result['goal'],pose=trace[step]['pose'],reviewed=False,objects=[dict(object_id=o['object_id'],color=o['color'],type=o['type'],visibility='uncertain',bbox_raw=None) for o in ep['objects']]))
+    data=dict(schema='live_regions_v1',rollout=str(root),rollout_manifest_sha256=file_hash(root/'manifest.json'),sampling=dict(episodes_requested=count,interval_decisions=interval,mandatory='unique start/middle/end',scope='first N recorded episodes; correlated development frames, not random independent scenes'),frames=rows)
     atomic_json(out/'annotations.json',data)
     template=Path(__file__).with_name('live_review.html').read_text()
     (out/'review.html').write_text(template.replace('DATA',json.dumps(data).replace('<','\\u003c')))
@@ -72,7 +77,7 @@ def run(audit, checkpoint, config, output):
             results.append(dict(id=r['id'],phase=r['phase'],selection_excluded=ambiguous,**scores))
         atomic_json(out/'results.json',results)
         phases=[]
-        for phase in ('start','middle','end'):
+        for phase in ('start','middle','end','interval'):
             rs=[r for r in results if r['phase']==phase and 'attributes' in r]
             phases.append(dict(phase=phase,frames=len(rs),attributes={k:sum(r['attributes'][k] for r in rs) for k in ('n','color_correct','shape_correct')},selection=[dict(present=p,n=sum(v['n'] for r in rs for v in r['selection'] if v['present']==p),correct=sum(v['correct'] for r in rs for v in r['selection'] if v['present']==p)) for p in (True,False)]))
         atomic_json(out/'summary.json',phases)
@@ -83,8 +88,8 @@ def run(audit, checkpoint, config, output):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','evaluate']);p.add_argument('--rollout');p.add_argument('--audit');p.add_argument('--checkpoint');p.add_argument('--config',default='configs/visual_readout.json');p.add_argument('--output',required=True);p.add_argument('--episodes',type=int,default=8);a=p.parse_args()
-    if a.stage=='prepare':prepare(a.rollout,a.output,a.episodes)
+    p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','evaluate']);p.add_argument('--rollout');p.add_argument('--audit');p.add_argument('--checkpoint');p.add_argument('--config',default='configs/visual_readout.json');p.add_argument('--output',required=True);p.add_argument('--episodes',type=int,default=8);p.add_argument('--interval',type=int,default=0);a=p.parse_args()
+    if a.stage=='prepare':prepare(a.rollout,a.output,a.episodes,a.interval)
     else:run(a.audit,a.checkpoint,json.loads(Path(a.config).read_text()),a.output)
 
 if __name__=='__main__':main()
