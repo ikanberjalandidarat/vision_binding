@@ -21,6 +21,19 @@ class Agent(Policy):
         self.predict_next=torch.nn.Linear(hidden+4,width)
 
 
+def initialize_agent(width, seed):
+    # Encoder construction may reset the global RNG. Policy initialization is isolated.
+    with torch.random.fork_rng(devices=[]):
+        torch.manual_seed(seed)
+        return Agent(width)
+
+
+def rollout_generators(seed):
+    # Scene scheduling and exploration must not depend on encoder/global RNG calls.
+    return (torch.Generator().manual_seed(seed),
+            torch.Generator().manual_seed(seed+1000003))
+
+
 def returns(rewards,gamma):
     total=0.;values=[]
     for r in reversed(rewards):total=r+gamma*total;values.append(total)
@@ -38,14 +51,14 @@ def objective(logps,values,entropies,rewards,gamma,auxiliary,weight):
 
 
 def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eval_episodes):
-    torch.set_num_threads(4);torch.manual_seed(seed)
+    torch.set_num_threads(4);scene_rng,action_rng=rollout_generators(seed)
     data,groups=load_binding(dataset);jobs=plan(groups)
     splits=geometry_splits([j['geometry'] for j in jobs],dict(seed=731,split_seed=731))
     training=[j for j in jobs if splits[j['geometry']]=='train'];validation=[j for j in jobs if splits[j['geometry']]=='validation']
     if aux_weight<0 or episodes<1 or max_steps<1 or not 1<=eval_episodes<=len(validation):raise ValueError('Invalid run size')
     out=Path(output);out.mkdir(parents=True,exist_ok=False);worker=None
     atomic_json(out/'status.json',dict(state='running'))
-    atomic_json(out/'manifest.json',dict(algorithm='episodic_on_policy_actor_critic',seed=seed,split_seed=731,splits=splits,reward=mode,aux_weight=aux_weight,episodes=episodes,max_steps=max_steps,eval_episodes=eval_episodes,gamma=.99,config=config,dataset_hash=digest(data),source_hash=source_hash(),policy_inputs=['RGB frozen 8x16 features','instruction','previous action','recurrent memory'],privileged_reward=True,teacher_actions=False,test_evaluated=False,scope='Controlled arena. Scratch policy, frozen encoder. Auxiliary target is next observation feature, not object labels. Not general Minecraft autonomy.'))
+    atomic_json(out/'manifest.json',dict(algorithm='episodic_on_policy_actor_critic',seed=seed,split_seed=731,splits=splits,reward=mode,aux_weight=aux_weight,episodes=episodes,max_steps=max_steps,eval_episodes=eval_episodes,gamma=.99,config=config,dataset_hash=digest(data),source_hash=source_hash(),rng_version='isolated_policy_scene_action_v2',policy_inputs=['RGB frozen 8x16 features','instruction','previous action','recurrent memory'],privileged_reward=True,teacher_actions=False,test_evaluated=False,scope='Controlled arena. Scratch policy, frozen encoder. Auxiliary target is next observation feature, not object labels. Not general Minecraft autonomy.'))
     try:
         enc=Encoder(config);worker=Worker(render,out/'episodes',2)
         def feature(path):
@@ -55,19 +68,19 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
         model=None;opt=None;history=[];evaluation=[]
         for phase,n in [('train',episodes),('validation',eval_episodes)]:
             for episode in range(n):
-                job=training[int(torch.randint(len(training),(1,)))] if phase=='train' else validation[episode]
+                job=training[int(torch.randint(len(training),(1,),generator=scene_rng))] if phase=='train' else validation[episode]
                 eid=f'{phase}-{episode:05d}'
                 obs=worker.request('reset',record=job['record'],goal=job['goal'],seed=data['seed'],episode=eid,reference=str((Path(dataset)/job['record']['image']).resolve()))
                 x=feature(obs['frame'])
                 if model is None:
-                    model=Agent(x.shape[-1]);opt=torch.optim.AdamW(model.parameters(),lr=3e-4)
+                    model=initialize_agent(x.shape[-1],seed);opt=torch.optim.AdamW(model.parameters(),lr=3e-4)
                 model.train(phase=='train');state=None;previous=3
                 logps=[];values=[];entropies=[];rewards=[];auxiliary=[];actions=[]
                 for step in range(max_steps):
                     with torch.set_grad_enabled(phase=='train'):
                         logits,state,_=model(x,tokenize(job['instruction']),previous,state)
                         distribution=torch.distributions.Categorical(logits=logits)
-                        action=int(distribution.sample()) if phase=='train' else int(logits.argmax())
+                        action=int(torch.multinomial(distribution.probs,1,generator=action_rng)) if phase=='train' else int(logits.argmax())
                         if phase=='train':
                             logps.append(distribution.log_prob(torch.tensor(action)));values.append(model.value(state).squeeze());entropies.append(distribution.entropy())
                     response=worker.request('rl_step',index=action,last=step==max_steps-1,mode=mode,gamma=.99)
@@ -89,7 +102,7 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
                     save_tensor(out/'agent.pt',dict(state=model.state_dict(),width=x.shape[-1],hidden=64,episodes_completed=episode+1))
                 else:evaluation.append(row);atomic_json(out/'validation.json',evaluation)
                 print(phase,episode,'success',row['success'],'reward',row['total_reward'],flush=True)
-        atomic_json(out/'summary.json',dict(validation_episodes=len(evaluation),successes=sum(r['success'] for r in evaluation),by_presence=[dict(present=p,n=sum(r['goal_present']==p for r in evaluation),successes=sum(r['success'] and r['goal_present']==p for r in evaluation)) for p in (True,False)],note='Episode count is small; no reliability claim from smoke. See manifest for reward and auxiliary definitions.'))
+        atomic_json(out/'summary.json',dict(validation_episodes=len(evaluation),successes=sum(r['success'] for r in evaluation),by_presence=[dict(present=p,n=sum(r['goal_present']==p for r in evaluation),successes=sum(r['success'] and r['goal_present']==p for r in evaluation)) for p in (True,False)],note='Development evaluation on fixed tasks; inspect manifests and trajectories. Completion does not imply learning.'))
         atomic_json(out/'status.json',dict(state='complete'))
     except BaseException as e:atomic_json(out/'status.json',dict(state='error',error=str(e)));raise
     finally:

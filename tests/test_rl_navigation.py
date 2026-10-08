@@ -20,3 +20,18 @@ def test_actor_critic_gradient():
  loss.backward();assert m.action.weight.grad.abs().sum()>0
  assert m.value.weight.grad.abs().sum()>0
  assert torch.allclose(returns([1,2],.5),torch.tensor([2.,2.]))
+
+
+def test_rl_seed_survives_encoder_global_seed_reset():
+ from mc_binding.rl_navigation import initialize_agent,rollout_generators
+ torch.manual_seed(731)  # mimics Qwen constructor reset
+ first=initialize_agent(6,732)
+ torch.manual_seed(999)
+ again=initialize_agent(6,732)
+ other=initialize_agent(6,733)
+ assert torch.equal(first.action.weight,again.action.weight)
+ assert not torch.equal(first.action.weight,other.action.weight)
+ s,a=rollout_generators(732);s2,a2=rollout_generators(732)
+ torch.manual_seed(731)
+ assert torch.equal(torch.randint(100,(20,),generator=s),torch.randint(100,(20,),generator=s2))
+ assert torch.equal(torch.multinomial(torch.ones(4),20,replacement=True,generator=a),torch.multinomial(torch.ones(4),20,replacement=True,generator=a2))
