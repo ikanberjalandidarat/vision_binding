@@ -47,7 +47,8 @@ def test_training_curriculum():
  assert training_start('near-to-far',36,48) is None
 
 
-def test_paired_evaluation_uses_original_starts(tmp_path,monkeypatch):
+@pytest.mark.parametrize('benchmark',[False,True])
+def test_paired_evaluation_uses_original_starts(tmp_path,monkeypatch,benchmark):
  """Synthetic non-Minecraft data: exercise orchestration, not model/render validity."""
  import json
  from PIL import Image
@@ -55,6 +56,8 @@ def test_paired_evaluation_uses_original_starts(tmp_path,monkeypatch):
  image=tmp_path/'synthetic.png';Image.new('RGB',(8,8)).save(image)
  record={'image':image.name,'objects':[{'color':'red','type':'pillar'}]}
  jobs=[dict(geometry=g,family=g,record=record,goal=['red','pillar'],instruction='Go to the red pillar.') for g in ('train','validation')]
+ if benchmark:
+  jobs.append(dict(geometry='validation',family='validation',record=record,goal=['blue','arch'],instruction='Go to the blue arch.'))
  monkeypatch.setattr(rl,'load_binding',lambda _:({'seed':731},{}))
  monkeypatch.setattr(rl,'plan',lambda _:jobs)
  monkeypatch.setattr(rl,'geometry_splits',lambda *_:{'train':'train','validation':'validation'})
@@ -73,7 +76,17 @@ def test_paired_evaluation_uses_original_starts(tmp_path,monkeypatch):
   def close(self):pass
  monkeypatch.setattr(rl,'Worker',Worker)
  out=tmp_path/'run'
- rl.run(tmp_path,out,'unused',{},731,'potential',0,2,2,1,'near-to-far',True)
+ rl.run(tmp_path,out,'unused',{},731,'potential',0,2,2,2 if benchmark else 1,'near-to-far',True,benchmark,1)
+ if benchmark:
+  probes=json.loads((out/'probes.json').read_text())
+  assert {r['checkpoint'] for r in probes}=={0,1,2}
+  assert len(probes)==12
+  assert all(r['training_start'] is None for r in probes)
+  assert sum('diagnostic_start' in r for r in resets)==12
+  assert not json.loads((out/'learning-gate.json').read_text())['passed']
+  assert len(list(out.glob('checkpoint-*.pt')))==3
+  assert all(r['training_start'] is None and 'diagnostic_start' not in r for r in resets[-4:])
+  return
  assert all(r['training_start'] is not None for r in resets[:2])
  assert all(r['training_start'] is None for r in resets[2:])
  assert resets[2]['record']==resets[3]['record']
@@ -81,3 +94,16 @@ def test_paired_evaluation_uses_original_starts(tmp_path,monkeypatch):
  assert [r['evaluation_mode'] for r in rows]==['greedy','sampled']
  assert all(len(r['decisions'][0]['probabilities'])==4 for r in rows)
  assert len(json.loads((out/'training.json').read_text()))==2
+
+
+def test_approach_gate_requires_improvement_and_two_checkpoints():
+ from mc_binding.rl_pilot import approach_gate
+ rows=[]
+ for checkpoint in (0,32,64):
+  for mode in ('greedy','sampled'):
+   for present in (True,False):
+    rows.append(dict(checkpoint=checkpoint,diagnostic_near_start=True,evaluation_mode=mode,goal_present=present,success=checkpoint>0))
+ assert approach_gate(rows)['passed']
+ assert not approach_gate(rows[:-4])['passed']
+ for r in rows:r['success']=True
+ assert not approach_gate(rows)['passed']  # no gain over initialization

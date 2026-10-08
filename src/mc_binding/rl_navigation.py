@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import torch
 from PIL import Image
-from .rl_pilot import training_start, evaluation_summary
+from .rl_pilot import training_start, evaluation_summary, checkpoint_schedule, distributed_tasks, approach_gate
 from .binding_data import load_binding
 from .vla import Policy, Worker, plan, tokenize, geometry_splits
 from .visual_readout import Encoder, save_tensor
@@ -51,7 +51,7 @@ def objective(logps,values,entropies,rewards,gamma,auxiliary,weight):
     return actor+critic-.01*entropy+weight*aux
 
 
-def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eval_episodes,start_mode="original",paired_evaluation=False):
+def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eval_episodes,start_mode="original",paired_evaluation=False,approach_benchmark=False,check_interval=32,action_chunk=2):
     torch.set_num_threads(4);scene_rng,action_rng=rollout_generators(seed)
     evaluation_rng=torch.Generator().manual_seed(seed+2000003)
     start_rng=torch.Generator().manual_seed(seed+3000003)
@@ -60,11 +60,16 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
     splits=geometry_splits([j['geometry'] for j in jobs],dict(seed=731,split_seed=731))
     training=[j for j in jobs if splits[j['geometry']]=='train'];validation=[j for j in jobs if splits[j['geometry']]=='validation']
     if aux_weight<0 or episodes<1 or max_steps<1 or not 1<=eval_episodes<=len(validation):raise ValueError('Invalid run size')
+    if not 1<=action_chunk<=5:raise ValueError('Action chunk must be 1..5')
+    if approach_benchmark:
+        validation=distributed_tasks(validation,eval_episodes)
+        training=[j for j in training if j['family']==training[0]['family']]
+        checkpoint_schedule(episodes,check_interval)
     out=Path(output);out.mkdir(parents=True,exist_ok=False);worker=None
     atomic_json(out/'status.json',dict(state='running'))
-    atomic_json(out/'manifest.json',dict(algorithm='episodic_on_policy_actor_critic',seed=seed,split_seed=731,splits=splits,reward=mode,aux_weight=aux_weight,episodes=episodes,max_steps=max_steps,eval_episodes=eval_episodes,gamma=.99,config=config,dataset_hash=digest(data),source_hash=source_hash(),rng_version='isolated_policy_scene_action_v2',start_mode=start_mode,paired_evaluation=paired_evaluation,action_order=['forward','turn_left','turn_right','stop'],curriculum='Training only; goal-relative spawn uses privileged state. Absent goals use a random object anchor. Original-start evaluation.',policy_inputs=['RGB frozen 8x16 features','instruction','previous action','recurrent memory'],privileged_reward=True,teacher_actions=False,test_evaluated=False,scope='Controlled arena. Scratch policy, frozen encoder. Auxiliary target is next observation feature, not object labels. Not general Minecraft autonomy.'))
+    atomic_json(out/'manifest.json',dict(algorithm='episodic_on_policy_actor_critic',seed=seed,split_seed=731,splits=splits,reward=mode,aux_weight=aux_weight,episodes=episodes,max_steps=max_steps,eval_episodes=eval_episodes,gamma=.99,config=config,dataset_hash=digest(data),source_hash=source_hash(),approach_benchmark=approach_benchmark,check_interval=check_interval,action_chunk=action_chunk,training_families=sorted({j['family'] for j in training}),validation_families=sorted({j['family'] for j in validation}),rng_version='isolated_policy_scene_action_v2',start_mode=start_mode,paired_evaluation=paired_evaluation,action_order=['forward','turn_left','turn_right','stop'],curriculum=('Fixed 1.5-block training and explicitly privileged near-start checkpoint probes; final validation at original starts. Absent training anchors random, probe anchors fixed.' if approach_benchmark else 'Training only; goal-relative spawn uses privileged state. Absent goals use a random object anchor. Original-start evaluation.'),policy_inputs=['RGB frozen 8x16 features','instruction','previous action','recurrent memory'],privileged_reward=True,teacher_actions=False,test_evaluated=False,scope='Controlled arena. Scratch policy, frozen encoder. Auxiliary target is next observation feature, not object labels. Not general Minecraft autonomy.'))
     try:
-        enc=Encoder(config);worker=Worker(render,out/'episodes',2)
+        enc=Encoder(config);worker=Worker(render,out/'episodes',action_chunk)
         def feature(path):
             with Image.open(path) as im:inp=enc.inputs(im.convert('RGB'))
             _,h,w=map(int,inp[1][0].tolist());r=rasterize(enc.features(inp),h,w,int(enc.visual.spatial_merge_size))
@@ -72,24 +77,36 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
         model=None;opt=None;history=[];evaluation=[]
         phases=[('train',episodes),('validation',eval_episodes)]
         if paired_evaluation:phases.append(('validation-sampled',eval_episodes))
-        for phase,n in phases:
-            for episode in range(n):
+        schedule=[(p,n,0) for p,n in phases]
+        if approach_benchmark:
+            schedule=[(p,n if p=='train' else eval_episodes,c) for p,n,c in checkpoint_schedule(episodes,check_interval)]
+            schedule.extend([('validation',eval_episodes,episodes),('validation-sampled',eval_episodes,episodes)])
+        for phase,n,checkpoint in schedule:
+            for local_episode in range(n):
+                episode=checkpoint+local_episode if phase=='train' else local_episode
+                probe=phase.startswith('probe-')
+                sampled=phase.endswith('sampled')
                 job=training[int(torch.randint(len(training),(1,),generator=scene_rng))] if phase=='train' else validation[episode]
                 eid=f'{phase}-{episode:05d}'
                 start=training_start(start_mode,episode,episodes) if phase=='train' else None
+                if approach_benchmark and phase=='train':start=dict(distance=1.5)
                 if start is not None:
                     start=dict(start,anchor_index=int(torch.randint(len(job['record']['objects']),(1,),generator=start_rng)))
-                obs=worker.request('reset',training_start=start,record=job['record'],goal=job['goal'],seed=data['seed'],episode=eid,reference=str((Path(dataset)/job['record']['image']).resolve()))
+                extra={}
+                if probe:extra['diagnostic_start']=dict(distance=1.5,anchor_index=episode%len(job['record']['objects']))
+                if phase!='train':evaluation_rng.manual_seed(seed+2000003+episode) if approach_benchmark else None
+                obs=worker.request('reset',**extra,training_start=start,record=job['record'],goal=job['goal'],seed=data['seed'],episode=eid,reference=str((Path(dataset)/job['record']['image']).resolve()))
                 x=feature(obs['frame'])
                 if model is None:
                     model=initialize_agent(x.shape[-1],seed);opt=torch.optim.AdamW(model.parameters(),lr=3e-4)
+                if approach_benchmark and local_episode==0 and phase!='train':save_tensor(out/f'checkpoint-{checkpoint:05d}.pt',dict(state=model.state_dict(),width=x.shape[-1],hidden=64,episodes_completed=checkpoint))
                 model.train(phase=='train');state=None;previous=3
                 logps=[];values=[];entropies=[];rewards=[];auxiliary=[];actions=[];decisions=[]
                 for step in range(max_steps):
                     with torch.set_grad_enabled(phase=='train'):
                         logits,state,_=model(x,tokenize(job['instruction']),previous,state)
                         distribution=torch.distributions.Categorical(logits=logits)
-                        action=int(torch.multinomial(distribution.probs,1,generator=action_rng)) if phase=='train' else int(torch.multinomial(distribution.probs,1,generator=evaluation_rng)) if phase=='validation-sampled' else int(logits.argmax())
+                        action=int(torch.multinomial(distribution.probs,1,generator=action_rng)) if phase=='train' else int(torch.multinomial(distribution.probs,1,generator=evaluation_rng)) if sampled else int(logits.argmax())
                         if phase=='train':
                             logps.append(distribution.log_prob(torch.tensor(action)));values.append(model.value(state).squeeze());entropies.append(distribution.entropy())
                     decisions.append(dict(step=step,action=action,probabilities=distribution.probs.detach().tolist(),entropy=float(distribution.entropy().detach())))
@@ -103,7 +120,7 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
                         target=torch.nn.functional.normalize(next_x.mean(0),dim=0).detach()
                         auxiliary.append((torch.nn.functional.normalize(prediction,dim=0)-target).square().sum())
                     x=next_x;previous=action
-                row=dict(episode=eid,evaluation_mode="sampled" if phase=="validation-sampled" else "greedy" if phase=="validation" else "training",training_start=start,decisions=decisions,family=job['family'],instruction=job['instruction'],goal=job['goal'],goal_present=any((o['color'],o['type'])==tuple(job['goal']) for o in job['record']['objects']),success=response['success'],steps=len(actions),actions=actions,rewards=rewards,total_reward=sum(rewards))
+                row=dict(episode=eid,checkpoint=checkpoint,diagnostic_near_start=probe,evaluation_mode="training" if phase=="train" else "sampled" if sampled else "greedy",training_start=start,decisions=decisions,family=job['family'],instruction=job['instruction'],goal=job['goal'],goal_present=any((o['color'],o['type'])==tuple(job['goal']) for o in job['record']['objects']),success=response['success'],steps=len(actions),actions=actions,rewards=rewards,total_reward=sum(rewards))
                 if phase=='train':
                     loss=objective(logps,values,entropies,rewards,.99,auxiliary,aux_weight)
                     if not torch.isfinite(loss):raise RuntimeError('Nonfinite RL loss')
@@ -112,6 +129,11 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
                     save_tensor(out/'agent.pt',dict(state=model.state_dict(),width=x.shape[-1],hidden=64,episodes_completed=episode+1))
                 else:evaluation.append(row);atomic_json(out/'validation.json',evaluation)
                 print(phase,episode,'success',row['success'],'reward',row['total_reward'],flush=True)
+        if approach_benchmark:
+            atomic_json(out/'learning-gate.json',approach_gate(evaluation))
+            atomic_json(out/'probes.json',[r for r in evaluation if r['diagnostic_near_start']])
+            evaluation=[r for r in evaluation if not r['diagnostic_near_start']]
+            atomic_json(out/'validation.json',evaluation)
         atomic_json(out/'summary.json',dict(validation_episodes=len(evaluation),successes=sum(r['success'] for r in evaluation),by_presence=[dict(present=p,n=sum(r['goal_present']==p for r in evaluation),successes=sum(r['success'] and r['goal_present']==p for r in evaluation)) for p in (True,False)],by_action_selection={m:evaluation_summary([r for r in evaluation if r['evaluation_mode']==m]) for m in ('greedy','sampled')},note='Development evaluation on fixed tasks; inspect manifests and trajectories. Completion does not imply learning.'))
         atomic_json(out/'status.json',dict(state='complete'))
     except BaseException as e:atomic_json(out/'status.json',dict(state='error',error=str(e)));raise
@@ -119,5 +141,5 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
         if worker:worker.close()
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--output',required=True);p.add_argument('--render-python',required=True);p.add_argument('--config',default='configs/visual_readout.json');p.add_argument('--seed',type=int,default=731);p.add_argument('--reward',choices=['sparse','potential'],default='sparse');p.add_argument('--aux-weight',type=float,default=0);p.add_argument('--episodes',type=int,default=96);p.add_argument('--max-steps',type=int,default=96);p.add_argument('--eval-episodes',type=int,default=64);p.add_argument('--start-mode',choices=['original','near-to-far'],default='original');p.add_argument('--paired-evaluation',action='store_true');a=p.parse_args()
-    run(a.dataset,a.output,a.render_python,json.loads(Path(a.config).read_text()),a.seed,a.reward,a.aux_weight,a.episodes,a.max_steps,a.eval_episodes,a.start_mode,a.paired_evaluation)
+    p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--output',required=True);p.add_argument('--render-python',required=True);p.add_argument('--config',default='configs/visual_readout.json');p.add_argument('--seed',type=int,default=731);p.add_argument('--reward',choices=['sparse','potential'],default='sparse');p.add_argument('--aux-weight',type=float,default=0);p.add_argument('--episodes',type=int,default=96);p.add_argument('--max-steps',type=int,default=96);p.add_argument('--eval-episodes',type=int,default=64);p.add_argument('--start-mode',choices=['original','near-to-far'],default='original');p.add_argument('--paired-evaluation',action='store_true');p.add_argument('--approach-benchmark',action='store_true');p.add_argument('--check-interval',type=int,default=32);p.add_argument('--action-chunk',type=int,default=2);a=p.parse_args()
+    run(a.dataset,a.output,a.render_python,json.loads(Path(a.config).read_text()),a.seed,a.reward,a.aux_weight,a.episodes,a.max_steps,a.eval_episodes,a.start_mode,a.paired_evaluation,a.approach_benchmark,a.check_interval,a.action_chunk)

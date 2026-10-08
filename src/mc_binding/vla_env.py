@@ -35,7 +35,10 @@ class Environment:
         if not 1<=chunk<=5: raise ValueError('Action chunk must be 1..5 ticks')
         self.root=Path(output).resolve();self.root.mkdir(parents=True,exist_ok=False)
         self.chunk=chunk;self.sim=None;self.episode=None
-    def reset(self,record,goal,seed,episode,reference,training_start=None):
+    def reset(self,record,goal,seed,episode,reference,training_start=None,diagnostic_start=None):
+        if diagnostic_start is not None:
+            if training_start is not None or not episode.startswith('probe-'):
+                raise ValueError('Near-start evaluation must be explicitly labeled probe')
         from minestudio.simulator import MinecraftSim
         from minestudio.simulator.callbacks import CommandsCallback
         if self.sim is None:
@@ -62,12 +65,13 @@ class Environment:
         matches=[o for o in record['objects'] if (o['color'],o['type'])==tuple(goal)]
         if len(matches)>1: raise ValueError('Ambiguous goal')
         self.goal=waypoint(matches[0]) if matches else None
-        if training_start is not None:
-            if not episode.startswith('train-'):
+        start=diagnostic_start if diagnostic_start is not None else training_start
+        if start is not None:
+            if diagnostic_start is None and not episode.startswith('train-'):
                 raise ValueError('Curriculum starts are forbidden during evaluation')
-            distance=float(training_start['distance'])
+            distance=float(start['distance'])
             if not 1. <= distance <= 6.:raise ValueError('Unsafe curriculum distance')
-            anchor=self.goal if self.goal is not None else waypoint(record['objects'][training_start['anchor_index']])
+            anchor=self.goal if self.goal is not None else waypoint(record['objects'][start['anchor_index']])
             position=[anchor[0],200.,anchor[1]-distance]
             # Retain the original scene reconstruction gate, then move only the player.
             self.obs,self.info=CommandsCallback(commands=[f'/tp @p {position[0]} 200 {position[2]} 0 0']).after_reset(self.sim,self.obs,self.info)
@@ -75,7 +79,7 @@ class Environment:
             verify_pose(self.info,position,0)
         self.episode=self.root/episode;self.episode.mkdir(exist_ok=False)
         self.trace=[];self.frames=[];self.tick=0
-        self.metadata=dict(record_id=record['record_id'],goal=goal,goal_present=self.goal is not None,objects=record['objects'],waypoint=self.goal,start_pixel_error=error,training_start=training_start)
+        self.metadata=dict(record_id=record['record_id'],goal=goal,goal_present=self.goal is not None,objects=record['objects'],waypoint=self.goal,start_pixel_error=error,training_start=training_start,diagnostic_start=diagnostic_start)
         return self.observe()
     def _step(self,a):
         self.obs,_,done,truncated,self.info=self.sim.step(a)
