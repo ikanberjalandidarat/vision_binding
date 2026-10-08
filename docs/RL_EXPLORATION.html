@@ -1,0 +1,21 @@
+<!doctype html><meta charset="utf-8"><title>RL exploration pilot</title>
+<style>body{font:17px system-ui;line-height:1.6;max-width:960px;margin:40px auto;padding:20px}pre{background:#eef2f5;padding:18px;overflow:auto}td,th{padding:10px;text-align:left}</style>
+<h1>Can the policy discover successful approach and stopping?</h1>
+<p>Seed-corrected smoke job 7145617 completed, with 0/2 present-target successes after two training episodes and an eight-decision horizon, according to the supplied Oscar log. This is an execution check, not evidence for or against learning.</p>
+<table><tr><th>Arm</th><th>Training starts</th><th>Evaluation</th></tr>
+<tr><td>Original</td><td>Original camera position</td><td>Original position; greedy and sampled actions</td></tr>
+<tr><td>Near-to-far</td><td>1.5, 3, then 6 blocks before the approach waypoint; final quarter at original position. Every fourth episode also uses the original position.</td><td>Same tasks, original position; greedy and sampled actions</td></tr></table>
+<p>Both arms: seeds 731 and 732, 48 training episodes, 96 decisions maximum, potential-shaped reward, no auxiliary loss, frozen Qwen encoder and trainable recurrent actor-critic. Sixteen fixed validation tasks per evaluation mode, repeated across arms and seeds; these repeats are not independent scenes. Test geometry is unused.</p>
+<p>The curriculum uses simulator target coordinates to arrange easier training starts. For absent goals it starts near a randomly chosen object instead. This is privileged reset design, not teacher actions or manual labels. The policy receives only RGB features, instruction, previous action and memory. The original scene must pass its reconstruction check before teleportation; the new pose must also pass a simulator check. Easier starts may teach shortcuts, so original-start evaluation is essential.</p>
+<h2>Submit after committing and pushing the code yourself</h2>
+<pre>cd ~/projects/zef-binding
+git pull
+export MC_BINDING_ENV="/oscar/scratch/$USER/zef-binding/envs/model"
+env -u LD_LIBRARY_PATH -u LD_PRELOAD \
+  "$MC_BINDING_ENV/bin/python" scripts/submit_rl_exploration.py \
+  --tag exploration-v1</pre>
+<p>A four-episode simulator smoke job gates an array of four runs, with at most two concurrent. The smoke exercises each near distance plus the original start. Success of the smoke means execution completed, not navigation succeeded. Use <code>--dry-run</code> to print commands without submitting. Outputs go to <code>runs/rl-exploration-exploration-v1</code> on scratch. Fresh tags preserve prior results.</p>
+<h2>What to inspect</h2>
+<p><code>training.json</code> records starts, rewards, success, action probabilities, entropy in nats, and gradient norms before clipping. <code>validation.json</code> separates greedy and sampled decisions. <code>summary.json</code> groups success by action-selection mode and target presence. Do not treat the pooled evaluation total as independent trials. Episode directories retain actual Minecraft movement GIFs, trajectories and simulator telemetry.</p>
+<p>If only sampled actions succeed, inspect action preferences and deterministic loops. If near starts learn but original starts fail, exploration or transfer across starting positions remains unresolved. If neither learns even near the target, inspect gradients, stopping rewards and action execution before increasing the budget. None of these outcomes alone identifies a visual-binding mechanism. No activation patching is applied in this pilot.</p>
+<p>Local tests use explicitly synthetic non-Minecraft fixtures. Real rendering and learning remain Oscar gates.</p>
