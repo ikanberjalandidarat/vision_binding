@@ -39,7 +39,8 @@ def test_recurrent_replay_and_binding_gradient():
  with pytest.raises(RuntimeError,match='replay mismatch'):update(model,torch.optim.Adam(model.parameters()),[ep],torch.Generator())
 
 
-def test_runner_performs_live_ppo_update(tmp_path,monkeypatch):
+@pytest.mark.parametrize('method',['ppo','grpo','ppo-icm','ppo-rnd'])
+def test_runner_performs_live_ppo_update(tmp_path,monkeypatch,method):
  import json
  from argparse import Namespace
  from PIL import Image
@@ -63,14 +64,19 @@ def test_runner_performs_live_ppo_update(tmp_path,monkeypatch):
    requests.append(command)
    if command=='reset':return dict(frame=str(image))
    assert command=='rl_step'
-   return dict(reward=1.,terminal=True,success=True)
+   return dict(reward=1.,terminal=True,success=True,observation=dict(frame=str(image)))
   def close(self):pass
  monkeypatch.setattr(p,'Encoder',Encoder);monkeypatch.setattr(p,'Worker',Worker)
- out=tmp_path/'out';p.run(Namespace(dataset=str(tmp_path),checkpoint=str(ck),output=str(out),render_python='unused',config=str(config),episodes=2,batch_episodes=2,max_steps=3,eval_episodes=1,epochs=2,seed=731,mode='binding',start_mode='original'))
+ out=tmp_path/'out';p.run(Namespace(dataset=str(tmp_path),checkpoint=str(ck),output=str(out),render_python='unused',config=str(config),episodes=2,batch_episodes=2,max_steps=3,eval_episodes=1,epochs=2,seed=731,mode='binding',start_mode='original',method=method))
  assert json.loads((out/'status.json').read_text())['state']=='complete'
  logs=json.loads((out/'updates.json').read_text());assert len(logs)==1 and logs[0]['transitions']==2
  initial=torch.load(out/'initial.pt',weights_only=True);final=torch.load(out/'agent.pt',weights_only=True)
  assert not torch.equal(initial['state']['action.weight'],final['state']['action.weight'])
  assert len(json.loads((out/'initial.json').read_text()))==2
  assert len(json.loads((out/'final.json').read_text()))==2
+ if method=='grpo':assert torch.equal(initial['state']['value.weight'],final['state']['value.weight'])
+ for label in ('initial','final'):
+  assert all(r['intrinsic_return']==0 for r in json.loads((out/(label+'.json')).read_text()))
+ if method in ('ppo-icm','ppo-rnd'):
+  assert final['curiosity']['count']<=2
  assert set(requests)=={'reset','rl_step'}
