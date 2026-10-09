@@ -48,7 +48,7 @@ def candidates(owner):
     return accepted,excluded
 
 
-def prepare(rollout,checkpoint,output,count=16,interval=8):
+def prepare(rollout,checkpoint,output,count=16,interval=8,balanced=False):
     if count<2 or interval<1:raise ValueError('Need >=2 episodes and positive sampling interval')
     root=Path(rollout).resolve();out=Path(output).resolve();ck=Path(checkpoint).resolve()
     jobs=json.loads((root/'episodes.json').read_text())
@@ -60,7 +60,10 @@ def prepare(rollout,checkpoint,output,count=16,interval=8):
         key=geometry_key(list(groups[j['family']].values()))
         if key not in splits:raise ValueError('Unknown readout geometry; refuse ambiguous split')
         if splits[key]=='validation':eligible.append(j)
-    selected=distributed_tasks(eligible,count)
+    if balanced:
+        from .tracking_rescue import balanced_panel
+        selected=balanced_panel(eligible)
+    else:selected=distributed_tasks(eligible,count)
     out.mkdir(parents=True,exist_ok=False);atomic_json(out/'status.json',dict(state='preparing'))
     rows=[];calibrations={}
     try:
@@ -78,7 +81,7 @@ def prepare(rollout,checkpoint,output,count=16,interval=8):
                 rows.append(dict(episode=eid,family=job['family'],step=step,tick=t['tick'],frame=str(frame),sha256=file_hash(frame),goal=job['goal'],regions=regions,excluded=excluded,target_index=target[0] if target else None,world_present=bool(target),target_projected_pixels=int((owner==target[0]).sum()) if target else 0))
             print('Prepared',eid,flush=True)
         atomic_json(out/'frames.json',rows)
-        atomic_json(out/'manifest.json',dict(rollout=str(root),checkpoint_sha256=file_hash(ck),source_hash=source_hash(),episodes=len(selected),interval=interval,calibrations=calibrations,split='readout-validation only; test untouched',privileged_regions=True,manual_review_required=False,scope='Recorded teacher trajectories, not new policy navigation. Projection candidates use world geometry; images supply selection and template features. Visibility approximation ignores arena/hand occlusion and view bob. Screen filters and exclusions are reported; no color-based QA.'))
+        atomic_json(out/'manifest.json',dict(rollout=str(root),checkpoint_sha256=file_hash(ck),source_hash=source_hash(),episodes=len(selected),balanced=balanced,interval=interval,calibrations=calibrations,split='readout-validation only; test untouched',privileged_regions=True,manual_review_required=False,scope='Recorded teacher trajectories, not new policy navigation. Projection candidates use world geometry; images supply selection and template features. Visibility approximation ignores arena/hand occlusion and view bob. Screen filters and exclusions are reported; no color-based QA.'))
         atomic_json(out/'status.json',dict(state='prepared',frames=len(rows)))
     except BaseException as e:
         atomic_json(out/'status.json',dict(state='error',error=str(e)));raise
@@ -150,8 +153,8 @@ def evaluate(audit,checkpoint,config,output):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','evaluate']);p.add_argument('--rollout');p.add_argument('--audit');p.add_argument('--checkpoint',required=True);p.add_argument('--output',required=True);p.add_argument('--episodes',type=int,default=16);p.add_argument('--interval',type=int,default=8);p.add_argument('--config',default='configs/visual_readout.json');a=p.parse_args()
-    if a.stage=='prepare':prepare(a.rollout,a.checkpoint,a.output,a.episodes,a.interval)
+    p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','evaluate']);p.add_argument('--rollout');p.add_argument('--audit');p.add_argument('--checkpoint',required=True);p.add_argument('--output',required=True);p.add_argument('--episodes',type=int,default=16);p.add_argument('--interval',type=int,default=8);p.add_argument('--config',default='configs/visual_readout.json');p.add_argument('--balanced',action='store_true');a=p.parse_args()
+    if a.stage=='prepare':prepare(a.rollout,a.checkpoint,a.output,a.episodes,a.interval,a.balanced)
     else:evaluate(a.audit,a.checkpoint,json.loads(Path(a.config).read_text()),a.output)
 
 if __name__=='__main__':main()
