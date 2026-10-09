@@ -156,6 +156,12 @@ class Environment:
         return dict(observation=observation,reward=reward,terminal=terminal,
                     success=bool(result['success']) if terminal else None)
 
+    def mapping_pose(self):
+        """Explicit privileged odometry channel, restricted to mapping-study episodes."""
+        if self.episode is None or not self.episode.name.startswith('mapping-'):
+            raise ValueError('Mapping telemetry is forbidden outside mapping-study episodes')
+        return json_value(self.info['player_pos'])
+
     def close(self):
         if self.sim is not None:
             self.sim.close();self.sim=None
@@ -170,7 +176,7 @@ def main():
             try:
                 request=json.loads(line);cmd=request.pop('command')
                 with contextlib.redirect_stdout(sys.stderr):
-                    result=getattr(env,cmd)(**request) if cmd in ('reset','teacher','step','wait','finish','close','rl_step') else None
+                    result=getattr(env,cmd)(**request) if cmd in ('reset','teacher','step','wait','finish','close','rl_step','mapping_pose') else None
                 if result is None and cmd!='close': raise ValueError('Unknown worker command')
                 print(json.dumps({'ok':True,'result':result}),flush=True)
                 if cmd=='close':break

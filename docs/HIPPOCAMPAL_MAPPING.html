@@ -1,0 +1,39 @@
+<!doctype html><meta charset="utf-8"><title>Minecraft hippocampal-inspired mapping</title>
+<style>body{font:17px/1.65 system-ui;max-width:1000px;margin:40px auto;padding:20px}table{border-collapse:collapse}td,th{padding:12px;border:1px solid #ccc}pre{white-space:pre-wrap;background:#eee;padding:16px}</style>
+<h1>From visual binding to allocentric associative memory</h1>
+<p><strong>Research pivot:</strong> test whether an experience-predictive memory learns spatial representations while exploring real Minecraft. Qwen2-VL-7B-Instruct remains frozen; only the small spatial memory is trained. The first study uses privileged measured odometry and scripted exploration, not learned navigation. Existing PPO jobs may finish; this pipeline does not resubmit, cancel or overwrite their runs.</p>
+<h2>What you will see</h2>
+<p>Each replay combines actual first-person Minecraft/HUD frames, a fixed world-coordinate map and heading, and two populations of activity maps. <strong>g</strong> is a learned recurrent motion state; <strong>p</strong> is a learned conjunction of that state and retrieved visual information. Their labels are architectural conventions, not biological cell identifications. A map never rotates with the camera. Visited bins show occupancy-normalized signed activation, unvisited bins are gray, and a white point marks the current agent location.</p>
+<p>GIFs are synchronized <em>offline replays</em> computed after fitting memory to recorded exploration, not online learned navigation. Four units per population are selected by activity variance on training routes only. Color scales are fixed over each full episode for visualization; running maps contain only observations up to that frame. PNG snapshots, GIFs and a report with the full path below every GIF are generated automatically.</p>
+<h2>The computation and inputs</h2>
+<pre>Raw Minecraft frame → frozen Qwen block 31 → 2×4 pooled features
+                     → fixed random projection to 64 dimensions
+
+Measured ΔX, ΔZ, Δyaw → recurrent spatial state g
+Spatial query from g → attention over past spatial keys / visual values
+                     → conjunction p → predict current visual features
+Only after predicting: write the current key and observed visual value.</pre>
+<p>The motion input uses simulator-measured world-axis displacement and yaw change; it is an explicitly privileged odometry diagnostic. Absolute X/Z never enter the predictive model. The initial reference frame is aligned to the environment and the starting heading is fixed. This is not a claim of autonomous visual localization. The same global coordinates are used for plots and evaluator-only revisit scoring. Stored place experiences refer to observer location, not inferred 3D object positions.</p>
+<p>The objective is squared error to frozen visual features, with train-only normalization. No new manual annotations, object labels, coordinate targets, or navigation rewards train memory. HUD/tutorial bands are masked for feature extraction but preserved in replay. The projection is fixed, not learned on test data. Recurrent state, keys and values reset per episode; prediction cannot read the current/future observation.</p>
+<h2>Data and controls</h2>
+<p>The collector selects distinct shape/position geometries, reconstructs full real Minecraft scenes through the existing pixel/pose checks, and traverses a serpentine route twice. The second route reverses its order. Control is telemetry-guided and explicitly privileged. Failed routes and partial coverage are reported; merely completing a job is not evidence of adequate spatial coverage.</p>
+<table><tr><th>Partition</th><th>Usage</th></tr>
+<tr><td>Training geometries, route 0</td><td>Fit memory and normalization; choose displayed units</td></tr>
+<tr><td>Training geometries, route 1</td><td>Held-out traversal-order diagnostic</td></tr>
+<tr><td>Validation geometry</td><td>Development evaluation</td></tr>
+<tr><td>Test geometry</td><td>Final evaluation only after fixed training; preserve for final reporting rather than tuning to its score</td></tr></table>
+<p>Compare learned memory, zero-motion and shuffled-motion interventions, an untrained copy and a last-frame persistence predictor. Report prediction MSE and same-place/same-heading revisit MSE; missing revisits yield null, not zero. These are diagnostics, not a full GRU/Transformer architecture benchmark. All include the same fixed visual representation.</p>
+<h2>What would justify P/G claims?</h2>
+<p>This first pilot produces <strong>candidate spatial activity</strong>. It does not prescribe Gaussian place fields or hexagonal grid waves. No gridness claim is made from sparse route data. Follow-up collection needs broad 2D coverage, multiple headings and repeated visits, followed by occupancy-controlled spatial tuning, held-out stability, grid autocorrelation with rotation/shift nulls, heading and visual confound controls, and cross-environment remapping. Single attractive units are not population evidence.</p>
+<p>First gate: real rendering and Qwen extraction succeed. Second: routes contain revisits and adequate coverage. Third: learned predictive memory beats persistence/untrained controls on held-out data, and motion perturbations affect performance. Fourth: independently validated spatial tuning. Only then connect memory to navigation and test V30/V31 perturbations during writing versus retrieval.</p>
+<h2>Run on Oscar</h2>
+<p>After committing/pushing locally and pulling on Oscar:</p>
+<pre>cd ~/projects/zef-binding
+mkdir -p logs
+sbatch scripts/slurm/hippocampal_mapping.sbatch smoke</pre>
+<p>Smoke: 3 geometries × 2 routes, at most 120 action decisions per route, 10 fitting epochs. It tests the pipeline and visual layout; short routes probably will not finish or support periodicity analysis. Output: <code>runs/hippocampal-mapping-JOBID/</code>. Review <code>status.json</code> and <code>review.json</code> first, then download one <code>analysis/mapping-FAMILY-route0.gif</code> and its PNG. Full features and raw recordings need not be copied to the Mac.</p>
+<pre># Only after the real smoke passes and its coverage is inspected:
+sbatch scripts/slurm/hippocampal_mapping.sbatch pilot 731</pre>
+<p>Pilot: 6 geometries × 2 routes, at most 1,200 decisions per route, 100 epochs. This remains a small single-seed representation study. No claim that it reproduces TEM-t or yields grid cells is warranted.</p>
+<h2>References and limits of correspondence</h2>
+<p><a href="https://pubmed.ncbi.nlm.nih.gov/30359611/">Behrens et al., What Is a Cognitive Map?</a> motivates relational representations supporting flexible behavior. <a href="https://arxiv.org/abs/2112.04035">Whittington, Warren &amp; Behrens, Relating transformers to models and neural representations of the hippocampal formation</a> motivates action-dependent recurrent positional codes and associative retrieval. Our continuous Minecraft visual-feature prediction model is an adaptation with a GRU motion state and learned conjunction layer; its p activations are not the paper's softmax memory neurons. It is not a faithful reproduction of their discrete symbolic task.</p>
