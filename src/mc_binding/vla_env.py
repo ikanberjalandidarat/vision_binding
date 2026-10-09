@@ -128,9 +128,17 @@ class Environment:
     def reward_distance(self):
         pose=json_value(self.info['player_pos'])
         return None if self.goal is None else math.hypot(float(pose['x'])-self.goal[0],float(pose['z'])-self.goal[1])
-    def rl_step(self,index,last=False,mode='sparse',gamma=.99):
+    def rl_step(self,index,last=False,mode='sparse',gamma=.99,recover_stop=False):
         from .rl_rewards import transition_reward
+        if recover_stop and not self.episode.name.startswith('train-'):
+            raise ValueError('Stop recovery is training-only')
         before=self.reward_distance()
+        if recover_stop and index==3 and before is not None and before>.8 and not last:
+            # Execute the chosen stop as a stationary action; never substitute a teacher action.
+            observation=self.wait()
+            after=self.reward_distance()
+            reward=-.1 + (gamma*(-min(after,40.)/20.)-(-min(before,40.)/20.) if mode=='potential' else 0.)
+            return dict(observation=observation,reward=reward,terminal=False,success=None,recovered_stop=True)
         observation={} if index==3 else self.step(index)
         terminal=bool(index==3 or last)
         after=self.reward_distance()

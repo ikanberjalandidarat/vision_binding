@@ -39,8 +39,10 @@ def test_recurrent_replay_and_binding_gradient():
  with pytest.raises(RuntimeError,match='replay mismatch'):update(model,torch.optim.Adam(model.parameters()),[ep],torch.Generator())
 
 
-@pytest.mark.parametrize('method',['ppo','grpo','ppo-icm','ppo-rnd'])
+@pytest.mark.parametrize('method',['ppo','grpo','ppo-icm','ppo-rnd','recovery'])
 def test_runner_performs_live_ppo_update(tmp_path,monkeypatch,method):
+ recovery=method=='recovery'
+ if recovery:method='ppo'
  import json
  from argparse import Namespace
  from PIL import Image
@@ -51,23 +53,26 @@ def test_runner_performs_live_ppo_update(tmp_path,monkeypatch,method):
  (tmp_path/'manifest.json').write_text(json.dumps(dict(splits={'t':'train','v':'validation'})))
  config=tmp_path/'config.json';config.write_text('{"readout_layer":31}')
  jobs=[dict(family=g,geometry=g,record=dict(record_id=g,image=image.name,objects=[dict(color='red',type='pillar')]),goal=['red','pillar'],instruction='Go to the red pillar.') for g in ('t','v')]
+ if recovery:jobs.append(dict(jobs[0],goal=['blue','arch']))
  monkeypatch.setattr(p,'load_binding',lambda _:({'seed':731},{}));monkeypatch.setattr(p,'plan',lambda _:jobs)
  monkeypatch.setattr(p,'distributed_tasks',lambda jobs,n:jobs[:n]);monkeypatch.setattr(p,'proposals',lambda im:[dict(bbox_raw=[0,0,28,35])])
  class Encoder:
   def __init__(self,_):self.visual=type('Visual',(),{'spatial_merge_size':1})()
   def inputs(self,_):return None,torch.tensor([[1,2,2]])
   def features(self,_):return torch.ones(4,6)
- requests=[]
+ requests=[];recovery_requests=[]
  class Worker:
   def __init__(self,*a):pass
   def request(self,command,**kw):
    requests.append(command)
+   if command=='reset':self.eid=kw['episode']
+   if kw.get('recover_stop'):recovery_requests.append(self.eid)
    if command=='reset':return dict(frame=str(image))
    assert command=='rl_step'
    return dict(reward=1.,terminal=True,success=True,observation=dict(frame=str(image)))
   def close(self):pass
  monkeypatch.setattr(p,'Encoder',Encoder);monkeypatch.setattr(p,'Worker',Worker)
- out=tmp_path/'out';p.run(Namespace(dataset=str(tmp_path),checkpoint=str(ck),output=str(out),render_python='unused',config=str(config),episodes=2,batch_episodes=2,max_steps=3,eval_episodes=1,epochs=2,seed=731,mode='binding',start_mode='original',method=method))
+ out=tmp_path/'out';p.run(Namespace(dataset=str(tmp_path),checkpoint=str(ck),output=str(out),render_python='unused',config=str(config),episodes=8 if recovery else 2,transition_budget=2 if recovery else 0,recover_stop=recovery,easy_start=recovery,probe_interval=2 if recovery else 0,batch_episodes=2,max_steps=3,eval_episodes=1,epochs=2,seed=731,mode='binding',start_mode='original',method=method))
  assert json.loads((out/'status.json').read_text())['state']=='complete'
  logs=json.loads((out/'updates.json').read_text());assert len(logs)==1 and logs[0]['transitions']==2
  initial=torch.load(out/'initial.pt',weights_only=True);final=torch.load(out/'agent.pt',weights_only=True)
@@ -80,3 +85,7 @@ def test_runner_performs_live_ppo_update(tmp_path,monkeypatch,method):
  if method in ('ppo-icm','ppo-rnd'):
   assert final['curiosity']['count']<=2
  assert set(requests)=={'reset','rl_step'}
+ if recovery:
+  assert recovery_requests and all(e.startswith('train-') for e in recovery_requests)
+  assert json.loads((out/'summary.json').read_text())['budget_met']
+  assert {r['split'] for r in json.loads((out/'probes.json').read_text())}=={'train','validation'}
