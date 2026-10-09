@@ -19,3 +19,5 @@
 mkdir -p logs
 sbatch scripts/slurm/tracking_rescue.sbatch</pre>
 <p>Outputs: runs/tracking-rescue-JOBID/audit and evaluation. The report includes GIF paths; summary.json, persistence.json, and rescue-summary.json keep memory and donor-assisted results separate. GPU inference remains a real-model gate.</p>
+
+<h2>Recognition-first fallback update</h2><p>The runner now also evaluates fallback_memory. Accepted per-frame recognition always wins and refreshes the template. Memory is consulted only below the existing 0.05 semantic threshold. Similarity and ambiguity gates remain unchanged, and memory-only matches never update the template. Scores are not calibrated confidence. Best cosine and margin are saved when memory is consulted. This is a development revision after validation inspection, not an independent confirmatory result.</p><p>evaluation/stories/index.html displays four-panel GIFs for V30, V31 and V30+31: recognition, memory, donor patch and outside-band control. Each shows goal, candidate scores, selection or abstention, source and scored outcome. Old runs explicitly show OLD recovery memory; generating their GIFs does not evaluate the new rule.</p>

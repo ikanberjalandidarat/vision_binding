@@ -97,6 +97,11 @@ class Environment:
         # This is the entire observation interface. No coordinates, boxes or target IDs.
         return {'frame':str(p)}
     def teacher(self): return {'action':teacher_action(json_value(self.info['player_pos']),self.goal)}
+    def wait(self):
+        """Stationary observation for visual confirmation; no teacher telemetry."""
+        self.trace[-1]['action']='wait'
+        for _ in range(self.chunk):self._step(self.sim.noop_action());self.tick+=1
+        return self.observe()
     def step(self,index):
         if index==3: raise ValueError('Use finish for stop')
         self.trace[-1]['action']=ACTIONS[index]
@@ -150,7 +155,7 @@ def main():
             try:
                 request=json.loads(line);cmd=request.pop('command')
                 with contextlib.redirect_stdout(sys.stderr):
-                    result=getattr(env,cmd)(**request) if cmd in ('reset','teacher','step','finish','close','rl_step') else None
+                    result=getattr(env,cmd)(**request) if cmd in ('reset','teacher','step','wait','finish','close','rl_step') else None
                 if result is None and cmd!='close': raise ValueError('Unknown worker command')
                 print(json.dumps({'ok':True,'result':result}),flush=True)
                 if cmd=='close':break

@@ -22,10 +22,13 @@ class Agent(Policy):
         self.predict_next=torch.nn.Linear(hidden+4,width)
 
 
-def initialize_agent(width, seed):
+def initialize_agent(width, seed, binding=False):
     # Encoder construction may reset the global RNG. Policy initialization is isolated.
     with torch.random.fork_rng(devices=[]):
         torch.manual_seed(seed)
+        if binding:
+            from .binding_policy import BindingAgent
+            return BindingAgent(width)
         return Agent(width)
 
 
@@ -51,13 +54,19 @@ def objective(logps,values,entropies,rewards,gamma,auxiliary,weight):
     return actor+critic-.01*entropy+weight*aux
 
 
-def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eval_episodes,start_mode="original",paired_evaluation=False,approach_benchmark=False,check_interval=32,action_chunk=2):
+def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eval_episodes,start_mode="original",paired_evaluation=False,approach_benchmark=False,check_interval=32,action_chunk=2,binding_checkpoint=None,binding_mode="zero"):
     torch.set_num_threads(4);scene_rng,action_rng=rollout_generators(seed)
     evaluation_rng=torch.Generator().manual_seed(seed+2000003)
     start_rng=torch.Generator().manual_seed(seed+3000003)
     training_start(start_mode,0,episodes)
     data,groups=load_binding(dataset);jobs=plan(groups)
     splits=geometry_splits([j['geometry'] for j in jobs],dict(seed=731,split_seed=731))
+    if binding_checkpoint:
+        if config.get('readout_layer')!=31:raise ValueError('Readout requires vision block 31')
+        if binding_mode not in ('zero','binding','shuffled'):raise ValueError('Invalid binding mode')
+        readout_manifest=json.loads((Path(binding_checkpoint).parent/'manifest.json').read_text())
+        splits=readout_manifest['splits']
+        if any(j['geometry'] not in splits for j in jobs):raise ValueError('Unknown readout geometry')
     training=[j for j in jobs if splits[j['geometry']]=='train'];validation=[j for j in jobs if splits[j['geometry']]=='validation']
     if aux_weight<0 or episodes<1 or max_steps<1 or not 1<=eval_episodes<=len(validation):raise ValueError('Invalid run size')
     if not 1<=action_chunk<=5:raise ValueError('Action chunk must be 1..5')
@@ -67,17 +76,37 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
         checkpoint_schedule(episodes,check_interval)
     out=Path(output);out.mkdir(parents=True,exist_ok=False);worker=None
     atomic_json(out/'status.json',dict(state='running'))
-    atomic_json(out/'manifest.json',dict(algorithm='episodic_on_policy_actor_critic',seed=seed,split_seed=731,splits=splits,reward=mode,aux_weight=aux_weight,episodes=episodes,max_steps=max_steps,eval_episodes=eval_episodes,gamma=.99,config=config,dataset_hash=digest(data),source_hash=source_hash(),approach_benchmark=approach_benchmark,check_interval=check_interval,action_chunk=action_chunk,training_families=sorted({j['family'] for j in training}),validation_families=sorted({j['family'] for j in validation}),rng_version='isolated_policy_scene_action_v2',start_mode=start_mode,paired_evaluation=paired_evaluation,action_order=['forward','turn_left','turn_right','stop'],curriculum=('Fixed 1.5-block training and explicitly privileged near-start checkpoint probes; final validation at original starts. Absent training anchors random, probe anchors fixed.' if approach_benchmark else 'Training only; goal-relative spawn uses privileged state. Absent goals use a random object anchor. Original-start evaluation.'),policy_inputs=['RGB frozen 8x16 features','instruction','previous action','recurrent memory'],privileged_reward=True,teacher_actions=False,test_evaluated=False,scope='Controlled arena. Scratch policy, frozen encoder. Auxiliary target is next observation feature, not object labels. Not general Minecraft autonomy.'))
+    if binding_checkpoint:
+        from .io import file_hash
+        atomic_json(out/'binding.json',dict(mode=binding_mode,checkpoint_sha256=file_hash(binding_checkpoint),architecture='BindingAgent',signal='8x16 goal-score map + max score + no-proposal flag',frozen_selector=True,manual_labels=False,selector_provenance='Existing supervised color/shape readout trained with privileged regions; this is not label-free end-to-end RL.',spatial_control='Independent spatial permutation per observation; score multiset and descriptors unchanged',split_source='readout manifest',scope='Live RL actions and learned stop; no visual servo. No QKV donor interventions in this experiment.'))
+    atomic_json(out/'manifest.json',dict(algorithm='episodic_on_policy_actor_critic',seed=seed,split_seed=731,splits=splits,reward=mode,aux_weight=aux_weight,episodes=episodes,max_steps=max_steps,eval_episodes=eval_episodes,gamma=.99,config=config,dataset_hash=digest(data),source_hash=source_hash(),approach_benchmark=approach_benchmark,check_interval=check_interval,action_chunk=action_chunk,training_families=sorted({j['family'] for j in training}),validation_families=sorted({j['family'] for j in validation}),rng_version='isolated_policy_scene_action_v2',start_mode=start_mode,paired_evaluation=paired_evaluation,action_order=['forward','turn_left','turn_right','stop'],curriculum=('Fixed 1.5-block training and explicitly privileged near-start checkpoint probes; final validation at original starts. Absent training anchors random, probe anchors fixed.' if approach_benchmark else 'Training only; goal-relative spawn uses privileged state. Absent goals use a random object anchor. Original-start evaluation.'),policy_inputs=['RGB frozen 8x16 features','instruction','previous action','recurrent memory']+(['predicted target signal'] if binding_checkpoint else []),privileged_reward=True,teacher_actions=False,test_evaluated=False,scope='Controlled arena. Scratch policy, frozen encoder. Auxiliary target is next observation feature, not object labels. Not general Minecraft autonomy.'))
     try:
         enc=Encoder(config);worker=Worker(render,out/'episodes',action_chunk)
-        def feature(path):
-            with Image.open(path) as im:inp=enc.inputs(im.convert('RGB'))
+        readout=None
+        if binding_checkpoint:
+            from .visual_readout import Readout
+            frozen=torch.load(binding_checkpoint,map_location='cpu',weights_only=True)
+            readout=Readout(frozen['width']);readout.load_state_dict(frozen['state']);readout.eval()
+            for parameter in readout.parameters():parameter.requires_grad_(False)
+        def feature(path,goal=None):
+            with Image.open(path) as im:image=im.convert('RGB');inp=enc.inputs(image)
             _,h,w=map(int,inp[1][0].tolist());r=rasterize(enc.features(inp),h,w,int(enc.visual.spatial_merge_size))
-            return torch.nn.functional.adaptive_avg_pool2d(r.permute(2,0,1)[None],(8,16))[0].permute(1,2,0).reshape(128,-1)
+            x=torch.nn.functional.adaptive_avg_pool2d(r.permute(2,0,1)[None],(8,16))[0].permute(1,2,0).reshape(128,-1)
+            signal=None
+            if readout is not None:
+                from .live_visual_control import proposals
+                from .perception_study import features_for
+                from .binding_policy import target_signal
+                regions=proposals(image)
+                with torch.no_grad():scores=readout.goal_scores(features_for(r,regions,image.size,'8x16'),goal) if regions else torch.empty(0)
+                signal=target_signal(regions,scores,image.size,binding_mode,map_rng)
+            return x,signal
         model=None;opt=None;history=[];evaluation=[]
         phases=[('train',episodes),('validation',eval_episodes)]
         if paired_evaluation:phases.append(('validation-sampled',eval_episodes))
         schedule=[(p,n,0) for p,n in phases]
+        if binding_checkpoint and not approach_benchmark:
+            schedule=[('initial-greedy',eval_episodes,0)]+([('initial-sampled',eval_episodes,0)] if paired_evaluation else [])+schedule
         if approach_benchmark:
             schedule=[(p,n if p=='train' else eval_episodes,c) for p,n,c in checkpoint_schedule(episodes,check_interval)]
             schedule.extend([('validation',eval_episodes,episodes),('validation-sampled',eval_episodes,episodes)])
@@ -94,45 +123,51 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
                     start=dict(start,anchor_index=int(torch.randint(len(job['record']['objects']),(1,),generator=start_rng)))
                 extra={}
                 if probe:extra['diagnostic_start']=dict(distance=1.5,anchor_index=episode%len(job['record']['objects']))
-                if phase!='train':evaluation_rng.manual_seed(seed+2000003+episode) if approach_benchmark else None
+                if phase!='train':evaluation_rng.manual_seed(seed+2000003+episode) if approach_benchmark or binding_checkpoint else None
                 obs=worker.request('reset',**extra,training_start=start,record=job['record'],goal=job['goal'],seed=data['seed'],episode=eid,reference=str((Path(dataset)/job['record']['image']).resolve()))
-                x=feature(obs['frame'])
+                map_rng=torch.Generator().manual_seed(seed+4000003+episode)
+                x,signal=feature(obs['frame'],job['goal'])
                 if model is None:
-                    model=initialize_agent(x.shape[-1],seed);opt=torch.optim.AdamW(model.parameters(),lr=3e-4)
-                if approach_benchmark and local_episode==0 and phase!='train':save_tensor(out/f'checkpoint-{checkpoint:05d}.pt',dict(state=model.state_dict(),width=x.shape[-1],hidden=64,episodes_completed=checkpoint))
+                    model=initialize_agent(x.shape[-1],seed,binding=bool(binding_checkpoint));opt=torch.optim.AdamW(model.parameters(),lr=3e-4)
+                if approach_benchmark and local_episode==0 and phase!='train':save_tensor(out/f'checkpoint-{checkpoint:05d}.pt',dict(state=model.state_dict(),width=x.shape[-1],hidden=64,architecture='BindingAgent' if binding_checkpoint else 'Agent',binding_mode=binding_mode if binding_checkpoint else None,episodes_completed=checkpoint))
                 model.train(phase=='train');state=None;previous=3
                 logps=[];values=[];entropies=[];rewards=[];auxiliary=[];actions=[];decisions=[]
                 for step in range(max_steps):
                     with torch.set_grad_enabled(phase=='train'):
-                        logits,state,_=model(x,tokenize(job['instruction']),previous,state)
+                        logits,state,_=model(x,tokenize(job['instruction']),previous,state,**({'binding':signal} if binding_checkpoint else {}))
                         distribution=torch.distributions.Categorical(logits=logits)
                         action=int(torch.multinomial(distribution.probs,1,generator=action_rng)) if phase=='train' else int(torch.multinomial(distribution.probs,1,generator=evaluation_rng)) if sampled else int(logits.argmax())
                         if phase=='train':
                             logps.append(distribution.log_prob(torch.tensor(action)));values.append(model.value(state).squeeze());entropies.append(distribution.entropy())
-                    decisions.append(dict(step=step,action=action,probabilities=distribution.probs.detach().tolist(),entropy=float(distribution.entropy().detach())))
+                    decisions.append(dict(step=step,action=action,probabilities=distribution.probs.detach().tolist(),entropy=float(distribution.entropy().detach()),binding_signal=signal.tolist() if signal is not None else None))
                     response=worker.request('rl_step',index=action,last=step==max_steps-1,mode=mode,gamma=.99)
                     rewards.append(response['reward']);actions.append(action)
                     if response['terminal']:break
-                    next_x=feature(response['observation']['frame'])
+                    next_x,next_signal=feature(response['observation']['frame'],job['goal'])
                     if phase=='train' and aux_weight:
                         onehot=torch.nn.functional.one_hot(torch.tensor([action]),4).float()
                         prediction=model.predict_next(torch.cat([state,onehot],-1)).squeeze(0)
                         target=torch.nn.functional.normalize(next_x.mean(0),dim=0).detach()
                         auxiliary.append((torch.nn.functional.normalize(prediction,dim=0)-target).square().sum())
-                    x=next_x;previous=action
-                row=dict(episode=eid,checkpoint=checkpoint,diagnostic_near_start=probe,evaluation_mode="training" if phase=="train" else "sampled" if sampled else "greedy",training_start=start,decisions=decisions,family=job['family'],instruction=job['instruction'],goal=job['goal'],goal_present=any((o['color'],o['type'])==tuple(job['goal']) for o in job['record']['objects']),success=response['success'],steps=len(actions),actions=actions,rewards=rewards,total_reward=sum(rewards))
+                    x=next_x;signal=next_signal;previous=action
+                row=dict(episode=eid,phase=phase,checkpoint=checkpoint,diagnostic_near_start=probe,evaluation_mode="training" if phase=="train" else "sampled" if sampled else "greedy",training_start=start,decisions=decisions,family=job['family'],instruction=job['instruction'],goal=job['goal'],goal_present=any((o['color'],o['type'])==tuple(job['goal']) for o in job['record']['objects']),success=response['success'],steps=len(actions),actions=actions,rewards=rewards,total_reward=sum(rewards))
                 if phase=='train':
                     loss=objective(logps,values,entropies,rewards,.99,auxiliary,aux_weight)
                     if not torch.isfinite(loss):raise RuntimeError('Nonfinite RL loss')
                     opt.zero_grad();loss.backward();gradient_norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.);opt.step();row['gradient_norm_before_clip']=float(gradient_norm)
                     row['loss']=float(loss.detach());history.append(row);atomic_json(out/'training.json',history)
-                    save_tensor(out/'agent.pt',dict(state=model.state_dict(),width=x.shape[-1],hidden=64,episodes_completed=episode+1))
+                    save_tensor(out/'agent.pt',dict(state=model.state_dict(),width=x.shape[-1],hidden=64,architecture='BindingAgent' if binding_checkpoint else 'Agent',binding_mode=binding_mode if binding_checkpoint else None,episodes_completed=episode+1))
                 else:evaluation.append(row);atomic_json(out/'validation.json',evaluation)
                 print(phase,episode,'success',row['success'],'reward',row['total_reward'],flush=True)
         if approach_benchmark:
             atomic_json(out/'learning-gate.json',approach_gate(evaluation))
             atomic_json(out/'probes.json',[r for r in evaluation if r['diagnostic_near_start']])
             evaluation=[r for r in evaluation if not r['diagnostic_near_start']]
+            atomic_json(out/'validation.json',evaluation)
+        if binding_checkpoint:
+            initial=[r for r in evaluation if r['phase'].startswith('initial-')]
+            atomic_json(out/'initial-evaluation.json',initial)
+            evaluation=[r for r in evaluation if not r['phase'].startswith('initial-')]
             atomic_json(out/'validation.json',evaluation)
         atomic_json(out/'summary.json',dict(validation_episodes=len(evaluation),successes=sum(r['success'] for r in evaluation),by_presence=[dict(present=p,n=sum(r['goal_present']==p for r in evaluation),successes=sum(r['success'] and r['goal_present']==p for r in evaluation)) for p in (True,False)],by_action_selection={m:evaluation_summary([r for r in evaluation if r['evaluation_mode']==m]) for m in ('greedy','sampled')},note='Development evaluation on fixed tasks; inspect manifests and trajectories. Completion does not imply learning.'))
         atomic_json(out/'status.json',dict(state='complete'))
@@ -141,5 +176,5 @@ def run(dataset,output,render,config,seed,mode,aux_weight,episodes,max_steps,eva
         if worker:worker.close()
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--output',required=True);p.add_argument('--render-python',required=True);p.add_argument('--config',default='configs/visual_readout.json');p.add_argument('--seed',type=int,default=731);p.add_argument('--reward',choices=['sparse','potential'],default='sparse');p.add_argument('--aux-weight',type=float,default=0);p.add_argument('--episodes',type=int,default=96);p.add_argument('--max-steps',type=int,default=96);p.add_argument('--eval-episodes',type=int,default=64);p.add_argument('--start-mode',choices=['original','near-to-far'],default='original');p.add_argument('--paired-evaluation',action='store_true');p.add_argument('--approach-benchmark',action='store_true');p.add_argument('--check-interval',type=int,default=32);p.add_argument('--action-chunk',type=int,default=2);a=p.parse_args()
-    run(a.dataset,a.output,a.render_python,json.loads(Path(a.config).read_text()),a.seed,a.reward,a.aux_weight,a.episodes,a.max_steps,a.eval_episodes,a.start_mode,a.paired_evaluation,a.approach_benchmark,a.check_interval,a.action_chunk)
+    p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--output',required=True);p.add_argument('--render-python',required=True);p.add_argument('--config',default='configs/visual_readout.json');p.add_argument('--seed',type=int,default=731);p.add_argument('--reward',choices=['sparse','potential'],default='sparse');p.add_argument('--aux-weight',type=float,default=0);p.add_argument('--episodes',type=int,default=96);p.add_argument('--max-steps',type=int,default=96);p.add_argument('--eval-episodes',type=int,default=64);p.add_argument('--start-mode',choices=['original','near-to-far'],default='original');p.add_argument('--paired-evaluation',action='store_true');p.add_argument('--approach-benchmark',action='store_true');p.add_argument('--check-interval',type=int,default=32);p.add_argument('--action-chunk',type=int,default=2);p.add_argument('--binding-checkpoint');p.add_argument('--binding-mode',choices=['zero','binding','shuffled'],default='zero');a=p.parse_args()
+    run(a.dataset,a.output,a.render_python,json.loads(Path(a.config).read_text()),a.seed,a.reward,a.aux_weight,a.episodes,a.max_steps,a.eval_episodes,a.start_mode,a.paired_evaluation,a.approach_benchmark,a.check_interval,a.action_chunk,a.binding_checkpoint,a.binding_mode)

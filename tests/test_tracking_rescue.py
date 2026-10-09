@@ -78,3 +78,15 @@ def test_runner_self_patch_and_artifacts(tmp_path,monkeypatch):
  assert {p['control'] for p in patches}=={'self','clean_donor','other_region'}
  assert all(p['correct']==p['corrupt_correct'] for p in patches if p['control']=='self')
  assert (out/'synthetic.gif').exists()
+
+
+def test_fallback_preserves_recognition_and_tracks_only_on_dropout():
+ from mc_binding.tracking_rescue import FallbackMemory
+ m=FallbackMemory(.05)
+ x=torch.eye(2)
+ assert m.select(x,torch.tensor([.8,.1]))==(0,'recognition')
+ # A confident new selection wins over even a perfect old template match.
+ assert m.select(x,torch.tensor([.01,.9]))==(1,'recognition')
+ assert m.select(x.flip(0),torch.tensor([.01,.02]))==(0,'memory_fallback')
+ assert m.diagnostics['best_cosine']==1
+ assert m.select(torch.ones(2,2),torch.zeros(2))[0]==-1

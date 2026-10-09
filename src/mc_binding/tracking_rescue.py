@@ -61,6 +61,21 @@ class RecoveryMemory:
         return -1,'lost'
 
 
+class FallbackMemory(RecoveryMemory):
+    """Recognition wins; refresh template only from accepted recognition."""
+    def select(self,x,scores):
+        selected=choose(x,scores,self.threshold)
+        self.diagnostics=dict(best_cosine=None,cosine_margin=None)
+        if selected>=0:
+            self.template=x[selected].detach().clone();self.misses=0
+            return selected,'recognition'
+        if self.template is not None and len(x):
+            values=torch.nn.functional.cosine_similarity(x,self.template[None],dim=1).sort(descending=True).values
+            self.diagnostics=dict(best_cosine=float(values[0]),cosine_margin=float(values[0]-values[1]) if len(values)>1 else None)
+        selected,state=super().select(x,scores)
+        return selected,'memory_fallback' if selected>=0 else state
+
+
 def disrupt(image,ordinal,strength):
     active=ordinal%6 in (2,3)
     box=(0,80,image.width,180)
@@ -133,7 +148,7 @@ def run(audit,checkpoint,config,output):
         if file_hash(row['frame'])!=row['sha256']:raise ValueError('Changed frame')
     out.mkdir(parents=True,exist_ok=False);atomic_json(out/'status.json',dict(state='running'))
     settings=dict(similarity=.9,margin=.05,max_misses=2)
-    atomic_json(out/'manifest.json',dict(meta,config=config,source_hash=source_hash(),memory=settings,
+    atomic_json(out/'manifest.json',dict(meta,config=config,source_hash=source_hash(),memory=settings,fallback_rule='Accept recognition at the existing semantic threshold; refresh template from that selection. Use cosine memory only below threshold; never refresh from fallback.',
         corruption=dict(type='gray horizontal image band',box=[0,80,448,180],strengths=[.35,.7],schedule='sample ordinals 2,3 modulo 6; clean acquisition and recovery'),
         scope='Fixed development hypotheses, no threshold tuning. Clean and corrupted share privileged candidate boxes. Memory receives no donor features. Rescue uses same-frame clean donor: privileged, not deployment. Other-region control is equal-count outside the corruption, not guaranteed background. No navigation or training.'))
     try:
@@ -152,6 +167,7 @@ def run(audit,checkpoint,config,output):
         for eid,sequence in by_episode.items():
             sequence.sort(key=lambda r:r['step'])
             memories={s:RecoveryMemory(ck['threshold'],**settings) for s in ('clean','band35','band70')}
+            fallbacks={s:FallbackMemory(ck['threshold'],**settings) for s in memories}
             old={};panels=[]
             for ordinal,r in enumerate(sequence):
                 goal=r['goal'];image=Image.open(r['frame']).convert('RGB');clean=enc.inputs(image)
@@ -164,15 +180,17 @@ def run(audit,checkpoint,config,output):
                     inp=clean if not active else enc.inputs(viewed)
                     x,scores=(x0,s0) if not active else features(inp,r['regions'],image.size)
                     f=choose(x,scores,ck['threshold']);base=outcome(r,f)['correct']
-                    for method in ('frame_only','gated_template','recovery_memory'):
+                    for method in ('frame_only','gated_template','recovery_memory','fallback_memory'):
                         state='stateless'
                         if method=='frame_only':selected=f
                         elif method=='gated_template':
                             selected=choose(x,scores,ck['threshold'],old.get(stream))
                             if stream not in old and selected>=0:old[stream]=x[selected].detach().clone()
-                        else:selected,state=memories[stream].select(x,scores)
+                        elif method=='recovery_memory':selected,state=memories[stream].select(x,scores)
+                        else:selected,state=fallbacks[stream].select(x,scores)
                         result=record(r,stream,method,active,selected,state,base)
                         result.update(scores=scores.tolist(),clean_correct=clean_correct)
+                        if method=='fallback_memory':result.update(fallbacks[stream].diagnostics)
                         results.append(result)
                         if method=='recovery_memory':
                             vis=viewed.copy();vd=ImageDraw.Draw(vis)
@@ -212,9 +230,12 @@ def run(audit,checkpoint,config,output):
                     rescue.append(dict(stream=stream,layers=layers,control=control,trials=len(rr),rescue_eligible=len(eligible),rescued=sum(r['correct'] is True for r in eligible),harmed=sum(r['corrupt_correct'] is True and r['correct'] is False for r in rr)))
         atomic_json(out/'rescue-summary.json',rescue)
         body='<h1>Balanced tracking stress test</h1><p>Clean / band35 / band70 views with recovery-memory selection in yellow. These are offline teacher frames, not selector-controlled motion. Candidate regions are privileged. No manual labels or new training. Patch results are donor-assisted diagnostics, not deployable performance. Out-of-view targets remain excluded, not absent. Thresholds fixed before this run; repeated frames are correlated.</p><h2>Memory comparison</h2><pre>'+html.escape(json.dumps(summary,indent=2))+'</pre><h2>V rescue and controls</h2><pre>'+html.escape(json.dumps(rescue,indent=2))+'</pre>'
+        body+='<p><a href="stories/index.html">Annotated recognition / memory / donor-patch GIFs</a></p>'
         body+='<p><a href="persistence.json">Wrong-object persistence by episode</a>. Absent-target teacher episodes contain only their initial frame: absence results are static checks, not disappearance or occlusion tests.</p>'
         for name in gallery:body+=f'<h3>{name}</h3><img style="max-width:100%" src="{name}"><p><code>{html.escape(str((out/name).resolve()))}</code></p>'
         (out/'report.html').write_text('<!doctype html><meta charset="utf-8"><style>body{font:16px system-ui;max-width:1350px;margin:30px auto}code{overflow-wrap:anywhere}</style>'+body)
+        from .tracking_story import build
+        build(root,out)
         atomic_json(out/'status.json',dict(state='complete'))
     except BaseException as e:atomic_json(out/'status.json',dict(state='error',error=str(e)));raise
 
