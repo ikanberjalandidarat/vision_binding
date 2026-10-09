@@ -41,3 +41,21 @@ def test_deadline_and_evaluation_contract():
     assert r['terminal'] and not r['success']
     e.episode=Path('final-greedy-0000')
     with pytest.raises(ValueError,match='training-only'): Environment.rl_step(e,3,recover_stop=True)
+
+
+@pytest.mark.parametrize('name,training,diagnostic,valid',[
+    ('initial-near-train-greedy-0000',None,{'distance':1},False),
+    ('final-near-validation-greedy-0000',None,{'distance':1},False),
+    ('probe-initial-near-train-greedy-0000',None,{'distance':1},True),
+    ('probe-final-near-validation-greedy-0000',None,{'distance':1},True),
+    ('probe-4-near-validation-greedy-0000',None,{'distance':1},True),
+    ('probe-mixed',{'distance':1},{'distance':1},False),
+    ('final-greedy-0000',None,None,True),
+    ('final-greedy-0000',{'distance':1},None,False),
+    ('train-0000',{'distance':1},None,True),
+])
+def test_reset_context(name,training,diagnostic,valid):
+    from mc_binding.vla_env import validate_reset_context
+    if valid: validate_reset_context(name,training,diagnostic)
+    else:
+        with pytest.raises(ValueError): validate_reset_context(name,training,diagnostic)

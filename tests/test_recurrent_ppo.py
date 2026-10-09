@@ -65,7 +65,10 @@ def test_runner_performs_live_ppo_update(tmp_path,monkeypatch,method):
   def __init__(self,*a):pass
   def request(self,command,**kw):
    requests.append(command)
-   if command=='reset':self.eid=kw['episode']
+   if command=='reset':
+    from mc_binding.vla_env import validate_reset_context
+    validate_reset_context(kw['episode'],kw.get('training_start'),kw.get('diagnostic_start'))
+    self.eid=kw['episode']
    if kw.get('recover_stop'):recovery_requests.append(self.eid)
    if command=='reset':return dict(frame=str(image))
    assert command=='rl_step'
@@ -88,4 +91,8 @@ def test_runner_performs_live_ppo_update(tmp_path,monkeypatch,method):
  if recovery:
   assert recovery_requests and all(e.startswith('train-') for e in recovery_requests)
   assert json.loads((out/'summary.json').read_text())['budget_met']
-  assert {r['split'] for r in json.loads((out/'probes.json').read_text())}=={'train','validation'}
+  probes=json.loads((out/'probes.json').read_text())
+  assert {r['split'] for r in probes}=={'train','validation'}
+  assert all(row['episode'].startswith('probe-') for probe in probes for row in probe['rows'])
+  assert any(row['episode'].startswith('probe-initial-') for probe in probes for row in probe['rows'])
+  assert any(row['episode'].startswith('probe-final-') for probe in probes for row in probe['rows'])

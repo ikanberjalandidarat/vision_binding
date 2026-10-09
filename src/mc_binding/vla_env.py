@@ -30,15 +30,22 @@ def action_dict(sim,index):
     return a
 
 
+def validate_reset_context(episode,training_start=None,diagnostic_start=None):
+    """Shared worker contract; privileged probes must not masquerade as evaluation."""
+    if diagnostic_start is not None:
+        if training_start is not None or not episode.startswith('probe-'):
+            raise ValueError('Near-start evaluation must be explicitly labeled probe')
+    if training_start is not None and not episode.startswith('train-'):
+        raise ValueError('Curriculum starts are forbidden during evaluation')
+
+
 class Environment:
     def __init__(self,output,chunk=2):
         if not 1<=chunk<=5: raise ValueError('Action chunk must be 1..5 ticks')
         self.root=Path(output).resolve();self.root.mkdir(parents=True,exist_ok=False)
         self.chunk=chunk;self.sim=None;self.episode=None
     def reset(self,record,goal,seed,episode,reference,training_start=None,diagnostic_start=None):
-        if diagnostic_start is not None:
-            if training_start is not None or not episode.startswith('probe-'):
-                raise ValueError('Near-start evaluation must be explicitly labeled probe')
+        validate_reset_context(episode,training_start,diagnostic_start)
         from minestudio.simulator import MinecraftSim
         from minestudio.simulator.callbacks import CommandsCallback
         if self.sim is None:

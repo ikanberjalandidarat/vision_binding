@@ -16,3 +16,8 @@ sbatch scripts/slurm/ppo_recovery.sbatch smoke</pre>
 <p>Smoke covers both arms, seed 731, and checks execution only. After inspecting status and review JSON, run the four-arm pilot:</p>
 <pre>sbatch --array=0-3%2 scripts/slurm/ppo_recovery.sbatch full</pre>
 <p>Outputs: <code>runs/ppo-recovery-ARRAY_JOB_ID/seed-SEED-terminal/</code> and <code>seed-SEED-recovery/</code>. Transfer only <code>review.json</code>, <code>summary.json</code>, <code>manifest.json</code>, <code>updates.json</code> and <code>status.json</code> first. No media needed for the initial review. Local synthetic non-Minecraft tests are not substitutes for the real smoke gate.</p>
+
+<h2>Smoke 7195746: naming-contract fix</h2>
+<p>Both arms stopped before training at the initial near-start probe. Episode names used initial-near- instead of the worker-required probe- prefix. The runner now labels initial, intermediate and final near-start episodes as probes. Worker and synthetic integration tests share reset-context validation. Retry with a new job ID; failed runs remain intact.</p>
+<h2>PPO implementation reference</h2>
+<p><a href="https://docs.cleanrl.dev/rl-algorithms/ppo/#implemented-variants">CleanRL PPO variants</a> are a reference for a future implementation audit, particularly the recurrent ppo_atari_lstm.py variant. Compare recurrent-state handling, GAE/bootstrap boundaries, advantage normalization, clipping, initialization, optimizer settings and diagnostics. Our GRU/full-episode implementation is not CleanRL and has not been validated as equivalent. Atari wrappers are not applicable unchanged to Minecraft. The smoke naming error is in our environment interface, not evidence about PPO's learning performance.</p>

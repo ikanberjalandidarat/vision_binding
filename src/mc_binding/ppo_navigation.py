@@ -110,11 +110,12 @@ def run(a):
             trajectory['intrinsic_transitions']=intrinsic_transitions
             return trajectory,summary
         def evaluate(label,panel=None,near=False):
+            episode_label='probe-'+label if near and not label.startswith('probe-') else label
             rows=[]
             for sampled in (False,True):
                 for i,job in enumerate(validation if panel is None else panel):
                     rng=torch.Generator().manual_seed(a.seed+5001+i)
-                    _,row=episode(job,f'{label}-'+('sampled' if sampled else 'greedy')+f'-{i:04d}',rng,sampled,map_seed=a.seed+6001+i,diagnostic=dict(distance=1.,anchor_index=0) if near else None)
+                    _,row=episode(job,f'{episode_label}-'+('sampled' if sampled else 'greedy')+f'-{i:04d}',rng,sampled,map_seed=a.seed+6001+i,diagnostic=dict(distance=1.,anchor_index=0) if near else None)
                     row['action_mode']='sampled' if sampled else 'greedy';rows.append(row)
                     atomic_json(out/(label+'.json'),rows)
             return rows
