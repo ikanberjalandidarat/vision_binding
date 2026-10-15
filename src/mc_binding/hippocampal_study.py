@@ -40,17 +40,29 @@ def collect(a,out):
         worker=Worker(a.render_python,out/'episodes',2)
         for k,(fid,geometry,record) in enumerate(selected):
             split='test' if k==len(selected)-1 else 'validation' if k==len(selected)-2 else 'train'
-            for route in range(2):
+            for route in range(4 if getattr(a,'cognitive_routes',False) else 2):
                 eid=f'mapping-{fid}-route{route}'
                 obs=worker.request('reset',record=record,goal=['red','pillar'],seed=data['seed'],episode=eid,reference=str((Path(a.dataset)/record['image']).resolve()))
-                points=route_points(bool(route));j=0;frames=[];actions=[]
+                from .cognitive_routes import route_plan,control
+                cognitive=getattr(a,'cognitive_routes',False)
+                points=route_plan(route) if cognitive else route_points(bool(route));j=0;frames=[];actions=[]
                 for step in range(a.steps+1):
                     pose=worker.request('mapping_pose')
                     if not(-18<pose['x']<18 and -5<pose['z']<15):raise RuntimeError('Exploration left safe floor bounds')
-                    if step%a.stride==0 or step==a.steps or j==len(points):
-                        frames.append(dict(frame=str(Path(obs['frame']).relative_to(out)),pose=pose,actions_since_previous=actions,sha256=file_hash(obs['frame'])))
+                    probe_reached=cognitive and j<len(points) and control(pose,points[j])[0] and points[j]['yaw'] is not None
+                    if step%a.stride==0 or step==a.steps or j==len(points) or probe_reached:
+                        frames.append(dict(frame=str(Path(obs['frame']).relative_to(out)),pose=pose,actions_since_previous=actions,elapsed_ticks=sum(len(f['actions_since_previous']) for f in frames)*2+len(actions)*2,probe=(points[j] if probe_reached else None),sha256=file_hash(obs['frame'])))
                         actions=[]
                     if step==a.steps or j==len(points):break
+                    if cognitive:
+                        reached,action=control(pose,points[j])
+                        if reached:
+                            j+=1
+                            if j==len(points):continue
+                            reached,action=control(pose,points[j])
+                            if reached:continue
+                        obs=worker.request('step',index=action);actions.append(action)
+                        continue
                     distance,turn,forward=steering(pose,points[j])
                     if distance<.8:
                         j+=1
@@ -59,7 +71,7 @@ def collect(a,out):
                     action=0 if forward else 1 if turn<0 else 2
                     obs=worker.request('step',index=action);actions.append(action)
                 worker.request('finish',stopped=False)
-                entry=dict(is_minecraft=True,frame_interval_ms=a.stride*2*50,episode=eid,family=fid,geometry=geometry,split=split,route=route,objects=record['objects'],frames=frames,waypoints_reached=j,waypoints_total=len(points),route_complete=j==len(points))
+                entry=dict(is_minecraft=True,frame_interval_ms=a.stride*2*50,episode=eid,family=fid,geometry=geometry,split=split,route=route,objects=record['objects'],frames=frames,route_protocol='intersecting_loops_v1' if cognitive else 'serpentine_v1',waypoints_reached=j,waypoints_total=len(points),route_complete=j==len(points))
                 entries.append(entry);atomic_json(out/'sequences.json',entries)
                 print('Collected',eid,len(frames),'frames; route complete',entry['route_complete'],flush=True)
     finally:
@@ -91,7 +103,8 @@ def extract(a,out,entries):
 
 def fit(a,out,entries,data):
     torch.set_num_threads(4);torch.manual_seed(a.seed)
-    indices=[i for i,e in enumerate(entries) if e['split']=='train' and e['route']==0]
+    train_routes=[0,1] if getattr(a,'cognitive_routes',False) else [0]
+    indices=[i for i,e in enumerate(entries) if e['split']=='train' and e['route'] in train_routes]
     train_x=torch.cat([data[i]['x'] for i in indices]);mean=train_x.mean(0);scale=train_x.std(0).clamp_min(.1)
     xs=[(e['x']-mean)/scale for e in data]
     model=SpatialMemory();optimizer=torch.optim.Adam(model.parameters(),lr=.001);history=[]
@@ -113,7 +126,7 @@ def fit(a,out,entries,data):
     rows=[];activations={}
     for i,entry in enumerate(entries):
         poses=[f['pose'] for f in entry['frames']];mask=revisit_mask(poses)
-        partition=entry['split'] if entry['split']!='train' or entry['route']==0 else 'heldout_route'
+        partition=entry['split'] if entry['split']!='train' or entry['route'] in train_routes else 'heldout_route'
         for condition in ('learned','zero_motion','shuffled_motion','untrained','last_frame'):
             motion=data[i]['motion'].clone()
             if condition=='zero_motion':motion.zero_()
@@ -142,17 +155,24 @@ def main():
     for name in ('dataset','render-python','output'):p.add_argument('--'+name,required=True)
     p.add_argument('--config',default='configs/visual_readout.json');p.add_argument('--scenes',type=int,default=3)
     p.add_argument('--steps',type=int,default=120);p.add_argument('--stride',type=int,default=4)
+    p.add_argument('--cognitive-routes',action='store_true',help='Intersecting loops; train route orders 0/1, evaluate 2/3')
     p.add_argument('--epochs',type=int,default=10);p.add_argument('--seed',type=int,default=731)
     a=p.parse_args()
     if min(a.steps,a.stride,a.epochs)<1 or a.steps<a.stride:raise ValueError('Invalid study size')
     out=Path(a.output).resolve();out.mkdir(parents=True,exist_ok=False)
-    atomic_json(out/'manifest.json',dict(experiment='hippocampal_mapping_pilot_v1',is_minecraft=True,settings=vars(a),source_hash=source_hash(),dataset_manifest_sha256=file_hash(Path(a.dataset)/'manifest.json'),
+    atomic_json(out/'manifest.json',dict(experiment='cognitive_mapping_loops_v1' if a.cognitive_routes else 'hippocampal_mapping_pilot_v1',is_minecraft=True,settings=vars(a),source_hash=source_hash(),dataset_manifest_sha256=file_hash(Path(a.dataset)/'manifest.json'),
         privileged='Telemetry drives scripted collection; measured world-axis displacement and yaw change enter memory. Absolute positions are plotting/scoring only.',
         objective='Predict current frozen Qwen features using past features and current motion before writing current frame; no manual labels.',
         visualization='Fixed allocentric axes, empirical activation maps. g/p are candidate model units, not established biological cells.'))
     atomic_json(out/'status.json',dict(state='running'))
     try:
-        entries=collect(a,out);data=extract(a,out,entries);fit(a,out,entries,data)
+        entries=collect(a,out)
+        if a.cognitive_routes and not all(e['route_complete'] for e in entries):
+            raise RuntimeError('Incomplete cognitive route: inspect sequences.json before fitting; increase steps or fix collection')
+        data=extract(a,out,entries);fit(a,out,entries,data)
+        if a.cognitive_routes:
+            from .cognitive_audit import audit
+            audit(out)
         atomic_json(out/'status.json',dict(state='complete'))
     except BaseException as e:
         atomic_json(out/'status.json',dict(state='error',error=repr(e)));raise
