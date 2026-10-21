@@ -81,3 +81,13 @@ def test_analysis_fixture_end_to_end(tmp_path):
     result = json.loads((tmp_path/"analysis/review.json").read_text())
     assert len(result["results"]) == 18
     assert all(np.isfinite(r["mean_error_blocks"]) for r in result["results"])
+
+
+def test_offset_clock_clips_are_recovered_without_resampling():
+    e = entry()
+    for f in e['frames']:
+        f['elapsed_ticks'] += 6
+    windows = list(clips([e]))
+    assert len(windows) == 2
+    assert windows[0]['ticks'] == list(range(6, 134, 8))
+    assert windows[1]['ticks'][0] > windows[0]['ticks'][-1]

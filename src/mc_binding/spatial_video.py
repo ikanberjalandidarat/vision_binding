@@ -31,8 +31,8 @@ def partition(entry):
 def clips(entries, length=16, hop=16, tick_step=8):
     """Nonoverlapping windows on an exact simulation clock, endpoint labels.
 
-    Extra heading-probe frames and duplicate timestamps are not resampled into
-    the video. Missing ticks cause rejection rather than duplicated RGB.
+    Accept any starting clock phase. Extra heading-probe frames and duplicate
+    timestamps are not resampled. Missing ticks cause rejection, not duplication.
     """
     if length < 2 or length % 2 or hop < length or tick_step < 1:
         raise ValueError("Need even clip length, hop >= length, positive tick step")
@@ -51,12 +51,15 @@ def clips(entries, length=16, hop=16, tick_step=8):
         frames = {}
         for frame in entry["frames"]:
             tick = frame["elapsed_ticks"]
-            if tick % tick_step == 0:
-                frames.setdefault(tick, frame)
-        for start in range(0, max(frames, default=-1) + 1, hop * tick_step):
+            frames.setdefault(tick, frame)
+        next_start = 0
+        for start in sorted(frames):
+            if start < next_start:
+                continue
             ticks = list(range(start, start + length * tick_step, tick_step))
             if not all(t in frames for t in ticks):
                 continue
+            next_start = start + hop * tick_step
             selected = [frames[t] for t in ticks]
             pose = selected[-1]["pose"]
             yield dict(episode=eid, geometry=entry["geometry"], route=entry["route"],
@@ -153,6 +156,7 @@ def extract_command(a):
         atomic_json(out / "manifest.json", dict(
             model="V-JEPA 2 ViT-L/16", frozen=True, repo_commit=commit,
             checkpoint_sha256=sha256(a.checkpoint), sequences_sha256=sha256(root / "sequences.json"),
+            clip_protocol="exact_spacing_any_phase_v2",
             layers_zero_based=layers, frames=a.frames, tick_step=8, label="last frame X,Z",
             extraction="raw block output; mean of spatial tokens in final temporal tubelet",
             conditions=["video", "repeat_last_frame"], tokens=a.tokens,

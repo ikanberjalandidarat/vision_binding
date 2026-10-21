@@ -1,0 +1,13 @@
+{
+  "source": "runs/oscar/spatial-video-sequences-7731866.json",
+  "episodes": [
+    "mapping-f0000-route0",
+    "mapping-f0000-route1",
+    "mapping-f0000-route2",
+    "mapping-f0000-route3"
+  ],
+  "rgb": false,
+  "playback_speed": 4,
+  "frames": 126,
+  "description": "Actual simulator poses; scripted paths. No model activation or navigation-performance claim."
+}

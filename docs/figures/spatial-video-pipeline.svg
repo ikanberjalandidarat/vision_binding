@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="940" viewBox="0 0 1040 940" role="img" aria-labelledby="title desc">
+<title id="title">From Minecraft video to a position estimate</title>
+<desc id="desc">Sixteen images enter a frozen video encoder. Activations from three blocks are spatially averaged into separate 1024-number feature vectors. A separate ridge probe estimates endpoint position. Recorded coordinates train and evaluate only the probe, never the encoder.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L9 5 L0 10" fill="none" stroke="#426581" stroke-width="1.5"/></marker>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#172a3a}.heading{font-size:23px;font-weight:700}.body{font-size:18px}.small{font-size:16px}.label{font-size:14px;font-weight:700;letter-spacing:1px}.flow{fill:none;stroke:#426581;stroke-width:2.5;marker-end:url(#arrow)}.box{stroke:#b5c7d9;stroke-width:1.5;fill:#f3f7fb}</style></defs>
+<rect width="1040" height="940" rx="18" fill="#fff"/>
+<text x="32" y="38" class="heading">What the model sees — and what we measure</text>
+<text x="32" y="64" class="small">Proposed extraction pipeline • schematic, not experimental results</text>
+
+<rect x="32" y="90" width="630" height="105" rx="12" class="box"/>
+<text x="52" y="120" class="heading">1. Take 16 Minecraft images</text>
+<text x="52" y="150" class="body">t − 6.0 s, t − 5.6 s, …, t − 0.4 s, t</text>
+<text x="52" y="177" class="small">Every 8 simulation ticks • endpoint = the last image</text>
+<path d="M347 197 V222" class="flow"/>
+
+<rect x="32" y="232" width="630" height="95" rx="12" class="box"/>
+<text x="52" y="263" class="heading">2. Prepare the images</text>
+<text x="52" y="292" class="body">Mask bottom 12% HUD → resize / center crop → normalize</text>
+<text x="52" y="316" class="small">Input tensor: 1 clip × 3 RGB channels × 16 frames × 256 × 256</text>
+<path d="M347 329 V354" class="flow"/>
+
+<rect x="32" y="364" width="630" height="112" rx="12" fill="#eaf0ff" stroke="#5573c0" stroke-width="2"/>
+<text x="52" y="396" class="heading">3. Run frozen V-JEPA 2 ViT-L/16</text>
+<text x="52" y="425" class="body">Read activations after blocks 4, 12 and 24 separately</text>
+<text x="52" y="452" class="small">Each block: 8 temporal groups × 16 × 16 spatial tokens × 1,024 channels</text>
+<path d="M347 478 V503" class="flow"/>
+
+<rect x="32" y="513" width="630" height="119" rx="12" class="box"/>
+<text x="52" y="545" class="heading">4. Keep the last group; average across image space</text>
+<text x="52" y="575" class="body">16 × 16 tokens × 1,024 channels → 1,024 numbers</text>
+<text x="52" y="602" class="small">One vector per selected block. Channels are kept; only tokens are averaged.</text>
+<text x="52" y="623" class="small">The last group can use information from all 16 images through attention.</text>
+<path d="M347 634 V668" class="flow"/>
+
+<rect x="32" y="678" width="630" height="108" rx="12" fill="#e9f6f0" stroke="#448571" stroke-width="2"/>
+<text x="52" y="710" class="heading">5. Fit a separate position readout for each block</text>
+<text x="52" y="741" class="body">1,024 numbers → ridge regression → estimated X, Z at t</text>
+<text x="52" y="769" class="small">Only this readout learns from coordinates. V-JEPA weights stay frozen.</text>
+<path d="M347 788 V816" class="flow"/>
+
+<rect x="32" y="826" width="630" height="83" rx="12" fill="#e9f6f0" stroke="#448571" stroke-width="1.5"/>
+<text x="52" y="858" class="heading">6. Test on entire routes excluded from fitting</text>
+<text x="52" y="887" class="body">Compare estimated versus recorded position: error in blocks</text>
+
+<rect x="710" y="90" width="298" height="169" rx="12" fill="#faf4e8" stroke="#d7bd88"/>
+<text x="730" y="121" class="label">CLOCK AND CONTEXT</text>
+<text x="730" y="152" class="body">16 images have 15 gaps.</text>
+<text x="730" y="180" class="body">15 × 0.4 s = 6 seconds.</text>
+<text x="730" y="215" class="small">No images later than t are used.</text>
+<text x="730" y="239" class="small">No memory carries between clips.</text>
+
+<rect x="710" y="300" width="298" height="187" rx="12" fill="#f3f7fb" stroke="#b5c7d9"/>
+<text x="730" y="331" class="label">WHAT IS A TUBELET?</text>
+<text x="730" y="362" class="body">A token starts from a patch</text>
+<text x="730" y="388" class="body">16 × 16 pixels wide, over</text>
+<text x="730" y="414" class="body">2 consecutive frames.</text>
+<text x="730" y="448" class="small">16 input frames → 8 time groups.</text>
+<text x="730" y="473" class="small">Tokens mix information in the model.</text>
+
+<rect x="710" y="557" width="298" height="229" rx="12" fill="#fff3eb" stroke="#c8926c" stroke-width="1.5"/>
+<text x="730" y="589" class="label">SEPARATE COORDINATE PATH</text>
+<text x="730" y="620" class="body">Minecraft records X, Z</text>
+<text x="730" y="646" class="body">for the final image at t.</text>
+<text x="730" y="682" class="small">Training routes: fit the readout.</text>
+<text x="730" y="709" class="small">Held-out routes: score its error.</text>
+<text x="730" y="749" class="small" font-weight="700">Coordinates never enter V-JEPA.</text>
+<path d="M710 732 H670" class="flow"/>
+<path d="M859 788 V867 H670" class="flow"/>
+</svg>

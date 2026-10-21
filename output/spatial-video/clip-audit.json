@@ -1,0 +1,107 @@
+{
+  "old_clips": 162,
+  "corrected_clips": 230,
+  "rows": [
+    {
+      "episode": "mapping-f0000-route0",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0000-route1",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0000-route2",
+      "old": 1,
+      "corrected": 8
+    },
+    {
+      "episode": "mapping-f0000-route3",
+      "old": 1,
+      "corrected": 8
+    },
+    {
+      "episode": "mapping-f0002-route0",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0002-route1",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0002-route2",
+      "old": 1,
+      "corrected": 8
+    },
+    {
+      "episode": "mapping-f0002-route3",
+      "old": 1,
+      "corrected": 8
+    },
+    {
+      "episode": "mapping-f0003-route0",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0003-route1",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0003-route2",
+      "old": 1,
+      "corrected": 8
+    },
+    {
+      "episode": "mapping-f0003-route3",
+      "old": 1,
+      "corrected": 8
+    },
+    {
+      "episode": "mapping-f0012-route0",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0012-route1",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0012-route2",
+      "old": 1,
+      "corrected": 8
+    },
+    {
+      "episode": "mapping-f0012-route3",
+      "old": 3,
+      "corrected": 8
+    },
+    {
+      "episode": "mapping-f0013-route0",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0013-route1",
+      "old": 15,
+      "corrected": 15
+    },
+    {
+      "episode": "mapping-f0013-route2",
+      "old": 1,
+      "corrected": 8
+    },
+    {
+      "episode": "mapping-f0013-route3",
+      "old": 1,
+      "corrected": 8
+    }
+  ],
+  "note": "Exact 8-tick spacing retained; starting phase unrestricted. Corrected activations must be extracted again. Unequal route coverage remains."
+}

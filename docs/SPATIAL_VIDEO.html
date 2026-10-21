@@ -5,6 +5,7 @@
 pre{padding:18px;background:#eff3f7;overflow:auto;font-size:13px}table{border-collapse:collapse}
 td,th{padding:10px;border:1px solid #ccd5de}.note{border-left:5px solid #4265bb;padding:15px;background:#eff3ff}</style>
 <h1>Do pretrained video features encode spatial location?</h1>
+<p class="note"><strong>Current priority: standardized dataset and environment review.</strong> Model testing is paused. <a href="ENVIRONMENT_DATASET.html">Eight new environments, Oscar-generated GIFs and allocentric views: setup and export commands</a>. The encoder pilot below is prior work, not the next action.</p>
 <p>New direction, 20 October 2026. The subject is the frozen V-JEPA 2 ViT-L/16 encoder.
 No GRU, hippocampal module, odometry input or trained spatial code is attached.
 Minecraft coordinates supervise the <em>measurement probe</em>, never the encoder.</p>
@@ -12,6 +13,10 @@ Minecraft coordinates supervise the <em>measurement probe</em>, never the encode
 Synthetic tests do not establish Minecraft rendering, checkpoint compatibility or spatial emergence.
 The old g/p visualizations describe a separately trained memory network and are not evidence about this encoder.</p>
 <h2>What goes through the model</h2>
+<figure style="margin:24px 0">
+<img src="figures/spatial-video-pipeline.svg" alt="Video input passes through frozen V-JEPA to three separate 1024-channel vectors, then position readouts. Ground-truth coordinates enter only readout fitting and evaluation." style="display:block;width:100%;height:auto">
+<figcaption style="font-size:15px;margin-top:12px"><strong>Read top to bottom.</strong> Blue boxes extract frozen features; green boxes measure their location information. The orange path supplies coordinates only to the readout and evaluation. <a href="figures/spatial-video-pipeline.svg">Open or download the diagram (SVG)</a>.</figcaption>
+</figure>
 <p>16 RGB frames → official deterministic preprocessing → frozen video transformer →
 raw channels after blocks 4, 12 and 24 (zero-based hooks 3, 11, 23).
 There are 1,024 native channels per token. We average the 16×16 spatial tokens
@@ -22,6 +27,10 @@ No frames after that endpoint enter its prediction.</p>
 This is a declared sampling choice, not a claim about the optimal pretrained cadence.
 We must compare context lengths/cadences later. The fixed bottom 12% HUD band is masked.
 There is no persistent state between clips.</p>
+<h2>Recorded routes: presentation preview</h2>
+<p>Four actual recorded trajectories in geometry f0000, animated together at 4× speed. These panels show simulator coordinates, not learned maps or cell activations. First-person RGB is still on Oscar.</p>
+<figure style="margin:20px 0"><img src="../output/spatial-video/recorded-routes.gif" style="width:100%;height:auto" alt="Four animated recorded Minecraft paths"><figcaption>GIF: <code>output/spatial-video/recorded-routes.gif</code> · <a href="../output/spatial-video/recorded-routes.png">Static PNG for slides</a></figcaption></figure>
+<p><strong>Clip audit:</strong> the original timestamp-phase filter retained only one clip per held-out route. The corrected extractor allows any starting phase with exact eight-tick spacing and no overlapping windows: 230 clips total, including eight per held-out route. Training routes retain 15 each. Re-extract before interpreting new results; this change is not a model improvement. Dense gridness coverage remains unestablished.</p>
 <h2>First experiment: 20 trajectories</h2>
 <table><tr><th>Component</th><th>Implemented pilot</th></tr>
 <tr><td>Collection</td><td>Five existing deterministic safe Minecraft geometries × four intersecting-loop routes.
