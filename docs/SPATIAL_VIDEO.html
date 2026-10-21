@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Frozen video models: spatial emergence pilot</title>
+<style>body{font:17px/1.6 system-ui;max-width:1050px;margin:40px auto;padding:24px;color:#172a3a}
+pre{padding:18px;background:#eff3f7;overflow:auto;font-size:13px}table{border-collapse:collapse}
+td,th{padding:10px;border:1px solid #ccd5de}.note{border-left:5px solid #4265bb;padding:15px;background:#eff3ff}</style>
+<h1>Do pretrained video features encode spatial location?</h1>
+<p>New direction, 20 October 2026. The subject is the frozen V-JEPA 2 ViT-L/16 encoder.
+No GRU, hippocampal module, odometry input or trained spatial code is attached.
+Minecraft coordinates supervise the <em>measurement probe</em>, never the encoder.</p>
+<p class="note"><strong>Status:</strong> pilot implementation, not experimental results.
+Synthetic tests do not establish Minecraft rendering, checkpoint compatibility or spatial emergence.
+The old g/p visualizations describe a separately trained memory network and are not evidence about this encoder.</p>
+<h2>What goes through the model</h2>
+<p>16 RGB frames → official deterministic preprocessing → frozen video transformer →
+raw channels after blocks 4, 12 and 24 (zero-based hooks 3, 11, 23).
+There are 1,024 native channels per token. We average the 16×16 spatial tokens
+in the final temporal tubelet. These are native model channels, not a new 32-number memory.
+The encoder attends throughout the clip; the label is the <strong>last frame's X,Z</strong>.
+No frames after that endpoint enter its prediction.</p>
+<p>The initial cadence is one image per 8 simulation ticks (0.4 s), so 16 frames span 6 seconds.
+This is a declared sampling choice, not a claim about the optimal pretrained cadence.
+We must compare context lengths/cadences later. The fixed bottom 12% HUD band is masked.
+There is no persistent state between clips.</p>
+<h2>First experiment: 20 trajectories</h2>
+<table><tr><th>Component</th><th>Implemented pilot</th></tr>
+<tr><td>Collection</td><td>Five existing deterministic safe Minecraft geometries × four intersecting-loop routes.
+Scripted movement; poses and actions recorded alongside RGB. All 20 routes must complete.</td></tr>
+<tr><td>Training the probe</td><td>Routes 0/1 in three geometries. Encoder remains frozen.</td></tr>
+<tr><td>Primary evaluation</td><td>Routes 2/3 in those same three geometries, entirely excluded from fitting.</td></tr>
+<tr><td>Other scenes</td><td>One geometry for ridge regularization selection; another for final geometry-heldout evaluation.
+All worlds share the collector's coordinate convention.</td></tr>
+<tr><td>Controls</td><td>Repeated last image through the same video encoder; heading and elapsed-time regression;
+training-mean location; circularly shifted training labels within each trajectory.</td></tr>
+<tr><td>Outputs</td><td>Episode-level error in Minecraft blocks; signed channel maps and occupancy;
+small review JSON. Native token caches are opt-in with a storage cap.</td></tr></table>
+<p>We reuse the collector only. Existing Qwen feature caches cannot be converted to V-JEPA inputs.
+This pilot is a plumbing and route-decoding test. Its loop paths are insufficient for convincing gridness analysis:
+the implementation intentionally does not produce a grid-cell score from them.</p>
+<h2>Run on Oscar, keep bulk data off the Mac</h2>
+<p>Prepare a <strong>new, separate environment</strong> using the official V-JEPA dependencies.
+Do not install into or repair the model/render environments used by other jobs.
+The separate environment also needs this project's package dependencies (<code>pip install -e .</code>).
+Use a clean local checkout of the official V-JEPA repository and its ViT-L checkpoint from the official model table.
+Extraction records the repository commit and checkpoint SHA256. No automatic model download occurs in our script.</p>
+<p>The existing render environment must already pass its import check. If it is broken, stop and arrange a separate
+render environment; this script does not repair it. GPU memory and the real checkpoint forward pass remain unverified.</p>
+<pre>cd ~/projects/zef-binding
+mkdir -p logs
+export SPATIAL_PYTHON="/oscar/scratch/$USER/zef-binding/envs/spatial-video/bin/python"
+export MC_RENDER_PYTHON="/oscar/scratch/$USER/zef-binding/envs/render/bin/python"
+export VJEPA_REPO="/oscar/scratch/$USER/zef-binding/vendor/vjepa2"
+export VJEPA_CHECKPOINT="/oscar/scratch/$USER/zef-binding/checkpoints/vitl.pt"
+
+# After the separate environment and checkpoint have been prepared:
+sbatch scripts/slurm/spatial_video.sbatch collect
+
+# First verify one real clip and the official checkpoint:
+sbatch scripts/slurm/spatial_video.sbatch smoke \
+  "/oscar/scratch/$USER/zef-binding/runs/spatial-video-data-COLLECTION_JOB"
+
+# Once the smoke status is smoke_complete, run full extraction:
+sbatch scripts/slurm/spatial_video.sbatch extract \
+  "/oscar/scratch/$USER/zef-binding/runs/spatial-video-data-COLLECTION_JOB"
+
+# After extraction, replace EXTRACTION_JOB with its job ID:
+sbatch scripts/slurm/spatial_video.sbatch probe \
+  "/oscar/scratch/$USER/zef-binding/runs/spatial-video-features-EXTRACTION_JOB"</pre>
+<p>Collection is gated before extraction. The smoke mode extracts one real clip and records
+<code>smoke_complete</code>; the analysis refuses to treat it as a complete experiment.
+The extraction CLI supports <code>--dry-run</code>, <code>--frames</code>, <code>--layers</code>,
+<code>--tokens</code>, <code>--smoke</code>, and <code>--max-cache-gb</code>. Default full-token saving is off.
+Output directories cannot overwrite earlier runs.</p>
+<p>Download only <code>analysis/review.json</code> initially. Keep frames, model weights and full activation caches on Oscar.
+The initial default produces signed channel maps as NPZ arrays; publication figures and GIFs should be built
+after checking real coverage and results, not from synthetic placeholders.</p>
+<h2>What would count as evidence?</h2>
+<ol>
+<li><strong>Spatial information:</strong> held-out-route decoding beats the mean-location and heading/time controls,
+with consistency across trajectories. A repeated-frame comparison tells us whether temporal input helps.</li>
+<li><strong>Place-like tuning:</strong> stable native-channel fields across separately recorded routes and matched headings.
+Control texture/landmark appearance and time. Choose channels on training data only.</li>
+<li><strong>Grid-like tuning:</strong> collect dense two-dimensional coverage with revisits and varied headings first.
+Then use masked spatial autocorrelation, preregistered annuli, temporal-shift null distributions and
+multiple-comparison correction. Signed channels need a justified analysis; do not call them firing rates.</li>
+<li><strong>Causal use:</strong> selected subspace interventions must affect an independent prediction or navigation
+task more than matched random interventions. Changing the same probe that selected the subspace is insufficient.</li>
+</ol>
+<p>Randomly initialized encoder, shuffled-frame and alternative image/video model controls are subsequent work.
+The repeat-image condition is a temporal-context ablation, not a separately pretrained image-model baseline.
+No policy, gridness significance or causal patching result is claimed by this pilot.</p>
+<p>Frozen inference tests whether representations <em>already exist</em>. Studying when they emerge or
+“converge” requires comparing pretraining checkpoints or a separately declared fine-tuning experiment.</p>
+<h2>Sources and relationship to prior work</h2>
+<p>The <a href="https://github.com/facebookresearch/vjepa2">official V-JEPA repository</a>
+provides ViT-L/16 at 256-pixel resolution. It is a video representation model, not a language model or
+a Minecraft navigation policy. Our wrapper follows the
+<a href="https://github.com/facebookresearch/vjepa2/blob/main/src/hub/backbones.py">official encoder construction</a>
+and <a href="https://github.com/facebookresearch/vjepa2/blob/main/evals/hub/preprocessor.py">preprocessor</a>.</p>
+<p><a href="https://arxiv.org/abs/2602.07050">Interpreting Physics in Video World Models</a>
+uses layerwise probing and interventions to investigate distributed physical representations.
+Our proposed extension asks about spatial location and route invariance in Minecraft.
+Its physics findings do not establish grid or place cells in our data.</p>
+<h2>Local archive cleanup</h2>
+<p>27,572,966,264 bytes of old downloaded navigation/RL media and checkpoints were removed.
+Source, notebooks, JSON, logs, analysis and presentation-linked media were retained.
+Remote copies were not rechecked. Old per-episode HTML may point to removed media.
+<a href="../output/cleanup/2026-10-20-old-results.json">Exact deletion manifest</a>.</p>
+</html>
