@@ -22,8 +22,22 @@ def specification(index):
               '/gamerule doWeatherCycle false','/gamerule randomTickSpeed 0','/gamerule doMobSpawning false','/time set 6000','/weather clear',
               '/fill -16 194 -16 16 221 16 minecraft:air']
     ground='planks' if index==0 else 'stone' if index in (2,5) else 'grass'
-    for (x,z),h in heights.items():
-        commands.append(f'/fill {x} 194 {z} {x} {199+h} {z} minecraft:{ground}')
+    # Build the entire support floor in one command. Per-block /fill commands
+    # overloaded the simulator command queue in the hill run: its start cell
+    # was left empty and the player fell to the native terrain at Y=84.
+    commands.append(f'/fill -16 194 -16 16 199 16 minecraft:{ground}')
+    if index==6:
+        # Add each height layer as contiguous row segments, preserving the
+        # authored stepped hill while using far fewer simulator commands.
+        for level in range(1,9):
+            for z in range(-16,17):
+                run_start=None
+                for x in range(-16,18):
+                    raised=x<=16 and heights[x,z]>=level
+                    if raised and run_start is None:run_start=x
+                    if not raised and run_start is not None:
+                        commands.append(f'/fill {run_start} {199+level} {z} {x-1} {199+level} {z} minecraft:{ground}')
+                        run_start=None
     if index in (0,2):
         for box in [(-16,16,-16,-16),(-16,16,16,16),(-16,-16,-16,16),(16,16,-16,16)]:fill(*box,200,207,'white_concrete')
         fill(-16,16,-16,16,208,208,'sea_lantern',False);cover.append('room ceiling at Y=208')
