@@ -95,9 +95,8 @@ def collect(a):
                        route_complete=j==len(points),waypoints_reached=j,waypoints_total=len(points),end_tick=tick)
             entries.append(entry);atomic_json(out/'sequences.json',entries)
             if not entry['route_complete']:raise RuntimeError('Incomplete route; inspect metadata; not an accepted recording')
-            selected=frames[::4]
-            images=[review_frame(out,f,f'{spec["id"]} {spec["name"]} | route {r}',f['elapsed_ticks']) for f in selected]
-            images[0].save(out/f'route-{r}.gif',save_all=True,append_images=images[1:],duration=400,loop=0)
+            images=[review_frame(out,f,f'{spec["id"]} {spec["name"]} | route {r}',f['elapsed_ticks']) for f in frames]
+            images[0].save(out/f'route-{r}.gif',save_all=True,append_images=images[1:],duration=100,loop=0)
         atomic_json(out/'status.json',dict(state='complete',review_status='awaiting_user_review'))
     except BaseException as exc:
         atomic_json(out/'status.json',dict(state='error',error=repr(exc)));raise
@@ -132,7 +131,6 @@ def overview(spec,entries,path,elevation=False):
 
 
 def gallery(a):
-    import shutil
     indices=list(range(8)) if a.indices is None else [int(v) for v in a.indices.split(',')]
     if not indices or len(set(indices))!=len(indices) or any(i not in range(8) for i in indices):
         raise ValueError('Gallery indices must be distinct environment numbers 0..7')
@@ -147,14 +145,19 @@ def gallery(a):
             raise ValueError(f'{folder}: recorded with an outdated world specification; recollect this environment')
         if len(entries)!=2 or not all(e['route_complete'] for e in entries):raise ValueError('Incomplete recordings')
         panels.append((folder,spec,entries))
-    out=root/('review' if full else 'pilot-review');out.mkdir(exist_ok=False)
+    base='review' if full else 'pilot-review'
+    out=root/base
+    if out.exists():out=root/f'{base}-smooth'
+    out.mkdir(exist_ok=False)
     for folder,spec,entries in panels:
-        for r in range(2):shutil.copy2(folder/f'route-{r}.gif',out/f'{spec["id"]}-route-{r}.gif')
+        for r,entry in enumerate(entries):
+            images=[review_frame(folder,f,f'{spec["id"]} {spec["name"]} | route {r}',f['elapsed_ticks']) for f in entry['frames']]
+            images[0].save(out/f'{spec["id"]}-route-{r}.gif',save_all=True,append_images=images[1:],duration=100,loop=0)
         overview(spec,entries,out/f'{spec["id"]}-topdown.png')
         overview(spec,entries,out/f'{spec["id"]}-elevation.png',True)
         summary.append(dict(id=spec['id'],name=spec['name'],frames=[len(e['frames']) for e in entries],notes=spec['notes']))
     end=max(es[0]['frames'][-1]['elapsed_ticks'] for _,_,es in panels);images=[]
-    for tick in range(0,end+1,32):
+    for tick in range(0,end+1,8):
         canvas=Image.new('RGB',(1280,350*((len(panels)+1)//2)),'white')
         for i,(folder,spec,es) in enumerate(panels):
             fs=es[0]['frames'];j=max(0,bisect.bisect_right([f['elapsed_ticks'] for f in fs],tick)-1)
@@ -162,12 +165,13 @@ def gallery(a):
             canvas.paste(panel,((i%2)*640,(i//2)*350))
         images.append(canvas)
     montage='all-eight.gif' if full else 'pilot.gif'
-    images[0].save(out/montage,save_all=True,append_images=images[1:],duration=400,loop=0)
-    atomic_json(out/'summary.json',dict(protocol='diverse_environments_v2',indices=indices,environments=summary,review_status='awaiting_user_review',model_testing='not_started'))
-    body=f'<h1>{len(indices)} diverse Minecraft environments</h1><p>Authored worlds, actual simulator recordings. Review before accepting the dataset. No model testing.</p><img src="{montage}"><p>GIF: {montage}</p>'
+    images[0].save(out/montage,save_all=True,append_images=images[1:],duration=100,loop=0)
+    atomic_json(out/'summary.json',dict(protocol='diverse_environments_v2',indices=indices,environments=summary,
+                                        gif_frame_interval_ticks=8,gif_frame_duration_ms=100,review_status='awaiting_user_review',model_testing='not_started'))
+    body=f'<h1>{len(indices)} diverse Minecraft environments</h1><p>Authored worlds, actual simulator recordings. Every captured frame is shown: one image per 8 simulation ticks, displayed for 100 ms (4× playback). Review before accepting the dataset. No model testing.</p><img src="{montage}"><p>GIF: {montage}</p>'
     for row in summary:
         eid=row['id'];body+=f'<h2>{eid}: {html.escape(row["name"])}</h2><div class="pair"><div><img src="{eid}-topdown.png"><img src="{eid}-elevation.png"></div><div>'
-        for r in range(2):body+=f'<img src="{eid}-route-{r}.gif"><p>GIF: review/{eid}-route-{r}.gif</p>'
+        for r in range(2):body+=f'<img src="{eid}-route-{r}.gif"><p>GIF: {out.name}/{eid}-route-{r}.gif</p>'
         body+='</div></div>'
     (out/'index.html').write_text('<!doctype html><meta charset="utf-8"><style>body{font:18px system-ui;max-width:1400px;margin:auto;padding:24px}img{max-width:100%}.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:850px){.pair{display:block}}</style>'+body)
     print(out)
