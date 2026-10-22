@@ -1,0 +1,37 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eight Minecraft environments: dataset first</title>
+<style>body{font:17px/1.6 system-ui;max-width:1100px;margin:35px auto;padding:20px}img{max-width:100%}pre{background:#eef3f8;padding:20px;overflow:auto}td,th{padding:10px;border-bottom:1px solid #ddd}</style>
+<h1>Dataset first: eight new Minecraft environments</h1>
+<p><strong>Current stage: build, record, export review media, then user review.</strong> No video encoder, place/grid-cell analysis or navigation training runs in this pipeline. Real rendering is not yet validated for these new layouts.</p>
+<p>Eight distinct landmark arrangements on a shared 21×21-block footprint: corner towers, north arch gallery, staggered columns, stepped terraces, side alcoves, paired gateways, alternating spires and landmark pavilions. The central traversable region stays clear. These are controlled open-room layouts, not eight different maze topologies.</p>
+<h2>Shared recording protocol</h2>
+<table><tr><th>Property</th><th>Same in all eight</th></tr>
+<tr><td>World / appearance</td><td>Seed 731; stone floor at Y=199; white boundary walls; sea-lantern ceiling at Y=208; fixed weather/time. Landmarks vary.</td></tr>
+<tr><td>Start</td><td>Feet X=0.5, Y=200, Z=0.5; yaw=0°, pitch=0°. Verified after settling.</td></tr>
+<tr><td>Camera</td><td>448×280 RGB, unchanged simulator camera configuration. HUD preserved in source recordings.</td></tr>
+<tr><td>Routes</td><td>Initial 360° scan, then five parallel traversals between X=−6 and +6 at Z=2,5,8,11,14. Second recording reverses the waypoint order. Scripted pose-guided controller; not a learned policy.</td></tr>
+<tr><td>Timing</td><td>Two simulation ticks per action; capture exactly every eight ticks using the simulation counter, not waypoint-loop iterations. Nominal 50 ms per tick.</td></tr>
+<tr><td>Metadata</td><td>RGB file hashes, poses, ticks, actions, world commands, route completion and source hash. Both routes must finish; failures are flagged.</td></tr>
+<tr><td>Review</td><td>Two GIFs per environment at 4× playback; one eight-panel route-0 montage; top-down specification maps with recorded paths; HTML gallery. Shorter panels hold their last frame.</td></tr></table>
+<p>The top-down PNGs are allocentric projections of the build commands, with heights marked and the ceiling hidden. They are <strong>not actual aerial Minecraft screenshots</strong> and do not prove command execution; verify the structures in the first-person GIFs. They are not model-inferred maps.</p>
+<h2>Run on Oscar</h2>
+<p>After committing/pushing the new files yourself and pulling on Oscar, submit the first environment, then the other seven only if it succeeds. Rendering uses the new render-spatial environment; existing environments are not modified.</p>
+<pre>(
+set -e
+cd ~/projects/zef-binding
+mkdir -p logs
+export MC_RENDER_PYTHON="/oscar/scratch/$USER/zef-binding/envs/render-spatial/bin/python"
+dataset_root="/oscar/scratch/$USER/zef-binding/runs/environment-dataset-v1-$(date +%Y%m%d-%H%M%S)"
+first=$(sbatch --parsable --array=0 scripts/slurm/environment_dataset.sbatch "$dataset_root" collect)
+rest=$(sbatch --parsable --array=1-7%2 --dependency=afterok:"$first" --kill-on-invalid-dep=yes scripts/slurm/environment_dataset.sbatch "$dataset_root" collect)
+gallery=$(sbatch --parsable --dependency=afterok:"$rest" --kill-on-invalid-dep=yes scripts/slurm/environment_dataset.sbatch "$dataset_root" gallery)
+printf 'Dataset: %s\nFirst: %s\nRemaining: %s\nGallery: %s\n' "$dataset_root" "$first" "$rest" "$gallery"
+)</pre>
+<p>Save the printed dataset path. The gallery job requires all eight successful recordings; it does not start model testing. Its review status remains <code>awaiting_user_review</code>.</p>
+<h2>Export only the review bundle to your Mac</h2>
+<pre>rsync -av \
+  zfawnia@ssh.ccv.brown.edu:/oscar/scratch/zfawnia/zef-binding/runs/REPLACE_WITH_DATASET_DIRECTORY/review/ \
+  runs/oscar/environment-dataset-v1-review/</pre>
+<p>Open <code>runs/oscar/environment-dataset-v1-review/index.html</code>. It places the top-down view alongside each environment's two GIFs and prints GIF paths underneath. <code>all-eight.gif</code> is the combined montage for presentations. Raw frames stay on Oscar.</p>
+<h2>Review before accepting the dataset</h2>
+<p>Check that all eight environments visibly differ as designed, walls/landmarks render properly, the camera stays above the floor, paths are unobstructed, and the two recordings expose the surroundings clearly. If a layout fails, fix and recollect it under a new version. User acceptance is separate from technical completion. Only after review should we freeze the dataset and define model tests.</p>
