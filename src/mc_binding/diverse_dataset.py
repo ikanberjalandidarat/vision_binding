@@ -111,8 +111,8 @@ def overview(spec,entries,path,elevation=False):
     d.text((25,40),'Authored specification + recorded paths; not an aerial screenshot.',fill='black')
     ox,oy,scale=70,90,20
     def xy(x,z):return ox+(x+16)*scale,oy+(17-z)*scale
-    colors={'stone':'#747d87','leaves':'#286534','fence':'#b1a07b','brick_block':'#a25842','planks':'#b89160',
-            'water':'#478cce','log':'#715034','bookshelf':'#aa6d3b','quartz_block':'#d2cbbb','stonebrick':'#747d87','sandstone':'#d3bd89','coal_ore':'#50585c','cobblestone':'#747d87','white_concrete':'#b8c2ce'}
+    colors={'stone':'#747d87','oak_leaves':'#286534','oak_fence':'#b1a07b','bricks':'#a25842','oak_planks':'#b89160',
+            'water':'#478cce','oak_log':'#715034','bookshelf':'#aa6d3b','quartz_block':'#d2cbbb','stone_bricks':'#747d87','sandstone':'#d3bd89','coal_ore':'#50585c','cobblestone':'#747d87','white_concrete':'#b8c2ce'}
     for b in spec['heights']:
         x,y=xy(b['x']+.5,b['z']+.5);h=b['height']
         color=(int(220-h*12),int(237-h*8),int(210-h*15)) if elevation else '#e1e9d4'
@@ -139,6 +139,8 @@ def gallery(a):
         folder=root/f'env-{i:02d}'
         if json.loads((folder/'status.json').read_text())['state']!='complete':raise ValueError(f'{folder}: incomplete')
         spec=json.loads((folder/'specification.json').read_text());entries=json.loads((folder/'sequences.json').read_text())
+        if digest(spec)!=digest(specification(i)):
+            raise ValueError(f'{folder}: recorded with an outdated world specification; recollect this environment')
         if len(entries)!=2 or not all(e['route_complete'] for e in entries):raise ValueError('Incomplete recordings')
         panels.append((folder,spec,entries))
     out=root/'review';out.mkdir(exist_ok=False)

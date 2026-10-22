@@ -31,7 +31,7 @@ def test_fill_volumes_within_limit():
 def test_constructed_floor_covers_every_cell_at_planned_height():
     for i in range(8):
         spec=specification(i)
-        material='planks' if i==0 else 'stone' if i in (2,5) else 'grass_block'
+        material='oak_planks' if i==0 else 'stone' if i in (2,5) else 'grass_block'
         top={}
         for cmd in spec['commands']:
             if not cmd.startswith('/fill ') or not cmd.endswith(f'minecraft:{material}'):
@@ -43,3 +43,13 @@ def test_constructed_floor_covers_every_cell_at_planned_height():
         assert len(top)==33*33
         for cell in spec['heights']:
             assert top[cell['x'],cell['z']]==199+cell['height']
+
+
+def test_worlds_use_current_block_ids():
+    supported={'air','oak_planks','stone','grass_block','white_concrete','sea_lantern',
+               'oak_fence','bookshelf','quartz_block','stone_bricks','sandstone',
+               'bricks','oak_leaves','glowstone','coal_ore','oak_log','water',
+               'glass','cobblestone','gravel'}
+    for i in range(8):
+        used={cmd.split('minecraft:')[-1] for cmd in specification(i)['commands'] if cmd.startswith('/fill ')}
+        assert used<=supported

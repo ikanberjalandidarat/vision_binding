@@ -21,7 +21,7 @@ def specification(index):
     commands=['/gamerule sendCommandFeedback false','/gamemode creative','/gamerule doDaylightCycle false',
               '/gamerule doWeatherCycle false','/gamerule randomTickSpeed 0','/gamerule doMobSpawning false','/time set 6000','/weather clear',
               '/fill -16 194 -16 16 221 16 minecraft:air']
-    ground='planks' if index==0 else 'stone' if index in (2,5) else 'grass_block'
+    ground='oak_planks' if index==0 else 'stone' if index in (2,5) else 'grass_block'
     # Use the solid grass block for outdoor ground. minecraft:grass is a
     # non-solid plant in the simulator's Minecraft version.
     commands.append(f'/fill -16 194 -16 16 199 16 minecraft:{ground}')
@@ -43,13 +43,13 @@ def specification(index):
     else:
         # Visible safety fence, leaving open sky in outdoor scenes.
         for (x,z),h in heights.items():
-            if abs(x)==16 or abs(z)==16:fill(x,x,z,z,200+h,201+h,'fence')
+            if abs(x)==16 or abs(z)==16:fill(x,x,z,z,200+h,201+h,'oak_fence')
     if index==0:
         for x,z in [(-10,-8),(8,8),(-9,9)]:
             fill(x,x+3,z,z+2,200,201,'bookshelf')
         fill(8,10,-10,-8,200,203,'quartz_block')
     if index==1:
-        for x,z in [(-10,-10),(9,-8),(-8,10),(10,10)]:fill(x,x+1,z,z+1,200,203,'stonebrick')
+        for x,z in [(-10,-10),(9,-8),(-8,10),(10,10)]:fill(x,x+1,z,z+1,200,203,'stone_bricks')
         fill(-3,3,6,7,200,200,'sandstone')
     if index in (2,3,5):
         # Perfect maze of 5x5 rooms; four-block center spacing, 3-wide passages.
@@ -70,7 +70,7 @@ def specification(index):
                 for pz in range(min(z,zz)-1,max(z,zz)+2):open_cells.add((px,pz))
         for x in range(-13,14):
             for z in range(-13,14):
-                if (x,z) not in open_cells:fill(x,x,z,z,200,204,'stone' if index==5 else 'leaves' if index==3 else 'brick_block')
+                if (x,z) not in open_cells:fill(x,x,z,z,200,204,'stone' if index==5 else 'oak_leaves' if index==3 else 'bricks')
         if index==5:
             fill(-16,16,-16,16,205,207,'stone',False);cover.append('mine roof at Y=205; overview hides roof')
             for x,z in sorted(open_cells):
@@ -81,20 +81,20 @@ def specification(index):
     else:start=(-12,-12)
     if index==4:
         for x,z in [(-10,-6),(-5,-9),(4,-10),(10,-5),(-9,5),(-4,9),(4,8),(10,11),(8,2)]:
-            fill(x,x,z,z,200,204,'log')
-            fill(x-2,x+2,z-2,z+2,204,206,'leaves',False)
+            fill(x,x,z,z,200,204,'oak_log')
+            fill(x-2,x+2,z-2,z+2,204,206,'oak_leaves',False)
         fill(-2,2,-2,2,199,199,'water');cover.append('authored forest/pond, not vanilla world-generation')
     if index==6:
         for x,z in [(-9,9),(10,-9)]:
-            h=heights[x,z];fill(x,x,z,z,200+h,203+h,'log');fill(x-1,x+1,z-1,z+1,203+h,204+h,'leaves',False)
+            h=heights[x,z];fill(x,x,z,z,200+h,203+h,'oak_log');fill(x-1,x+1,z-1,z+1,203+h,204+h,'oak_leaves',False)
     if index==7:
         for x,z in [(-11,-9),(4,-9),(-11,4),(4,4)]:
-            fill(x,x+5,z,z+5,200,204,'planks')
+            fill(x,x+5,z,z+5,200,204,'oak_planks')
             # Hollow houses and stepped roofs; routes remain on streets.
             fill(x+1,x+4,z+1,z+4,200,203,'air',False)
-            fill(x-1,x+6,z-1,z+6,205,205,'brick_block',False)
-            fill(x,x+5,z,z+5,206,206,'brick_block',False)
-            fill(x+1,x+4,z+1,z+4,207,207,'brick_block',False)
+            fill(x-1,x+6,z-1,z+6,205,205,'bricks',False)
+            fill(x,x+5,z,z+5,206,206,'bricks',False)
+            fill(x+1,x+4,z+1,z+4,207,207,'bricks',False)
             fill(x+2,x+3,z,z,201,202,'glass',False)
         fill(-1,1,-1,1,200,201,'cobblestone')
         for z in range(-14,15):commands.append(f'/fill -3 199 {z} -2 199 {z} minecraft:gravel')

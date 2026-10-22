@@ -3,7 +3,7 @@
 <style>body{font:17px/1.6 system-ui;max-width:1150px;margin:30px auto;padding:24px}img{max-width:100%}pre{background:#eef3f8;padding:20px;overflow:auto}td,th{padding:10px;border-bottom:1px solid #ddd}.note{background:#fff0d8;padding:16px}</style>
 <h1>Eight diverse Minecraft environments — dataset v2</h1>
 <p><strong>Build → record → generate GIFs and overview maps on Oscar → export review bundle → user review.</strong> No model extraction, probes or navigation training is launched.</p>
-<p class="note">Implementation and specification tests are complete. Real Minecraft rendering and route execution for v2 are still unverified. The earlier eight-room dataset is preserved locally and on Oscar as a backup; v2 uses a fresh output directory.</p>
+<p class="note">Some early v2 runs finished their routes while using obsolete Minecraft block IDs for walls, trees, fences or buildings. Treat those recordings as exploratory only. Recollect all eight after the block-ID correction; the gallery now rejects old world specifications. Real GIF review remains the acceptance gate. The earlier eight-room dataset is preserved as a backup.</p>
 <table><tr><th>ID</th><th>Category</th><th>Construction</th></tr>
 <tr><td>00</td><td>Simple indoor room</td><td>Enclosed room, wood floor, bookshelves and landmarks.</td></tr>
 <tr><td>01</td><td>Simple outdoors</td><td>Open-sky grassy courtyard, stone landmarks, low structure.</td></tr>
@@ -21,7 +21,7 @@
 <ul><li>Sixteen first-person GIFs: two per environment.</li><li><code>all-eight.gif</code>: eight-panel montage, synchronized by simulation time at 4× playback. Shorter recordings hold their final frame.</li><li>Top-down build maps alongside the GIFs, with world axes, start positions and measured paths.</li><li>Separate ground-elevation maps for every world, especially hills. Roofs/canopies are hidden in plan views.</li><li><code>index.html</code> and <code>summary.json</code>, explicitly awaiting user review.</li></ul>
 <p>Overview maps come from the construction specification; they are not aerial Minecraft screenshots, learned representations or proof that every command executed. Actual first-person images are the rendering evidence. GIF filenames appear beneath the GIFs.</p>
 <h2>Submit on Oscar</h2>
-<p>After committing/pushing the changes yourself and pulling on Oscar, run the following. The first jobs validate the two new execution risks: an indoor maze and the hills. The remaining six are conditional on both succeeding. This does not touch the old datasets or environments.</p>
+<p>After committing/pushing the changes yourself and pulling on Oscar, run the following in a fresh output directory. The first jobs validate an indoor maze and hills. The remaining six are conditional on both succeeding. A fresh run is required after block-ID changes, including for previously completed routes.</p>
 <pre>(
 set -e
 cd ~/projects/zef-binding
