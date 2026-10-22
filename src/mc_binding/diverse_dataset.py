@@ -133,9 +133,13 @@ def overview(spec,entries,path,elevation=False):
 
 def gallery(a):
     import shutil
+    indices=list(range(8)) if a.indices is None else [int(v) for v in a.indices.split(',')]
+    if not indices or len(set(indices))!=len(indices) or any(i not in range(8) for i in indices):
+        raise ValueError('Gallery indices must be distinct environment numbers 0..7')
+    full=indices==list(range(8))
     root=Path(a.root);panels=[];summary=[]
-    # Validate all eight before creating the review output.
-    for i in range(8):
+    # Validate every requested environment before creating the review output.
+    for i in indices:
         folder=root/f'env-{i:02d}'
         if json.loads((folder/'status.json').read_text())['state']!='complete':raise ValueError(f'{folder}: incomplete')
         spec=json.loads((folder/'specification.json').read_text());entries=json.loads((folder/'sequences.json').read_text())
@@ -143,7 +147,7 @@ def gallery(a):
             raise ValueError(f'{folder}: recorded with an outdated world specification; recollect this environment')
         if len(entries)!=2 or not all(e['route_complete'] for e in entries):raise ValueError('Incomplete recordings')
         panels.append((folder,spec,entries))
-    out=root/'review';out.mkdir(exist_ok=False)
+    out=root/('review' if full else 'pilot-review');out.mkdir(exist_ok=False)
     for folder,spec,entries in panels:
         for r in range(2):shutil.copy2(folder/f'route-{r}.gif',out/f'{spec["id"]}-route-{r}.gif')
         overview(spec,entries,out/f'{spec["id"]}-topdown.png')
@@ -151,15 +155,16 @@ def gallery(a):
         summary.append(dict(id=spec['id'],name=spec['name'],frames=[len(e['frames']) for e in entries],notes=spec['notes']))
     end=max(es[0]['frames'][-1]['elapsed_ticks'] for _,_,es in panels);images=[]
     for tick in range(0,end+1,32):
-        canvas=Image.new('RGB',(1280,1400),'white')
+        canvas=Image.new('RGB',(1280,350*((len(panels)+1)//2)),'white')
         for i,(folder,spec,es) in enumerate(panels):
             fs=es[0]['frames'];j=max(0,bisect.bisect_right([f['elapsed_ticks'] for f in fs],tick)-1)
             panel=review_frame(folder,fs[j],spec['id']+' '+spec['name'],fs[j]['elapsed_ticks'])
             canvas.paste(panel,((i%2)*640,(i//2)*350))
         images.append(canvas)
-    images[0].save(out/'all-eight.gif',save_all=True,append_images=images[1:],duration=400,loop=0)
-    atomic_json(out/'summary.json',dict(protocol='diverse_environments_v2',environments=summary,review_status='awaiting_user_review',model_testing='not_started'))
-    body='<h1>Eight diverse Minecraft environments</h1><p>Authored worlds, actual simulator recordings. Review before accepting the dataset. No model testing.</p><img src="all-eight.gif"><p>GIF: review/all-eight.gif</p>'
+    montage='all-eight.gif' if full else 'pilot.gif'
+    images[0].save(out/montage,save_all=True,append_images=images[1:],duration=400,loop=0)
+    atomic_json(out/'summary.json',dict(protocol='diverse_environments_v2',indices=indices,environments=summary,review_status='awaiting_user_review',model_testing='not_started'))
+    body=f'<h1>{len(indices)} diverse Minecraft environments</h1><p>Authored worlds, actual simulator recordings. Review before accepting the dataset. No model testing.</p><img src="{montage}"><p>GIF: {montage}</p>'
     for row in summary:
         eid=row['id'];body+=f'<h2>{eid}: {html.escape(row["name"])}</h2><div class="pair"><div><img src="{eid}-topdown.png"><img src="{eid}-elevation.png"></div><div>'
         for r in range(2):body+=f'<img src="{eid}-route-{r}.gif"><p>GIF: review/{eid}-route-{r}.gif</p>'
@@ -169,7 +174,7 @@ def gallery(a):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['collect','gallery','plans']);p.add_argument('--root',required=True);p.add_argument('--index',type=int,default=0);p.add_argument('--max-ticks',type=int,default=12000)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['collect','gallery','plans']);p.add_argument('--root',required=True);p.add_argument('--index',type=int,default=0);p.add_argument('--indices');p.add_argument('--max-ticks',type=int,default=12000)
     a=p.parse_args()
     if a.mode=='plans':
         out=Path(a.root);out.mkdir(parents=True,exist_ok=False)

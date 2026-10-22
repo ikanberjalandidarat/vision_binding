@@ -21,24 +21,29 @@
 <ul><li>Sixteen first-person GIFs: two per environment.</li><li><code>all-eight.gif</code>: eight-panel montage, synchronized by simulation time at 4× playback. Shorter recordings hold their final frame.</li><li>Top-down build maps alongside the GIFs, with world axes, start positions and measured paths.</li><li>Separate ground-elevation maps for every world, especially hills. Roofs/canopies are hidden in plan views.</li><li><code>index.html</code> and <code>summary.json</code>, explicitly awaiting user review.</li></ul>
 <p>Overview maps come from the construction specification; they are not aerial Minecraft screenshots, learned representations or proof that every command executed. Actual first-person images are the rendering evidence. GIF filenames appear beneath the GIFs.</p>
 <h2>Submit on Oscar</h2>
-<p>After committing/pushing the changes yourself and pulling on Oscar, run the following in a fresh output directory. The first jobs validate an indoor maze and hills. The remaining six are conditional on both succeeding. A fresh run is required after block-ID changes, including for previously completed routes.</p>
+<p>After committing/pushing the changes yourself and pulling on Oscar, run the following in a fresh output directory. The first four cover the room floor, outdoor hedge maze, forest, and village: the scenes most affected by the old block IDs. Their pilot gallery is a visual gate before collecting the other four. A fresh run is required after block-ID changes, including for previously completed routes.</p>
 <pre>(
 set -e
 cd ~/projects/zef-binding
 mkdir -p logs
 export MC_RENDER_PYTHON="/oscar/scratch/$USER/zef-binding/envs/render-spatial/bin/python"
 dataset_root="/oscar/scratch/$USER/zef-binding/runs/diverse-dataset-v2-$(date +%Y%m%d-%H%M%S)"
-first=$(sbatch --parsable --array=2,6%1 scripts/slurm/diverse_dataset.sbatch "$dataset_root" collect)
-rest=$(sbatch --parsable --array=0,1,3,4,5,7%2 --dependency=afterok:"$first" --kill-on-invalid-dep=yes scripts/slurm/diverse_dataset.sbatch "$dataset_root" collect)
-gallery=$(sbatch --parsable --dependency=afterok:"$rest" --kill-on-invalid-dep=yes scripts/slurm/diverse_dataset.sbatch "$dataset_root" gallery)
-printf 'Dataset: %s\nMaze/hills: %s\nRemaining: %s\nGallery: %s\n' "$dataset_root" "$first" "$rest" "$gallery"
+pilot=$(sbatch --parsable --array=0,3,4,7%2 scripts/slurm/diverse_dataset.sbatch "$dataset_root" collect)
+pilot_gallery=$(sbatch --parsable --dependency=afterok:"$pilot" --kill-on-invalid-dep=yes scripts/slurm/diverse_dataset.sbatch "$dataset_root" gallery 0,3,4,7)
+printf 'Dataset: %s\nPilot: %s\nPilot gallery: %s\n' "$dataset_root" "$pilot" "$pilot_gallery"
 )</pre>
-<p>Save the printed path and job IDs. The gallery requires all eight environments and both complete routes in each. It stops at review; no model jobs follow it.</p>
+<p>Review <code>pilot-review/index.html</code> and the actual GIFs. A completed route does not prove that its landmarks appeared. Once the four scenes look right, submit the other four:</p>
+<pre>root="/oscar/scratch/$USER/zef-binding/runs/REPLACE_WITH_DIVERSE_DATASET_DIRECTORY"
+rest=$(sbatch --parsable --array=1,2,5,6%2 scripts/slurm/diverse_dataset.sbatch "$root" collect)
+gallery=$(sbatch --parsable --dependency=afterok:"$rest" --kill-on-invalid-dep=yes scripts/slurm/diverse_dataset.sbatch "$root" gallery)
+printf 'Remaining: %s\nFinal gallery: %s\n' "$rest" "$gallery"</pre>
+<p>The final gallery requires all eight environments and both complete routes in each, with specifications matching the current code. It stops at review; no model jobs follow it.</p>
 <h2>Download only the gallery</h2>
 <p>Once the gallery job completes, on your Mac replace the directory name with the printed Oscar dataset name:</p>
 <pre>cd /Users/lianfei/Documents/RES/Minecraft-Binding
 rsync -av \
   zfawnia@ssh.ccv.brown.edu:/oscar/scratch/zfawnia/zef-binding/runs/REPLACE_WITH_DIVERSE_DATASET_DIRECTORY/review/ \
   runs/oscar/diverse-dataset-v2-review/</pre>
+<p>For the pilot, replace <code>review/</code> with <code>pilot-review/</code> in the remote path and use <code>runs/oscar/diverse-dataset-v2-pilot-review/</code> locally. Only review bundles need to come to the Mac; raw frames remain on Oscar.</p>
 <p>Open <code>runs/oscar/diverse-dataset-v2-review/index.html</code>. Raw recordings remain on Oscar. Review category diversity, geometry, lighting, collisions, elevation, visibility and route coverage. Fix unconvincing environments before accepting the dataset.</p>
 <p><a href="ENVIRONMENT_DATASET_V1.html">Archived v1 room-layout instructions</a> · <a href="../output/diverse-dataset-v2-plans/all-eight-plans.png">Local specification preview (not rendered Minecraft)</a></p>

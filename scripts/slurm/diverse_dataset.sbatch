@@ -21,7 +21,9 @@ export PYTHONUNBUFFERED=1
 unset LD_LIBRARY_PATH LD_PRELOAD
 [[ -x "$MC_RENDER_PYTHON" ]] || { echo 'Render Python missing'; exit 1; }
 if [[ "$mode" == gallery ]]; then
- "$MC_RENDER_PYTHON" -m mc_binding.diverse_dataset gallery --root "$root"
+ args=(gallery --root "$root")
+ if [[ -n "${3:-}" ]]; then args+=(--indices "$3"); fi
+ "$MC_RENDER_PYTHON" -m mc_binding.diverse_dataset "${args[@]}"
 else
  "$MC_RENDER_PYTHON" -I -c 'from minestudio.simulator import MinecraftSim'
  xvfb-run -a "$MC_RENDER_PYTHON" -m mc_binding.diverse_dataset collect \
