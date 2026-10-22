@@ -53,6 +53,9 @@ def collect(a):
             obs,info=CommandsCallback(commands=spec['commands'][offset:offset+100]).after_reset(sim,obs,info)
             for _ in range(4):step(sim.noop_action())
         for _ in range(200):step(sim.noop_action())
+        atomic_json(out/'build-check.json',dict(expected=spec['start'],actual=json_value(info.get('player_pos')),
+                                               commands=len(spec['commands'])))
+        Image.fromarray(np.asarray(obs['image'])).save(out/'build-check.png')
         verify_pose(info,spec['start'],0)
         for r in range(2):
             obs,info=CommandsCallback(commands=[spec['commands'][-1]]).after_reset(sim,obs,info)

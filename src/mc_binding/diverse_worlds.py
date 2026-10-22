@@ -21,10 +21,9 @@ def specification(index):
     commands=['/gamerule sendCommandFeedback false','/gamemode creative','/gamerule doDaylightCycle false',
               '/gamerule doWeatherCycle false','/gamerule randomTickSpeed 0','/gamerule doMobSpawning false','/time set 6000','/weather clear',
               '/fill -16 194 -16 16 221 16 minecraft:air']
-    ground='planks' if index==0 else 'stone' if index in (2,5) else 'grass'
-    # Build the entire support floor in one command. Per-block /fill commands
-    # overloaded the simulator command queue in the hill run: its start cell
-    # was left empty and the player fell to the native terrain at Y=84.
+    ground='planks' if index==0 else 'stone' if index in (2,5) else 'grass_block'
+    # Use the solid grass block for outdoor ground. minecraft:grass is a
+    # non-solid plant in the simulator's Minecraft version.
     commands.append(f'/fill -16 194 -16 16 199 16 minecraft:{ground}')
     if index==6:
         # Add each height layer as contiguous row segments, preserving the

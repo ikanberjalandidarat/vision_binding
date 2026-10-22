@@ -31,7 +31,7 @@ def test_fill_volumes_within_limit():
 def test_constructed_floor_covers_every_cell_at_planned_height():
     for i in range(8):
         spec=specification(i)
-        material='planks' if i==0 else 'stone' if i in (2,5) else 'grass'
+        material='planks' if i==0 else 'stone' if i in (2,5) else 'grass_block'
         top={}
         for cmd in spec['commands']:
             if not cmd.startswith('/fill ') or not cmd.endswith(f'minecraft:{material}'):
