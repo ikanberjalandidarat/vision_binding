@@ -28,8 +28,7 @@ This is a declared sampling choice, not a claim about the optimal pretrained cad
 We must compare context lengths/cadences later. The fixed bottom 12% HUD band is masked.
 There is no persistent state between clips.</p>
 <h2>New eight-environment dataset: integrity gate and split</h2>
-<p><strong>Oscar gate passed (job 7981445, reported 26 October 2026):</strong> <code>state=complete</code>, all 3,257 source PNG byte hashes matched their recorded SHA-256 values, and every image had the required RGB mode and dimensions. The report's dataset digest is <code>610806ba4ce5f7001b049056af2cd311dd62497e600dd98750be47881ded177c</code>. This is an image-integrity result; V-JEPA has not yet run on this dataset.</p>
-<p><strong>First model smoke failed before inference (job 7981775):</strong> the <code>spatial-video</code> environment has a dangling <code>libbz2.so.1.0</code> symlink, so importing <code>torchvision</code> failed while loading Python's <code>bz2</code> extension. Oscar's <code>/lib64/libbz2.so.1.0.8</code> exists. The updated Slurm script supplies a job-local link to that library and checks a <code>bz2</code> round trip; it does not modify the environment. A subsequent smoke run must still prove that the model loads and processes a real clip.</p>
+<p><strong>Oscar gates passed (26 October 2026):</strong> verification job <code>7981445</code> reported <code>state=complete</code>; all 3,257 source PNG byte hashes matched their recorded SHA-256 values, and every image had the required RGB mode and dimensions. The report's dataset digest is <code>610806ba4ce5f7001b049056af2cd311dd62497e600dd98750be47881ded177c</code>. The first model smoke failed during Python import (job <code>7981775</code>); after a job-local <code>libbz2</code> compatibility link, retry job <code>7982755</code> completed with <code>Extracted 1/1</code> in its log. Full extraction job <code>7982818</code> reported <code>state=complete</code> and 188 clips (4.5 MB). These are pipeline checks, not spatial representation claims.</p>
 <p>The <a href="DIVERSE_DATASET_AUDIT.html">metadata audit</a> found 16 complete routes and 3,257 recorded frames. Before using them, <code>spatial_video_dataset.py</code> hashes every PNG on Oscar, checks RGB format and dimensions, validates the recorded specifications, and counts eligible clips. It excludes the first 72 ticks of scripted camera scanning from model clips. This verification creates a small report; it does not load the video model.</p>
 <table><tr><th>Environment IDs</th><th>Probe role</th><th>Routes</th></tr>
 <tr><td>00–03 (room, outdoor area, indoor maze, outdoor maze)</td><td>Train</td><td>Route 0 fits the readout; route 1 is held out within the same environment.</td></tr>
@@ -52,12 +51,13 @@ export VJEPA_CHECKPOINT="/oscar/scratch/$USER/zef-binding/checkpoints/vitl.pt"
 verification="/oscar/scratch/$USER/zef-binding/runs/diverse-video-verify-$verify_job/report.json"
 sbatch scripts/slurm/spatial_video.sbatch smoke "$dataset" "$verification"</pre>
 <p>For the completed verification job, set <code>verify_job=7981445</code> in a fresh shell before constructing <code>verification</code>.</p>
-<p>Require <code>smoke_complete</code> and one real clip before full extraction. Then submit the full run and, only after it completes, the CPU probe:</p>
-<pre>extract_job=$(sbatch --parsable scripts/slurm/spatial_video.sbatch extract "$dataset" "$verification")
-cat "/oscar/scratch/$USER/zef-binding/runs/spatial-video-features-$extract_job/status.json"
-# After status is complete (188 clips):
-sbatch scripts/slurm/spatial_video.sbatch probe \
-  "/oscar/scratch/$USER/zef-binding/runs/spatial-video-features-$extract_job"</pre>
+<p>The one-clip smoke and full 188-clip extraction have passed. The next job is the CPU-only probe:</p>
+<pre>features="/oscar/scratch/$USER/zef-binding/runs/spatial-video-features-7982818"
+cat "$features/status.json"  # complete, 188 clips
+probe_job=$(sbatch --parsable scripts/slurm/spatial_video_probe.sbatch "$features")
+echo "$probe_job"
+# After completion, inspect the small analysis JSON on Oscar:
+cat "$features/analysis/review.json"</pre>
 <p>The earlier 20-trajectory collection remains separate. Keep all raw frames and feature caches on Oscar; transfer only small review JSON.</p>
 <h2>Recorded routes: presentation preview</h2>
 <p>Four actual recorded trajectories in geometry f0000, animated together at 4× speed. These panels show simulator coordinates, not learned maps or cell activations. First-person RGB is still on Oscar.</p>
