@@ -5,13 +5,12 @@
 pre{padding:18px;background:#eff3f7;overflow:auto;font-size:13px}table{border-collapse:collapse}
 td,th{padding:10px;border:1px solid #ccd5de}.note{border-left:5px solid #4265bb;padding:15px;background:#eff3ff}</style>
 <h1>Do pretrained video features encode spatial location?</h1>
-<p class="note"><strong>Current priority: finish the dataset gate.</strong> Eight new Minecraft environments and 16 routes are recorded; the <a href="DIVERSE_DATASET_AUDIT.html">metadata audit</a> passes, while visual route limitations and raw-frame hash verification remain. Model testing has not started on this dataset. The encoder pilot below used an earlier collection and cannot directly ingest the new per-environment files.</p>
+<p class="note"><strong>Research goal:</strong> test whether a frozen pretrained model encodes a cognitive map <em>within each Minecraft world</em>: the same place should remain recognizable across independently recorded routes and changed headings, and nearby places should have a meaningful representational relationship. Cross-world absolute-coordinate decoding is a secondary diagnostic. V-JEPA 2 is a video model, not a video-language model; a later comparison must use an actual video-language model. Short clips cannot establish persistent episode-long memory.</p>
+<p class="note"><strong>Current result:</strong> the eight-environment dataset passed raw-frame verification and frozen V-JEPA extraction. The first position probe shows no convincing location decoding on held-out environments. Route and coverage limitations remain; these results do not settle whether other spatial information is present in the encoder.</p>
 <p>New direction, 20 October 2026. The subject is the frozen V-JEPA 2 ViT-L/16 encoder.
 No GRU, hippocampal module, odometry input or trained spatial code is attached.
 Minecraft coordinates supervise the <em>measurement probe</em>, never the encoder.</p>
-<p class="note"><strong>Status:</strong> pilot implementation, not experimental results.
-Synthetic tests do not establish Minecraft rendering, checkpoint compatibility or spatial emergence.
-The old g/p visualizations describe a separately trained memory network and are not evidence about this encoder.</p>
+<p class="note"><strong>Status:</strong> real Minecraft recordings and a frozen-model pilot result. The old g/p visualizations describe a separately trained memory network and are not evidence about this encoder.</p>
 <h2>What goes through the model</h2>
 <figure style="margin:24px 0">
 <img src="figures/spatial-video-pipeline.svg" alt="Video input passes through frozen V-JEPA to three separate 1024-channel vectors, then position readouts. Ground-truth coordinates enter only readout fitting and evaluation." style="display:block;width:100%;height:auto">
@@ -35,6 +34,28 @@ There is no persistent state between clips.</p>
 <tr><td>04–05 (forest, mine)</td><td>Validation</td><td>Both routes choose ridge regularization. No fitting on these environments.</td></tr>
 <tr><td>06–07 (hills, village)</td><td>Test</td><td>Both routes are untouched until final evaluation.</td></tr></table>
 <p>This fixed split yields 188 nonoverlapping 16-frame clips in the metadata preflight: 49 train, 47 route-heldout, 57 validation, and 35 test. One authored world per category means the environment-heldout result is exploratory across different categories; it does not estimate generalization to new worlds within a category. Maze and mine route pairs overlap heavily, so within-environment route testing alone cannot establish allocentric invariance. No gridness score or place-cell label follows from this pilot.</p>
+<h2>First frozen-video position probe (job 7983406)</h2>
+<p>The CPU probe completed and its <a href="../runs/oscar/spatial-video-features-7982818/analysis/review.json">60 KB review JSON</a> is local. The table gives the mean of per-episode mean X,Z errors in Minecraft blocks; lower is better. Four held-out routes share training worlds, while the validation and test columns each contain two unseen worlds and four routes. The training-mean row is the error from always predicting the mean training position.</p>
+<table><tr><th>Readout input</th><th>Held-out routes</th><th>Validation: forest, mine</th><th>Test: hills, village</th></tr>
+<tr><td>Training-mean position</td><td>9.89</td><td>9.49</td><td>10.08</td></tr>
+<tr><td>Video, block 4</td><td>9.70</td><td>9.41</td><td>10.24</td></tr>
+<tr><td>Video, block 12</td><td>9.96</td><td>8.87</td><td>10.27</td></tr>
+<tr><td>Video, block 24</td><td>9.45</td><td>9.41</td><td>10.13</td></tr>
+<tr><td>Repeat final frame, block 12</td><td>9.91</td><td>9.55</td><td>10.60</td></tr>
+<tr><td>Heading and elapsed time</td><td>9.89</td><td>9.49</td><td>10.07</td></tr></table>
+<p><strong>Interpretation:</strong> video block 12 reduces validation error by 0.62 blocks, mainly in the mine (7.77 and 7.99 versus mean-position errors of 8.93 and 8.61). It does not transfer to the held-out test worlds: 10.27 versus 10.08 for the mean-position baseline. Video block 24 improves held-out-route error by 0.44 blocks but gives essentially no test gain. Every representation and control selected the largest ridge penalty tested, <code>alpha=1000</code>, on validation. The circular-shift-label control and repeated-frame condition do not establish a consistent temporal advantage. These four test routes are correlated and too few for a significance claim.</p>
+<p><strong>What this does and does not test:</strong> this readout asks a single linear decoder trained on four worlds to predict absolute X,Z in other world categories. Place-like codes may remap between worlds, so a null cross-world result does not show that no within-world place information exists. The next diagnostic should use the existing cached features to compare same-world route-0-to-route-1 place recognition at shared positions, matched and mismatched headings, with video versus repeated-frame inputs. Do not interpret a visually localized channel map as a place cell without stable tuning across independently sampled routes and views.</p>
+<h2>Next: within-world place recognition, without new model extraction</h2>
+<p>The <code>spatial_video_within_world.py</code> diagnostic uses the existing 188 cached clips. In each world it treats route 0 clips as the reference set and route 1 clips as queries. It centers each 1,024-channel representation using only the unlabeled route-0 vectors, retrieves the most similar reference by cosine similarity, then uses simulator XYZ and heading <em>only to score</em> whether the match is nearby, including revisits with at least a 90° heading change. It also compares cosine similarity of nearby and distant places, and runs the same procedure on repeated-final-frame features. No readout is trained on test-world poses. The reference set is an <em>external</em> retrieval aid; even successful matching would not show that V-JEPA internally maintains a map over the exploration episode.</p>
+<p><strong>Coverage gate:</strong> the metadata preflight finds only 28 route-1 queries across all eight worlds with a route-0 clip within two blocks at a heading difference of at least 90°. The village has zero; room, outdoor area, outdoor maze and hills have only one or two each. Conditional metrics with fewer than three queries or pairs are left blank rather than treated as evidence. These sparse, correlated clips can reveal a failure or a promising signal, but cannot establish a stable cognitive map. Hills use 3D XYZ distance so elevation is not flattened.</p>
+<pre>cd ~/projects/zef-binding
+mkdir -p logs
+features="/oscar/scratch/$USER/zef-binding/runs/spatial-video-features-7982818"
+dataset="/oscar/scratch/$USER/zef-binding/runs/diverse-dataset-v2-20261022-153938"
+job=$(sbatch --parsable scripts/slurm/spatial_video_within_world.sbatch "$features" "$dataset")
+echo "$job"
+# After completion, inspect this small JSON:
+cat "/oscar/scratch/$USER/zef-binding/runs/spatial-video-withinworld-$job/report.json"</pre>
 <pre>cd ~/projects/zef-binding
 mkdir -p logs
 dataset="/oscar/scratch/$USER/zef-binding/runs/diverse-dataset-v2-20261022-153938"
