@@ -104,7 +104,8 @@ def analyze(root):
     # Native channel choices made exclusively using train variance. Identical
     # bins for train and heldout routes; unsupported bins remain missing.
     maps, selected_units = {}, {}
-    edges = (np.arange(-8., 9., 1.), np.arange(0., 13., 1.))
+    edges = tuple(np.arange(np.floor(y[:, axis].min()), np.ceil(y[:, axis].max()) + 2., 1.)
+                  for axis in (0, 1))
     for name, x in features.items():
         if not name.startswith("video_"):
             continue
@@ -120,17 +121,26 @@ def analyze(root):
                     maps[prefix] = field
                     maps[prefix + "/occupancy"] = counts
     np.savez_compressed(out / "signed-channel-maps.npz", **maps)
+    extraction_manifest = json.loads((root / "manifest.json").read_text()) if (root / "manifest.json").exists() else {}
+    diverse_v2 = extraction_manifest.get("protocol") == "diverse_environments_v2"
+    limitations = [
+        "Sparse scripted paths do not support a gridness score.",
+        "Signed activation maps are not nonnegative firing rates.",
+        "Route-heldout decoding alone does not remove heading/appearance confounds.",
+        "One circular-shift control is not a significance test.",
+        "No causal-use or learned-navigation claim.",
+    ]
+    if diverse_v2:
+        limitations.insert(0, "Eight authored worlds with one example per category; test environments are different categories, not within-category replications.")
+        limitations.insert(1, "Some route pairs share most visited cells and viewpoints; cross-route error is exploratory.")
+    else:
+        limitations.insert(0, "The earlier 20-trajectory collection validates the pipeline, not cell emergence.")
     atomic_json(out / "review.json", dict(
         subject="Frozen pretrained video encoder; no added memory module",
         results=summary, selected_native_channels=selected_units,
-        primary="Episode-level heldout-route error in blocks; report across episodes, not IID frames",
+        primary="Episode-level heldout-route and environment-heldout error in blocks; report across episodes, not IID frames",
         controls="Repeated final frame; heading/time; train-mean position; circular-shift labels",
-        limitations=["20 trajectories validate pipeline, not cell emergence.",
-            "Loop paths do not densely cover the arena. Gridness is deliberately not scored.",
-            "Signed activation maps are not nonnegative firing rates.",
-            "Route-heldout decoding alone does not remove heading/appearance confounds.",
-            "One circular-shift control is not a significance test.",
-            "No causal-use or learned-navigation claim."]))
+        limitations=limitations))
     print(out / "review.json")
 
 

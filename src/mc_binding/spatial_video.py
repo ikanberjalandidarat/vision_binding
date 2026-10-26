@@ -25,7 +25,7 @@ def sha256(path):
 def partition(entry):
     if entry["split"] not in {"train", "validation", "test"}:
         raise ValueError("Unknown geometry split")
-    return "heldout_route" if entry["split"] == "train" and entry["route"] >= 2 else entry["split"]
+    return "heldout_route" if entry["split"] == "train" and (entry.get("heldout_route") or entry["route"] >= 2) else entry["split"]
 
 
 def clips(entries, length=16, hop=16, tick_step=8):
@@ -120,7 +120,24 @@ def extract_command(a):
     commit = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
     if subprocess.check_output(["git", "-C", str(repo), "status", "--porcelain"], text=True).strip():
         raise ValueError("Use a clean official V-JEPA checkout for provenance")
-    entries = json.loads((root / "sequences.json").read_text())
+    if (root / "sequences.json").exists():
+        if a.verification:
+            raise ValueError("Verification report is only for the diverse-v2 dataset")
+        entries = json.loads((root / "sequences.json").read_text())
+        dataset_provenance = dict(sequences_sha256=sha256(root / "sequences.json"))
+    else:
+        from .spatial_video_dataset import load_diverse_v2
+        if not a.verification:
+            raise ValueError("Diverse-v2 extraction requires the completed raw-PNG verification report")
+        entries, dataset_provenance = load_diverse_v2(root)
+        verification = json.loads(Path(a.verification).read_text())
+        if (verification.get("state") != "complete" or
+                not verification.get("raw_png_hashes_verified") or
+                verification.get("dataset_sha256") != dataset_provenance["dataset_sha256"] or
+                verification.get("split_protocol") != dataset_provenance["split_protocol"]):
+            raise ValueError("Verification report missing, incomplete or from different dataset metadata")
+        dataset_provenance["raw_png_hashes_verified"] = True
+        dataset_provenance["verification_report_sha256"] = sha256(a.verification)
     windows = list(clips(entries, a.frames, a.frames))
     if not windows:
         raise ValueError("No eligible video clips")
@@ -155,7 +172,7 @@ def extract_command(a):
                                    source="local", crop_size=256)
         atomic_json(out / "manifest.json", dict(
             model="V-JEPA 2 ViT-L/16", frozen=True, repo_commit=commit,
-            checkpoint_sha256=sha256(a.checkpoint), sequences_sha256=sha256(root / "sequences.json"),
+            checkpoint_sha256=sha256(a.checkpoint), **dataset_provenance,
             clip_protocol="exact_spacing_any_phase_v2",
             layers_zero_based=layers, frames=a.frames, tick_step=8, label="last frame X,Z",
             extraction="raw block output; mean of spatial tokens in final temporal tubelet",
@@ -216,6 +233,7 @@ def main():
     e.add_argument("--layers", default="3,11,23")
     e.add_argument("--device", default="cuda")
     e.add_argument("--tokens", action="store_true")
+    e.add_argument("--verification", help="Completed diverse-v2 raw-PNG verification report")
     e.add_argument("--max-cache-gb", type=float, default=2)
     e.add_argument("--dry-run", action="store_true")
     e.add_argument("--smoke", action="store_true", help="One real clip; cannot be used for probe claims")

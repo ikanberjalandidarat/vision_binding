@@ -30,6 +30,7 @@ case "$mode" in
   : "${VJEPA_CHECKPOINT:?Set downloaded official vitl.pt path}"
   extra=()
   if [[ "$mode" == smoke ]]; then extra+=(--smoke); fi
+  if [[ -n "${3:-}" ]]; then extra+=(--verification "$3"); fi
   "$SPATIAL_PYTHON" -m mc_binding.spatial_video extract \
    --dataset "${2:?Pass collection directory}" --repo "$VJEPA_REPO" \
    --checkpoint "$VJEPA_CHECKPOINT" \

@@ -5,7 +5,7 @@
 pre{padding:18px;background:#eff3f7;overflow:auto;font-size:13px}table{border-collapse:collapse}
 td,th{padding:10px;border:1px solid #ccd5de}.note{border-left:5px solid #4265bb;padding:15px;background:#eff3ff}</style>
 <h1>Do pretrained video features encode spatial location?</h1>
-<p class="note"><strong>Current priority: standardized dataset and environment review.</strong> Model testing is paused. <a href="ENVIRONMENT_DATASET.html">Eight new environments, Oscar-generated GIFs and allocentric views: setup and export commands</a>. The encoder pilot below is prior work, not the next action.</p>
+<p class="note"><strong>Current priority: finish the dataset gate.</strong> Eight new Minecraft environments and 16 routes are recorded; the <a href="DIVERSE_DATASET_AUDIT.html">metadata audit</a> passes, while visual route limitations and raw-frame hash verification remain. Model testing has not started on this dataset. The encoder pilot below used an earlier collection and cannot directly ingest the new per-environment files.</p>
 <p>New direction, 20 October 2026. The subject is the frozen V-JEPA 2 ViT-L/16 encoder.
 No GRU, hippocampal module, odometry input or trained spatial code is attached.
 Minecraft coordinates supervise the <em>measurement probe</em>, never the encoder.</p>
@@ -27,11 +27,40 @@ No frames after that endpoint enter its prediction.</p>
 This is a declared sampling choice, not a claim about the optimal pretrained cadence.
 We must compare context lengths/cadences later. The fixed bottom 12% HUD band is masked.
 There is no persistent state between clips.</p>
+<h2>New eight-environment dataset: integrity gate and split</h2>
+<p>The <a href="DIVERSE_DATASET_AUDIT.html">metadata audit</a> found 16 complete routes and 3,257 recorded frames. Before using them, <code>spatial_video_dataset.py</code> hashes every PNG on Oscar, checks RGB format and dimensions, validates the recorded specifications, and counts eligible clips. It excludes the first 72 ticks of scripted camera scanning from model clips. This verification creates a small report; it does not load the video model.</p>
+<table><tr><th>Environment IDs</th><th>Probe role</th><th>Routes</th></tr>
+<tr><td>00–03 (room, outdoor area, indoor maze, outdoor maze)</td><td>Train</td><td>Route 0 fits the readout; route 1 is held out within the same environment.</td></tr>
+<tr><td>04–05 (forest, mine)</td><td>Validation</td><td>Both routes choose ridge regularization. No fitting on these environments.</td></tr>
+<tr><td>06–07 (hills, village)</td><td>Test</td><td>Both routes are untouched until final evaluation.</td></tr></table>
+<p>This fixed split yields 188 nonoverlapping 16-frame clips in the metadata preflight: 49 train, 47 route-heldout, 57 validation, and 35 test. One authored world per category means the environment-heldout result is exploratory across different categories; it does not estimate generalization to new worlds within a category. Maze and mine route pairs overlap heavily, so within-environment route testing alone cannot establish allocentric invariance. No gridness score or place-cell label follows from this pilot.</p>
+<pre>cd ~/projects/zef-binding
+mkdir -p logs
+dataset="/oscar/scratch/$USER/zef-binding/runs/diverse-dataset-v2-20261022-153938"
+verify_job=$(sbatch --parsable scripts/slurm/diverse_video_verify.sbatch "$dataset")
+printf 'Verification job: %s\n' "$verify_job"
+
+# After the job completes, inspect these before using the model:
+cat "/oscar/scratch/$USER/zef-binding/runs/diverse-video-verify-$verify_job/status.json"
+cat "/oscar/scratch/$USER/zef-binding/runs/diverse-video-verify-$verify_job/report.json"</pre>
+<p>The full extraction refuses this dataset without a complete verification report matching its metadata digest and split protocol. It also rechecks the hashes of every clip it actually reads. After verification, use the existing prepared spatial-video environment and official V-JEPA checkpoint for a <strong>one-clip smoke check</strong>:</p>
+<pre>export SPATIAL_PYTHON="/oscar/scratch/$USER/zef-binding/envs/spatial-video/bin/python"
+export VJEPA_REPO="/oscar/scratch/$USER/zef-binding/vendor/vjepa2"
+export VJEPA_CHECKPOINT="/oscar/scratch/$USER/zef-binding/checkpoints/vitl.pt"
+verification="/oscar/scratch/$USER/zef-binding/runs/diverse-video-verify-$verify_job/report.json"
+sbatch scripts/slurm/spatial_video.sbatch smoke "$dataset" "$verification"</pre>
+<p>Require <code>smoke_complete</code> and one real clip before full extraction. Then submit the full run and, only after it completes, the CPU probe:</p>
+<pre>extract_job=$(sbatch --parsable scripts/slurm/spatial_video.sbatch extract "$dataset" "$verification")
+cat "/oscar/scratch/$USER/zef-binding/runs/spatial-video-features-$extract_job/status.json"
+# After status is complete (188 clips):
+sbatch scripts/slurm/spatial_video.sbatch probe \
+  "/oscar/scratch/$USER/zef-binding/runs/spatial-video-features-$extract_job"</pre>
+<p>The earlier 20-trajectory collection remains separate. Keep all raw frames and feature caches on Oscar; transfer only small review JSON.</p>
 <h2>Recorded routes: presentation preview</h2>
 <p>Four actual recorded trajectories in geometry f0000, animated together at 4× speed. These panels show simulator coordinates, not learned maps or cell activations. First-person RGB is still on Oscar.</p>
 <figure style="margin:20px 0"><img src="../output/spatial-video/recorded-routes.gif" style="width:100%;height:auto" alt="Four animated recorded Minecraft paths"><figcaption>GIF: <code>output/spatial-video/recorded-routes.gif</code> · <a href="../output/spatial-video/recorded-routes.png">Static PNG for slides</a></figcaption></figure>
 <p><strong>Clip audit:</strong> the original timestamp-phase filter retained only one clip per held-out route. The corrected extractor allows any starting phase with exact eight-tick spacing and no overlapping windows: 230 clips total, including eight per held-out route. Training routes retain 15 each. Re-extract before interpreting new results; this change is not a model improvement. Dense gridness coverage remains unestablished.</p>
-<h2>First experiment: 20 trajectories</h2>
+<h2>Earlier pipeline pilot: 20 trajectories</h2>
 <table><tr><th>Component</th><th>Implemented pilot</th></tr>
 <tr><td>Collection</td><td>Five existing deterministic safe Minecraft geometries × four intersecting-loop routes.
 Scripted movement; poses and actions recorded alongside RGB. All 20 routes must complete.</td></tr>
