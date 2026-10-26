@@ -17,6 +17,20 @@ export SSL_CERT_FILE="${SSL_CERT_FILE:-/etc/pki/tls/certs/ca-bundle.crt}"
 export REQUESTS_CA_BUNDLE="$SSL_CERT_FILE"
 unset LD_LIBRARY_PATH LD_PRELOAD
 mode="${1:?Use collect, extract, or probe}"
+if [[ "$mode" == smoke || "$mode" == extract ]]; then
+  # Some Oscar spatial-video environments have a dangling libbz2.so.1.0 link.
+  # Supply only that ABI-compatible system library in a job-local directory;
+  # never alter the prepared environment or inherit unrelated conda libraries.
+  spatial_lib="$(dirname "$(dirname "$SPATIAL_PYTHON")")/lib"
+  if [[ ! -e "$spatial_lib/libbz2.so.1.0" ]]; then
+    system_bz2="/lib64/libbz2.so.1.0.8"
+    [[ -r "$system_bz2" ]] || { echo "Missing libbz2 in environment and system"; exit 1; }
+    compat_lib="$(mktemp -d "${SLURM_TMPDIR:-/tmp}/spatial-bz2-${SLURM_JOB_ID}-XXXXXX")"
+    ln -s "$system_bz2" "$compat_lib/libbz2.so.1.0"
+    export LD_LIBRARY_PATH="$compat_lib"
+  fi
+  "$SPATIAL_PYTHON" -I -c 'import bz2; assert bz2.decompress(bz2.compress(b"ready")) == b"ready"'
+fi
 case "$mode" in
  collect)
   : "${MC_RENDER_PYTHON:?Set existing healthy render Python; no modifications made}"
