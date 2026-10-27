@@ -15,7 +15,10 @@ REFERENCE_PYTHON="${REFERENCE_PYTHON:-$scratch_root/envs/predictive-map/bin/pyth
 REFERENCE_REPO="${REFERENCE_REPO:-$scratch_root/vendor/predictive-coding-recovers-maps}"
 REFERENCE_WEIGHTS="${REFERENCE_WEIGHTS:-$scratch_root/reference-weights}"
 case_name="${1:?Use environment, path, circle, autoencoder, or circle_autoencoder}"
+scale_mode="${2:-released}"
 [[ "$case_name" == environment || "$case_name" == path || "$case_name" == circle || "$case_name" == autoencoder || "$case_name" == circle_autoencoder ]] || exit 2
+[[ "$scale_mode" == released || "$scale_mode" == restored ]] || { echo 'Scale mode must be released or restored'; exit 2; }
+[[ "$scale_mode" != restored || "$case_name" == environment ]] || { echo 'Scale restoration is audited only for environment'; exit 2; }
 [[ -x "$REFERENCE_PYTHON" ]] || { echo "Separate reference Python missing: $REFERENCE_PYTHON"; exit 1; }
 export PYTHONPATH="$PWD/src${PYTHONPATH:+:$PYTHONPATH}"
 export PYTHONUNBUFFERED=1
@@ -25,7 +28,10 @@ unset LD_LIBRARY_PATH LD_PRELOAD
   --repo "$REFERENCE_REPO" --weights "$REFERENCE_WEIGHTS" --case "$case_name" --check-only
 extra=()
 if [[ "${PAPER_DECODER:-0}" == 1 ]]; then extra+=(--paper-decoder); fi
+if [[ "$scale_mode" == restored ]]; then extra+=(--restore-released-scale); fi
+suffix=""
+if [[ "$scale_mode" == restored ]]; then suffix="-restored"; fi
 "$REFERENCE_PYTHON" scripts/run_predictive_map_reference.py \
   --repo "$REFERENCE_REPO" --weights "$REFERENCE_WEIGHTS" --case "$case_name" \
-  --output "/oscar/scratch/$USER/zef-binding/runs/predictive-map-reference-${case_name}-${SLURM_JOB_ID}" \
+  --output "/oscar/scratch/$USER/zef-binding/runs/predictive-map-reference-${case_name}${suffix}-${SLURM_JOB_ID}" \
   "${extra[@]}"

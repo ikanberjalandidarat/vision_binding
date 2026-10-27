@@ -34,6 +34,34 @@ FILES = {
                            "autoencoder-circle-positions.npy"),
 }
 
+# The official EnvironmentDataset applies ToTensor() and then these channel
+# statistics. Keep the published .npy untouched; the optional correction below
+# is a separately labeled diagnostic for its apparent extra factor of 1/255.
+ENV_MEAN = np.asarray([121.6697, 149.3242, 154.9510], dtype=np.float32) / 255
+ENV_STD = np.asarray([40.7521, 47.7267, 103.2739], dtype=np.float32) / 255
+
+
+def environment_rgb(normalized):
+    values = np.asarray(normalized, dtype=np.float32)
+    channel_shape = (1,) * (values.ndim - 3) + (3, 1, 1)
+    return values * ENV_STD.reshape(channel_shape) + ENV_MEAN.reshape(channel_shape)
+
+
+def restore_released_environment_scale(normalized):
+    """Undo the apparent extra /255, then reapply official normalization."""
+    rgb = environment_rgb(normalized) * 255
+    channel_shape = (1,) * (rgb.ndim - 3) + (3, 1, 1)
+    return (rgb - ENV_MEAN.reshape(channel_shape)) / ENV_STD.reshape(channel_shape)
+
+
+def environment_scale_audit(images):
+    indices = sorted({0, len(images) // 4, len(images) // 2, 3 * len(images) // 4, len(images) - 1})
+    samples = np.stack([np.asarray(images[i, images.shape[1] // 2]) for i in indices])
+    rgb = environment_rgb(samples)
+    return {"sample_indices": indices, "rgb_min": float(rgb.min()),
+            "rgb_max": float(rgb.max()), "rgb_mean": float(rgb.mean()),
+            "rgb_max_near_one_over_255": bool(rgb.max() <= 1.1 / 255)}
+
 
 def file_hash(path):
     digest = hashlib.sha256()
@@ -90,9 +118,15 @@ def run(args):
     positions_raw = np.load(paths[2], mmap_mode="r", allow_pickle=False)
     autoencoder = "autoencoder" in args.case
     layout = validate_saved_arrays(images, positions_raw, autoencoder)
+    if args.restore_released_scale and args.case != "environment":
+        raise ValueError("Scale restoration is audited only for the environment case")
+    scale_audit = environment_scale_audit(images) if args.case == "environment" else None
+    if args.restore_released_scale and not scale_audit["rgb_max_near_one_over_255"]:
+        raise ValueError("Saved images do not exhibit the suspected extra /255 scale")
     if args.check_only:
         print(json.dumps({"state": "preflight_complete", "case": args.case,
-                          **provenance, "saved_array_layout": layout}, indent=2))
+                          **provenance, "saved_array_layout": layout,
+                          "released_image_scale_audit": scale_audit}, indent=2))
         return
     import torch
     import matplotlib
@@ -108,10 +142,13 @@ def run(args):
     state = torch.load(paths[0], map_location="cpu", weights_only=True)
     model.load_state_dict(state, strict=True)
     model.eval().requires_grad_(False).to(device)
-    latent_chunks, total_error, total_pixels = [], 0.0, 0
+    latent_chunks, total_error, persistence_error, total_pixels = [], 0.0, 0.0, 0
     example = None
     for start in range(0, len(images), args.batch_size):
-        batch = torch.from_numpy(np.array(images[start:start + args.batch_size], copy=True)).float().to(device)
+        saved_batch = np.array(images[start:start + args.batch_size], copy=True)
+        if args.restore_released_scale:
+            saved_batch = restore_released_environment_scale(saved_batch)
+        batch = torch.from_numpy(saved_batch).float().to(device)
         with torch.inference_mode():
             latent = model.get_latents(batch)
             if not autoencoder:
@@ -120,11 +157,15 @@ def run(args):
             predicted = model(batch) if autoencoder else model(batch)[:, :-1]
             target = batch if autoencoder else batch[:, 1:]
             if example is None:
-                frame_index = 0 if autoencoder else predicted.shape[1] // 2
-                pframe = predicted[0] if autoencoder else predicted[0, frame_index]
-                tframe = target[0] if autoencoder else target[0, frame_index]
+                candidate_targets = target.reshape(-1, *target.shape[-3:])
+                candidate_predictions = predicted.reshape(-1, *predicted.shape[-3:])
+                frame_index = int(candidate_targets.var(dim=(1, 2, 3)).argmax())
+                pframe = candidate_predictions[frame_index]
+                tframe = candidate_targets[frame_index]
                 example = (tframe.detach().cpu().numpy(), pframe.detach().cpu().numpy())
             total_error += float(torch.sum((predicted - target) ** 2).item())
+            if not autoencoder:
+                persistence_error += float(torch.sum((batch[:, :-1] - target) ** 2).item())
             total_pixels += target.numel()
         latent_chunks.append(latent)
     latents = np.concatenate(latent_chunks)
@@ -158,10 +199,10 @@ def run(args):
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=False)
     fig, axes = plt.subplots(1, 2, figsize=(7, 3))
-    lo, hi = np.percentile(example[0], [1, 99])
     for ax, frame, title in zip(axes, example, ("Actual next image" if not autoencoder else "Actual image",
                                                 "Predicted next image" if not autoencoder else "Reconstruction")):
-        ax.imshow(np.clip((frame.transpose(1, 2, 0) - lo) / max(hi - lo, 1e-8), 0, 1))
+        rgb = (frame + 1) / 2 if is_circle else environment_rgb(frame)
+        ax.imshow(np.clip(rgb.transpose(1, 2, 0), 0, 1))
         ax.set_title(title)
         ax.axis("off")
     fig.tight_layout()
@@ -169,7 +210,7 @@ def run(args):
     plt.close(fig)
     plt.figure(figsize=(6, 5))
     plt.scatter(physical_distance, latent_distance, s=2, alpha=.16, rasterized=True)
-    plt.xlabel("physical distance (blocks; circular wrap for circle)")
+    plt.xlabel("physical distance (lattice units; circular wrap for circle)")
     plt.ylabel("latent Euclidean distance")
     plt.tight_layout()
     plt.savefig(output / "latent-vs-physical.png", dpi=180)
@@ -185,9 +226,12 @@ def run(args):
     plt.close()
     report = {"state": "complete", "case": args.case, **provenance,
               **layout,
+              "input_scale": "restored_from_released_x255" if args.restore_released_scale else "released_unchanged",
+              "released_image_scale_audit": scale_audit,
               "next_image_mse": None if autoencoder else total_error / total_pixels,
+              "copy_previous_frame_mse": None if autoencoder else persistence_error / total_pixels,
               "reconstruction_mse": total_error / total_pixels if autoencoder else None,
-              "pixel_metric_scope": "Released saved arrays; evaluation split not documented as independent",
+              "pixel_metric_scope": "Saved arrays; restored scale is a diagnostic transform, not an author-validated replacement; evaluation split not documented as independent",
               "latent_distance": distance,
               "position_decoder": decoder,
               "paper_position_decoder": paper_decoder,
@@ -211,6 +255,8 @@ if __name__ == "__main__":
     parser.add_argument("--check-only", action="store_true")
     parser.add_argument("--paper-decoder", action="store_true",
                         help="Also run the official 8000-iteration in-sample PositionDecoder")
+    parser.add_argument("--restore-released-scale", action="store_true",
+                        help="Environment case only: undo apparent extra /255 without changing the released file")
     a = parser.parse_args()
     if not a.check_only and (a.output is None or a.batch_size < 1):
         parser.error("--output and positive --batch-size required for analysis")
