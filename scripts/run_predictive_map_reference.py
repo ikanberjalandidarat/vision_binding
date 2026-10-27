@@ -69,10 +69,30 @@ def endpoint_positions(positions, count):
     return np.asarray(positions[:, :2], dtype=float)
 
 
+def validate_saved_arrays(images, positions, autoencoder):
+    """Validate released array layout without assuming the model's max length."""
+    expected = (images.ndim == 4 and images.shape[1:] == (3, 64, 64)) if autoencoder else (
+        images.ndim == 5 and 2 <= images.shape[1] <= 20 and images.shape[2:] == (3, 64, 64))
+    if not expected:
+        kind = "[N,3,64,64]" if autoencoder else "[N,L,3,64,64] with 2<=L<=20"
+        raise ValueError(f"Expected released {kind} images, got {images.shape}")
+    if len(images) < 6:
+        raise ValueError("Too few released images")
+    endpoint_positions(positions, len(images))
+    return {"image_sequences": int(len(images)),
+            "sequence_length": None if autoencoder else int(images.shape[1]),
+            "position_columns": int(positions.shape[-1])}
+
+
 def run(args):
     paths, provenance = preflight(args.repo, args.weights, args.case)
+    images = np.load(paths[1], mmap_mode="r", allow_pickle=False)
+    positions_raw = np.load(paths[2], mmap_mode="r", allow_pickle=False)
+    autoencoder = "autoencoder" in args.case
+    layout = validate_saved_arrays(images, positions_raw, autoencoder)
     if args.check_only:
-        print(json.dumps({"state": "preflight_complete", "case": args.case, **provenance}, indent=2))
+        print(json.dumps({"state": "preflight_complete", "case": args.case,
+                          **provenance, "saved_array_layout": layout}, indent=2))
         return
     import torch
     import matplotlib
@@ -82,16 +102,7 @@ def run(args):
     sys.path.insert(0, str(Path(args.repo).resolve()))
     from predictive_coding.models.encoder_decoder import Autoencoder, PredictiveCoder
 
-    images = np.load(paths[1], mmap_mode="r", allow_pickle=False)
-    positions_raw = np.load(paths[2], mmap_mode="r", allow_pickle=False)
-    autoencoder = "autoencoder" in args.case
-    expected = (images.ndim == 4 and images.shape[1:] == (3, 64, 64)) if autoencoder else (
-        images.ndim == 5 and images.shape[1] == 20 and images.shape[2:] == (3, 64, 64))
-    if not expected:
-        raise ValueError(f"Unexpected released image shape {images.shape} for {args.case}")
     positions = endpoint_positions(positions_raw, len(images))
-    if len(images) < 6:
-        raise ValueError("Too few released sequences")
     device = torch.device(args.device)
     model = Autoencoder(3, 3, [2, 2, 2, 2]) if autoencoder else PredictiveCoder(3, 3, [2, 2, 2, 2], seq_len=20)
     state = torch.load(paths[0], map_location="cpu", weights_only=True)
@@ -173,7 +184,7 @@ def run(args):
     plt.savefig(output / "position-decoding.png", dpi=180)
     plt.close()
     report = {"state": "complete", "case": args.case, **provenance,
-              "image_sequences": len(images), "sequence_length": None if autoencoder else 20,
+              **layout,
               "next_image_mse": None if autoencoder else total_error / total_pixels,
               "reconstruction_mse": total_error / total_pixels if autoencoder else None,
               "pixel_metric_scope": "Released saved arrays; evaluation split not documented as independent",
