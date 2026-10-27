@@ -45,7 +45,7 @@
 </tr>
 </tbody>
 </table>
-<p>Use a <strong>new, preinstalled</strong> Python environment with the official repository's runtime dependencies, PyTorch, NumPy, and Matplotlib. Do not repair or install into existing render/model/spatial-video environments while other jobs depend on them. No package installation occurs inside the SLURM job. Set <code>REFERENCE_PYTHON</code>, <code>REFERENCE_REPO</code>, and <code>REFERENCE_WEIGHTS</code> to absolute paths, then:</p>
+<p>Use a <strong>new, preinstalled</strong> Python environment with the official repository's runtime dependencies, PyTorch, NumPy, and Matplotlib. Do not repair or install into existing render/model/spatial-video environments while other jobs depend on them. No package installation occurs inside the SLURM job. On Oscar, <code>bash scripts/setup_predictive_map_reference_oscar.sh</code> prepares a separate checkout, downloads only the three official environment-case files, creates a new scratch venv, and runs the cheap preflight. It can be rerun after an interrupted download or install. Wait for its final “preflight” line before submitting a GPU job. Other cases require their own official arrays and checkpoint.</p>
 <pre><code class="language-bash">cd ~/projects/zef-binding
 mkdir -p logs
 export REFERENCE_PYTHON=&quot;/oscar/scratch/$USER/zef-binding/envs/predictive-map/bin/python&quot;
