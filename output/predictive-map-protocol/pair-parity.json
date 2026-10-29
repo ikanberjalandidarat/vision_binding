@@ -1,0 +1,26 @@
+{
+  "state": "complete",
+  "scope": "NON-MINECRAFT numerical fixture; not a model or dataset result",
+  "repo_commit": "fed80b72925a4d3f3e9ec4b70f71ecaedec75c13",
+  "analysis_sha256": "aeab9387ed543605cc9e121a7ade38890f82d58b82514e3b906f7b20e948f63f",
+  "defaults": {
+    "L": 10000,
+    "offset": 100,
+    "neighborhood": 90
+  },
+  "selected_flat_indices_inclusive": [
+    100,
+    189
+  ],
+  "zero_self_entries_removed": 5040,
+  "retained_entries": 444870,
+  "unique_ordered_pairs": 8010,
+  "unique_unordered_pairs": 4005,
+  "ordered_pair_repeat_min_max": [
+    55,
+    56
+  ],
+  "matches_author_distance_and_normalization_order": true,
+  "real_data_gate": "Compare position and latent nonzero masks before author helper. Independent zero removal can misalign pairs; do not silently change the protocol.",
+  "inference_limit": "Repeated entries are not independent evidence; fixture parity is not replication of a paper result."
+}
