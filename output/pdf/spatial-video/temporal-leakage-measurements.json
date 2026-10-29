@@ -1,0 +1,39 @@
+{
+  "provenance": "Transcribed from user-pasted Oscar job 8098889 report.json, 2026-10-29; not a new model run",
+  "repo_commit": "fed80b72925a4d3f3e9ec4b70f71ecaedec75c13",
+  "checkpoint_sha256": "356a2a7a51217030b5223e2b4f9f9a9e65d51717e042c03b7549afe205f156b0",
+  "original_episode": "1675233473.792766",
+  "donor_episode": "1675233477.3724594",
+  "output_index": 4,
+  "input_frames": 10,
+  "conditions": [
+    "Identical repeat",
+    "Replace frame 5",
+    "Replace frame 9"
+  ],
+  "prediction_mean_absolute_change": [
+    0.0,
+    0.021320130676031113,
+    0.021900683641433716
+  ],
+  "latent_mean_absolute_change": [
+    0.0,
+    0.059479013085365295,
+    0.06511174142360687
+  ],
+  "prediction_max_absolute_change": [
+    0.0,
+    0.34071195125579834,
+    0.3020581901073456
+  ],
+  "latent_max_absolute_change": [
+    0.0,
+    0.2645838260650635,
+    0.32364487648010254
+  ],
+  "attention_heads": {
+    "attention_1": 2,
+    "attention_2": 2
+  },
+  "scope": "One original clip, one donor episode, two future-frame substitutions; no population uncertainty estimate"
+}

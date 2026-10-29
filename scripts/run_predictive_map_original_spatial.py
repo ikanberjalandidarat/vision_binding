@@ -8,6 +8,9 @@ It compares frozen checkpoint activations with raw RGB on identical local pairs.
 import argparse
 import hashlib
 import json
+import os
+import fcntl
+import traceback
 import subprocess
 import sys
 from pathlib import Path
@@ -17,6 +20,68 @@ import numpy as np
 from build_predictive_map_paths import read_state
 from run_predictive_map_original_pngs import load_episode
 from run_predictive_map_reference import ENV_MEAN, ENV_STD, REFERENCE_COMMIT, file_hash
+
+
+def atomic_json(path, value):
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(value, indent=2) + "\n")
+    temporary.replace(path)
+
+
+def progress(output, **fields):
+    status = output / "status.json"
+    current = json.loads(status.read_text()) if status.exists() else {}
+    current.update(fields)
+    atomic_json(status, current)
+    print(json.dumps(fields), flush=True)
+
+
+def save_path(path, metrics, features, states, pairs):
+    temporary = path.with_suffix(".tmp")
+    with temporary.open("wb") as stream:
+        np.savez_compressed(stream, metrics=json.dumps(metrics), features=features,
+                            states=states, physical=pairs[0], latent=pairs[1], pixel=pairs[2])
+        stream.flush()
+        os.fsync(stream.fileno())
+    temporary.replace(path)
+
+
+def load_path(path):
+    with np.load(path, allow_pickle=False) as data:
+        return (json.loads(str(data["metrics"].item())), data["features"], data["states"],
+                (data["physical"], data["latent"], data["pixel"]))
+
+
+def execute(args):
+    """Keep completed paths and report Python failures; serialize writes per output."""
+    output = args.output
+    output.mkdir(parents=True, exist_ok=args.resume)
+    with (output / ".lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        identity = {"manifest_sha256": file_hash(args.manifest),
+                    "checkpoint_sha256": file_hash(args.checkpoint),
+                    "runner_sha256": file_hash(Path(__file__)),
+                    "dependencies": {name: file_hash(Path(__file__).with_name(name)) for name in (
+                        "build_predictive_map_paths.py", "run_predictive_map_original_pngs.py",
+                        "run_predictive_map_reference.py")},
+                    "repo_commit": REFERENCE_COMMIT}
+        identity_file = output / "run-identity.json"
+        if args.resume:
+            if not identity_file.exists() or json.loads(identity_file.read_text()) != identity:
+                raise ValueError("Resume requires identical manifest, checkpoint, runner, and reference commit")
+        else:
+            atomic_json(identity_file, identity)
+        (output / "paths").mkdir(exist_ok=True)
+        try:
+            atomic_json(output / "status.json", {"state": "running", "stage": "initializing",
+                        "completed_paths": len(list((output / "paths").glob("path-*.npz")))})
+            print("Initializing spatial run", flush=True)
+            run(args)
+            progress(output, state="complete", stage="finished")
+        except BaseException as error:
+            # A hard kill cannot be caught; last running stage still remains on disk.
+            progress(output, state="error", error=repr(error), traceback=traceback.format_exc())
+            raise
 
 
 def local_pairs(latents, rgb, positions):
@@ -74,49 +139,63 @@ def run(args):
     model = PredictiveCoder(3, 3, [2, 2, 2, 2], seq_len=20)
     model.load_state_dict(torch.load(args.checkpoint, map_location="cpu", weights_only=True), strict=True)
     model.eval().requires_grad_(False).to(args.device)
+    output = args.output
     report_paths, cached = [], []
     plot_samples = []
     for path_index, path in enumerate(manifest["selected_paths"]):
-        states, images = [], []
-        for episode, expected_hash in zip(path["episodes"], path["state_sha256"]):
-            state, digest = read_state(repo, episode)
-            if digest != expected_hash:
-                raise ValueError(f"State changed since manifest: {episode}")
-            png_paths = [f"{episode}/{i}.png" for i in range(10)]
-            frames, _ = load_episode(repo, png_paths)
-            states.append(state)
-            images.append(frames)
-        states = np.concatenate(states)
-        images = np.concatenate(images)
-        # The official model's layer normalization spans its input clip. Take
-        # only the final latent of a sliding ten-frame window, so no frame
-        # after the labeled endpoint is present anywhere in the forward pass.
-        windows = np.stack([images[end - 9:end + 1] for end in range(9, len(images))])
-        features = []
-        for start in range(0, len(windows), 8):
-            batch = torch.from_numpy(windows[start:start + 8]).float().to(args.device)
-            with torch.inference_mode():
-                latent = model.get_latents(batch)
-            if tuple(latent.shape[1:]) != (10, 128, 8, 8):
-                raise ValueError(f"Unexpected checkpoint latent shape {tuple(latent.shape)}")
-            features.append(latent[:, -1].cpu().numpy().reshape(len(batch), -1))
-        features = np.concatenate(features)
-        endpoint_states = states[9:]
-        rgb = np.clip(images[9:] * ENV_STD[None, :, None, None] + ENV_MEAN[None, :, None, None], 0, 1)
-        rgbs = rgb.reshape(len(rgb), -1)
-        metrics, pairs = local_pairs(features, rgbs, endpoint_states[:, :2])
-        report_paths.append({"path_index": path_index,
-                             "start_git_episode_index": path["start_git_episode_index"],
-                             "source_frames": int(len(states)), "feature_endpoints": int(len(features)),
-                             "max_boundary_step": path["max_boundary_step"],
-                             **metrics})
+        checkpoint = output / "paths" / f"path-{path_index:03d}.npz"
+        if checkpoint.exists():
+            path_metrics, features, endpoint_states, pairs = load_path(checkpoint)
+            if path_metrics["path_index"] != path_index:
+                raise ValueError(f"Mismatched path checkpoint: {checkpoint}")
+            print(f"Resumed path {path_index + 1}", flush=True)
+        else:
+            states, images = [], []
+            progress(output, stage="loading_path", path_index=path_index)
+            for episode, expected_hash in zip(path["episodes"], path["state_sha256"]):
+                progress(output, stage="loading_episode", path_index=path_index, episode=episode)
+                state, digest = read_state(repo, episode)
+                if digest != expected_hash:
+                    raise ValueError(f"State changed since manifest: {episode}")
+                png_paths = [f"{episode}/{i}.png" for i in range(10)]
+                frames, _ = load_episode(repo, png_paths)
+                states.append(state)
+                images.append(frames)
+            states = np.concatenate(states)
+            images = np.concatenate(images)
+            # The official model's layer normalization spans its input clip. Take
+            # only the final latent of a sliding ten-frame window, so no frame
+            # after the labeled endpoint is present anywhere in the forward pass.
+            windows = np.stack([images[end - 9:end + 1] for end in range(9, len(images))])
+            features = []
+            for start in range(0, len(windows), 8):
+                progress(output, stage="model_forward", path_index=path_index, batch_start=start)
+                batch = torch.from_numpy(windows[start:start + 8]).float().to(args.device)
+                with torch.inference_mode():
+                    latent = model.get_latents(batch)
+                if tuple(latent.shape[1:]) != (10, 128, 8, 8):
+                    raise ValueError(f"Unexpected checkpoint latent shape {tuple(latent.shape)}")
+                features.append(latent[:, -1].cpu().numpy().reshape(len(batch), -1))
+            features = np.concatenate(features)
+            endpoint_states = states[9:]
+            rgb = np.clip(images[9:] * ENV_STD[None, :, None, None] + ENV_MEAN[None, :, None, None], 0, 1)
+            rgbs = rgb.reshape(len(rgb), -1)
+            progress(output, stage="distance_metrics", path_index=path_index)
+            metrics, pairs = local_pairs(features, rgbs, endpoint_states[:, :2])
+            path_metrics = {"path_index": path_index,
+                                 "start_git_episode_index": path["start_git_episode_index"],
+                                 "source_frames": int(len(states)), "feature_endpoints": int(len(features)),
+                                 "max_boundary_step": path["max_boundary_step"],
+                                 **metrics}
+            save_path(checkpoint, path_metrics, features, endpoint_states, pairs)
+        report_paths.append(path_metrics)
         cached.append((features, endpoint_states, path_index))
         rng = np.random.default_rng(731 + path_index)
         ids = rng.choice(len(pairs[0]), size=min(300, len(pairs[0])), replace=False)
         plot_samples.append(tuple(values[ids] for values in pairs))
-        print(f"Analyzed {path_index + 1}/{len(manifest['selected_paths'])} verified paths", flush=True)
-    output = args.output
-    output.mkdir(parents=True, exist_ok=False)
+        progress(output, stage="path_saved", completed_paths=path_index + 1,
+                 total_paths=len(manifest["selected_paths"]))
+    progress(output, stage="writing_summary")
     np.savez_compressed(output / "latents-and-states.npz",
                         latents=np.concatenate([item[0] for item in cached]),
                         states=np.concatenate([item[1] for item in cached]),
@@ -157,4 +236,5 @@ if __name__ == "__main__":
     p.add_argument("--manifest", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--device", default="cuda")
-    run(p.parse_args())
+    p.add_argument("--resume", action="store_true", help="Reuse completed paths in the same output directory")
+    execute(p.parse_args())
