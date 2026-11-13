@@ -24,6 +24,14 @@ if [[ "$mode" == audit ]]; then
  "$MC_RENDER_PYTHON" -m mc_binding.revisit_dataset audit --root "$root"
 else
  "$MC_RENDER_PYTHON" -I -c 'import encodings; from minestudio.simulator import MinecraftSim'
+ "$MC_RENDER_PYTHON" -I - <<'PYENGINE'
+from pathlib import Path
+from minestudio.utils import get_mine_studio_dir
+jar = Path(get_mine_studio_dir()) / 'engine/build/libs/mcprec-6.13.jar'
+if not jar.is_file():
+    raise SystemExit('Simulator engine missing. Run scripts/setup_revisit_renderer_oscar.sh before submitting collection.')
+print(f'Simulator engine: {jar}', flush=True)
+PYENGINE
  xvfb-run -a "$MC_RENDER_PYTHON" -m mc_binding.revisit_dataset collect \
    --root "$root" --route "${SLURM_ARRAY_TASK_ID:?Submit --array=0 or --array=1-5%1}"
 fi
