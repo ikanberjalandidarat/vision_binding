@@ -1,0 +1,317 @@
+{
+  "figure": "retrieval.png",
+  "source": "report.json",
+  "summary": {
+    "results": [
+      {
+        "heading_difference": 180,
+        "queries": 128,
+        "accuracy": 0.0,
+        "mean_error_blocks": 21.13018001786782,
+        "random_error_blocks": 16.071380988130446,
+        "directions": {
+          "4_to_5": 0.0,
+          "5_to_4": 0.0
+        },
+        "feature": "video_layer3",
+        "site_bootstrap_accuracy_95": [
+          0.0,
+          0.0
+        ],
+        "site_bootstrap_error_95": [
+          17.72809693623492,
+          24.352110884334955
+        ],
+        "permutation_p_one_sided": 1.0,
+        "null_accuracy_mean": 0.062178125,
+        "permutation_p_holm_six": 1
+      },
+      {
+        "heading_difference": 0,
+        "queries": 128,
+        "accuracy": 0.40625,
+        "mean_error_blocks": 8.052435051942993,
+        "random_error_blocks": 16.06558276365529,
+        "directions": {
+          "4_to_5": 0.375,
+          "5_to_4": 0.4375
+        },
+        "feature": "video_layer3"
+      },
+      {
+        "heading_difference": 90,
+        "queries": 256,
+        "accuracy": 0.08203125,
+        "mean_error_blocks": 15.676842468310742,
+        "random_error_blocks": 16.070660849608345,
+        "directions": {
+          "4_to_5": 0.078125,
+          "5_to_4": 0.0859375
+        },
+        "feature": "video_layer3"
+      },
+      {
+        "heading_difference": 180,
+        "queries": 128,
+        "accuracy": 0.03125,
+        "mean_error_blocks": 21.95404664958926,
+        "random_error_blocks": 16.071380988130446,
+        "directions": {
+          "4_to_5": 0.015625,
+          "5_to_4": 0.046875
+        },
+        "feature": "video_layer11",
+        "site_bootstrap_accuracy_95": [
+          0.0,
+          0.0703125
+        ],
+        "site_bootstrap_error_95": [
+          18.39863165998851,
+          25.17775573746145
+        ],
+        "permutation_p_one_sided": 0.8503149685031497,
+        "null_accuracy_mean": 0.06212890625,
+        "permutation_p_holm_six": 1
+      },
+      {
+        "heading_difference": 0,
+        "queries": 128,
+        "accuracy": 0.2890625,
+        "mean_error_blocks": 8.091424826789632,
+        "random_error_blocks": 16.06558276365529,
+        "directions": {
+          "4_to_5": 0.234375,
+          "5_to_4": 0.34375
+        },
+        "feature": "video_layer11"
+      },
+      {
+        "heading_difference": 90,
+        "queries": 256,
+        "accuracy": 0.08984375,
+        "mean_error_blocks": 15.877994551309436,
+        "random_error_blocks": 16.070660849608345,
+        "directions": {
+          "4_to_5": 0.0859375,
+          "5_to_4": 0.09375
+        },
+        "feature": "video_layer11"
+      },
+      {
+        "heading_difference": 180,
+        "queries": 128,
+        "accuracy": 0.0234375,
+        "mean_error_blocks": 21.428910001613644,
+        "random_error_blocks": 16.071380988130446,
+        "directions": {
+          "4_to_5": 0.015625,
+          "5_to_4": 0.03125
+        },
+        "feature": "video_layer23",
+        "site_bootstrap_accuracy_95": [
+          0.0,
+          0.0625
+        ],
+        "site_bootstrap_error_95": [
+          17.78876644947514,
+          24.793811576638713
+        ],
+        "permutation_p_one_sided": 0.9256074392560744,
+        "null_accuracy_mean": 0.06234609375,
+        "permutation_p_holm_six": 1
+      },
+      {
+        "heading_difference": 0,
+        "queries": 128,
+        "accuracy": 0.3203125,
+        "mean_error_blocks": 8.692316176072012,
+        "random_error_blocks": 16.06558276365529,
+        "directions": {
+          "4_to_5": 0.296875,
+          "5_to_4": 0.34375
+        },
+        "feature": "video_layer23"
+      },
+      {
+        "heading_difference": 90,
+        "queries": 256,
+        "accuracy": 0.0859375,
+        "mean_error_blocks": 15.504476495219382,
+        "random_error_blocks": 16.070660849608345,
+        "directions": {
+          "4_to_5": 0.0859375,
+          "5_to_4": 0.0859375
+        },
+        "feature": "video_layer23"
+      },
+      {
+        "heading_difference": 180,
+        "queries": 128,
+        "accuracy": 0.0,
+        "mean_error_blocks": 20.336129242646123,
+        "random_error_blocks": 16.071380988130446,
+        "directions": {
+          "4_to_5": 0.0,
+          "5_to_4": 0.0
+        },
+        "feature": "repeat_last_frame_layer3",
+        "site_bootstrap_accuracy_95": [
+          0.0,
+          0.0
+        ],
+        "site_bootstrap_error_95": [
+          16.83623698029994,
+          23.704868264882574
+        ],
+        "permutation_p_one_sided": 1.0,
+        "null_accuracy_mean": 0.0622203125,
+        "permutation_p_holm_six": 1
+      },
+      {
+        "heading_difference": 0,
+        "queries": 128,
+        "accuracy": 0.421875,
+        "mean_error_blocks": 7.736760992055489,
+        "random_error_blocks": 16.06558276365529,
+        "directions": {
+          "4_to_5": 0.46875,
+          "5_to_4": 0.375
+        },
+        "feature": "repeat_last_frame_layer3"
+      },
+      {
+        "heading_difference": 90,
+        "queries": 256,
+        "accuracy": 0.1015625,
+        "mean_error_blocks": 15.688166372356653,
+        "random_error_blocks": 16.070660849608345,
+        "directions": {
+          "4_to_5": 0.1171875,
+          "5_to_4": 0.0859375
+        },
+        "feature": "repeat_last_frame_layer3"
+      },
+      {
+        "heading_difference": 180,
+        "queries": 128,
+        "accuracy": 0.015625,
+        "mean_error_blocks": 20.26282647712151,
+        "random_error_blocks": 16.071380988130446,
+        "directions": {
+          "4_to_5": 0.0,
+          "5_to_4": 0.03125
+        },
+        "feature": "repeat_last_frame_layer11",
+        "site_bootstrap_accuracy_95": [
+          0.0,
+          0.0390625
+        ],
+        "site_bootstrap_error_95": [
+          16.912600537812782,
+          23.452687043819882
+        ],
+        "permutation_p_one_sided": 0.9933006699330067,
+        "null_accuracy_mean": 0.0622796875,
+        "permutation_p_holm_six": 1
+      },
+      {
+        "heading_difference": 0,
+        "queries": 128,
+        "accuracy": 0.3515625,
+        "mean_error_blocks": 9.185717215382356,
+        "random_error_blocks": 16.06558276365529,
+        "directions": {
+          "4_to_5": 0.375,
+          "5_to_4": 0.328125
+        },
+        "feature": "repeat_last_frame_layer11"
+      },
+      {
+        "heading_difference": 90,
+        "queries": 256,
+        "accuracy": 0.078125,
+        "mean_error_blocks": 15.909787590761287,
+        "random_error_blocks": 16.070660849608345,
+        "directions": {
+          "4_to_5": 0.1015625,
+          "5_to_4": 0.0546875
+        },
+        "feature": "repeat_last_frame_layer11"
+      },
+      {
+        "heading_difference": 180,
+        "queries": 128,
+        "accuracy": 0.0078125,
+        "mean_error_blocks": 21.2816476155584,
+        "random_error_blocks": 16.071380988130446,
+        "directions": {
+          "4_to_5": 0.015625,
+          "5_to_4": 0.0
+        },
+        "feature": "repeat_last_frame_layer23",
+        "site_bootstrap_accuracy_95": [
+          0.0,
+          0.0234375
+        ],
+        "site_bootstrap_error_95": [
+          17.686900760601336,
+          24.66852234412918
+        ],
+        "permutation_p_one_sided": 0.9911008899110089,
+        "null_accuracy_mean": 0.06198046875,
+        "permutation_p_holm_six": 1
+      },
+      {
+        "heading_difference": 0,
+        "queries": 128,
+        "accuracy": 0.4453125,
+        "mean_error_blocks": 6.625048467161732,
+        "random_error_blocks": 16.06558276365529,
+        "directions": {
+          "4_to_5": 0.421875,
+          "5_to_4": 0.46875
+        },
+        "feature": "repeat_last_frame_layer23"
+      },
+      {
+        "heading_difference": 90,
+        "queries": 256,
+        "accuracy": 0.08203125,
+        "mean_error_blocks": 15.6302440742268,
+        "random_error_blocks": 16.070660849608345,
+        "directions": {
+          "4_to_5": 0.0859375,
+          "5_to_4": 0.078125
+        },
+        "feature": "repeat_last_frame_layer23"
+      }
+    ],
+    "temporal_differences": [
+      {
+        "layer_zero_based": 3,
+        "video_minus_repeat_accuracy": 0.0,
+        "site_bootstrap_95": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "layer_zero_based": 11,
+        "video_minus_repeat_accuracy": 0.015625,
+        "site_bootstrap_95": [
+          -0.015625,
+          0.0546875
+        ]
+      },
+      {
+        "layer_zero_based": 23,
+        "video_minus_repeat_accuracy": 0.015625,
+        "site_bootstrap_95": [
+          -0.015625,
+          0.0546875
+        ]
+      }
+    ]
+  },
+  "scope": "Native-feature tests; raw pixel baseline pending. Site-bootstrap zero-success intervals may be degenerate and do not bound population accuracy."
+}
