@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+<rect width="1600" height="1000" fill="#f5f7fa"/>
+<text x="52" y="63" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#182c43" font-weight="bold" text-anchor="start">Does the same place match when the viewing direction changes?</text>
+<text x="52" y="102" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#55677c" font-weight="normal" text-anchor="start">One Minecraft world • Held-out routes 4 and 5 • Both retrieval directions • 16 candidate sites</text>
+<rect x="52" y="133" width="1496" height="102" rx="14" fill="#e7eef7" stroke="none"/>
+<text x="76" y="171" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#2463b4" font-weight="bold" text-anchor="start">QUERY</text>
+<text x="76" y="207" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#182c43" font-weight="normal" text-anchor="start">16-frame clip on one route</text>
+<text x="470" y="197" font-family="Arial, Helvetica, sans-serif" font-size="35" fill="#55677c" font-weight="normal" text-anchor="start">→</text>
+<text x="535" y="171" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#2463b4" font-weight="bold" text-anchor="start">RETRIEVAL</text>
+<text x="535" y="207" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#182c43" font-weight="normal" text-anchor="start">Choose 1 of 16 sites on the other route</text>
+<text x="1085" y="197" font-family="Arial, Helvetica, sans-serif" font-size="35" fill="#55677c" font-weight="normal" text-anchor="start">→</text>
+<text x="1150" y="171" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#2463b4" font-weight="bold" text-anchor="start">SCORE</text>
+<text x="1150" y="207" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#182c43" font-weight="normal" text-anchor="start">Is it the same site?</text>
+<rect x="52" y="260" width="484" height="620" rx="16" fill="white" stroke="#dce3eb"/>
+<text x="76" y="304" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#182c43" font-weight="bold" text-anchor="start">Same direction</text>
+<text x="512" y="304" font-family="Arial, Helvetica, sans-serif" font-size="29" fill="#2463b4" font-weight="bold" text-anchor="end">0°</text>
+<text x="76" y="341" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="start">Same world position, compared across routes</text>
+<text x="172" y="379" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#2463b4" font-weight="bold" text-anchor="middle">Query route</text>
+<text x="412" y="379" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#cf6829" font-weight="bold" text-anchor="middle">Other route</text>
+<rect x="76" y="396" width="192" height="192" rx="10" fill="#f1f5f0" stroke="#d0dacd"/>
+<circle cx="106" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="106" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="106" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="106" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="150" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="150" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="150" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="150" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="194" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="194" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="194" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="194" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="238" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="238" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="238" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="238" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="150" cy="514" r="12" fill="#2463b4"/>
+<circle cx="150" cy="514" r="8" fill="white"/>
+<polygon points="153.0,500.0 153.0,454.0 147.0,454.0 147.0,500.0" fill="#2463b4"/>
+<polygon points="150.0,454.0 159.0,470.0 141.0,470.0" fill="#2463b4"/>
+<rect x="316" y="396" width="192" height="192" rx="10" fill="#f1f5f0" stroke="#d0dacd"/>
+<circle cx="346" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="346" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="346" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="346" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="390" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="390" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="390" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="390" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="434" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="434" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="434" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="434" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="478" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="478" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="478" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="478" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="390" cy="514" r="12" fill="#cf6829"/>
+<circle cx="390" cy="514" r="8" fill="white"/>
+<polygon points="393.0,500.0 393.0,454.0 387.0,454.0 387.0,500.0" fill="#cf6829"/>
+<polygon points="390.0,454.0 399.0,470.0 381.0,470.0" fill="#cf6829"/>
+<text x="294" y="504" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#55677c" font-weight="normal" text-anchor="middle">↔</text>
+<text x="294" y="620" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="middle">Correct gallery candidate illustrated above</text>
+<text x="294" y="649" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="middle">The test searches all 16 candidates.</text>
+<line x1="76" y1="671" x2="512" y2="671" stroke="#dce3eb" stroke-width="2"/>
+<text x="76" y="709" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#55677c" font-weight="bold" text-anchor="start">CORRECT SITE RETRIEVAL</text>
+<text x="76" y="750" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#182c43" font-weight="normal" text-anchor="start">Pixel matching</text>
+<text x="512" y="750" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#70439c" font-weight="bold" text-anchor="end">93.75%</text>
+<text x="76" y="799" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#182c43" font-weight="normal" text-anchor="start">V-JEPA video</text>
+<text x="512" y="799" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#2463b4" font-weight="bold" text-anchor="end">28.9–40.6%</text>
+<text x="76" y="846" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="start">Video range: blocks 4, 12 and 24</text>
+<rect x="558" y="260" width="484" height="620" rx="16" fill="white" stroke="#dce3eb"/>
+<text x="582" y="304" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#182c43" font-weight="bold" text-anchor="start">Quarter turn</text>
+<text x="1018" y="304" font-family="Arial, Helvetica, sans-serif" font-size="29" fill="#2463b4" font-weight="bold" text-anchor="end">90°</text>
+<text x="582" y="341" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="start">Same world position, compared across routes</text>
+<text x="678" y="379" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#2463b4" font-weight="bold" text-anchor="middle">Query route</text>
+<text x="918" y="379" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#cf6829" font-weight="bold" text-anchor="middle">Other route</text>
+<rect x="582" y="396" width="192" height="192" rx="10" fill="#f1f5f0" stroke="#d0dacd"/>
+<circle cx="612" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="612" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="612" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="612" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="656" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="656" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="656" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="656" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="700" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="700" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="700" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="700" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="744" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="744" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="744" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="744" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="656" cy="514" r="12" fill="#2463b4"/>
+<circle cx="656" cy="514" r="8" fill="white"/>
+<polygon points="659.0,500.0 659.0,454.0 653.0,454.0 653.0,500.0" fill="#2463b4"/>
+<polygon points="656.0,454.0 665.0,470.0 647.0,470.0" fill="#2463b4"/>
+<rect x="822" y="396" width="192" height="192" rx="10" fill="#f1f5f0" stroke="#d0dacd"/>
+<circle cx="852" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="852" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="852" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="852" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="896" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="896" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="896" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="896" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="940" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="940" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="940" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="940" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="984" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="984" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="984" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="984" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="896" cy="514" r="12" fill="#cf6829"/>
+<circle cx="896" cy="514" r="8" fill="white"/>
+<polygon points="910.0,517.0 956.0,517.0 956.0,511.0 910.0,511.0" fill="#cf6829"/>
+<polygon points="956.0,514.0 940.0,523.0 940.0,505.0" fill="#cf6829"/>
+<text x="800" y="504" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#55677c" font-weight="normal" text-anchor="middle">↔</text>
+<text x="800" y="620" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="middle">Correct gallery candidate illustrated above</text>
+<text x="800" y="649" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="middle">The test searches all 16 candidates.</text>
+<line x1="582" y1="671" x2="1018" y2="671" stroke="#dce3eb" stroke-width="2"/>
+<text x="582" y="709" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#55677c" font-weight="bold" text-anchor="start">CORRECT SITE RETRIEVAL</text>
+<text x="582" y="750" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#182c43" font-weight="normal" text-anchor="start">Pixel matching</text>
+<text x="1018" y="750" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#70439c" font-weight="bold" text-anchor="end">0.39%</text>
+<text x="582" y="799" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#182c43" font-weight="normal" text-anchor="start">V-JEPA video</text>
+<text x="1018" y="799" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#2463b4" font-weight="bold" text-anchor="end">8.2–9.0%</text>
+<text x="582" y="846" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="start">Video range: blocks 4, 12 and 24</text>
+<rect x="1064" y="260" width="484" height="620" rx="16" fill="white" stroke="#dce3eb"/>
+<text x="1088" y="304" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#182c43" font-weight="bold" text-anchor="start">Opposite direction</text>
+<text x="1524" y="304" font-family="Arial, Helvetica, sans-serif" font-size="29" fill="#2463b4" font-weight="bold" text-anchor="end">180°</text>
+<text x="1088" y="341" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="start">Same world position, compared across routes</text>
+<text x="1184" y="379" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#2463b4" font-weight="bold" text-anchor="middle">Query route</text>
+<text x="1424" y="379" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#cf6829" font-weight="bold" text-anchor="middle">Other route</text>
+<rect x="1088" y="396" width="192" height="192" rx="10" fill="#f1f5f0" stroke="#d0dacd"/>
+<circle cx="1118" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="1118" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="1118" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="1118" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="1162" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="1162" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="1162" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="1162" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="1206" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="1206" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="1206" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="1206" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="1250" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="1250" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="1250" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="1250" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="1162" cy="514" r="12" fill="#2463b4"/>
+<circle cx="1162" cy="514" r="8" fill="white"/>
+<polygon points="1165.0,500.0 1165.0,454.0 1159.0,454.0 1159.0,500.0" fill="#2463b4"/>
+<polygon points="1162.0,454.0 1171.0,470.0 1153.0,470.0" fill="#2463b4"/>
+<rect x="1328" y="396" width="192" height="192" rx="10" fill="#f1f5f0" stroke="#d0dacd"/>
+<circle cx="1358" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="1358" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="1358" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="1358" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="1402" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="1402" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="1402" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="1402" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="1446" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="1446" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="1446" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="1446" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="1490" cy="426" r="4" fill="#aab7a8"/>
+<circle cx="1490" cy="470" r="4" fill="#aab7a8"/>
+<circle cx="1490" cy="514" r="4" fill="#aab7a8"/>
+<circle cx="1490" cy="558" r="4" fill="#aab7a8"/>
+<circle cx="1402" cy="514" r="12" fill="#cf6829"/>
+<circle cx="1402" cy="514" r="8" fill="white"/>
+<polygon points="1399.0,528.0 1399.0,574.0 1405.0,574.0 1405.0,528.0" fill="#cf6829"/>
+<polygon points="1402.0,574.0 1393.0,558.0 1411.0,558.0" fill="#cf6829"/>
+<text x="1306" y="504" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#55677c" font-weight="normal" text-anchor="middle">↔</text>
+<text x="1306" y="620" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="middle">Correct gallery candidate illustrated above</text>
+<text x="1306" y="649" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="middle">The test searches all 16 candidates.</text>
+<line x1="1088" y1="671" x2="1524" y2="671" stroke="#dce3eb" stroke-width="2"/>
+<text x="1088" y="709" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#55677c" font-weight="bold" text-anchor="start">CORRECT SITE RETRIEVAL</text>
+<text x="1088" y="750" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#182c43" font-weight="normal" text-anchor="start">Pixel matching</text>
+<text x="1524" y="750" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#70439c" font-weight="bold" text-anchor="end">0.00%</text>
+<text x="1088" y="799" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#182c43" font-weight="normal" text-anchor="start">V-JEPA video</text>
+<text x="1524" y="799" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#2463b4" font-weight="bold" text-anchor="end">0.0–3.1%</text>
+<text x="1088" y="846" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="start">Video range: blocks 4, 12 and 24</text>
+<text x="52" y="922" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#182c43" font-weight="bold" text-anchor="start">Chance = 6.25%. No contrastive training here: frozen-feature cosine retrieval vs endpoint-pixel MSE.</text>
+<text x="52" y="956" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#55677c" font-weight="normal" text-anchor="start">Maps are schematics, not recorded trajectories. Arrows show relative viewing directions, not absolute Minecraft yaw.</text>
+<text x="52" y="984" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55677c" font-weight="normal" text-anchor="start">This comparison tests viewpoint robustness; it does not by itself establish a cognitive map. Repeated-frame controls are in the full report.</text>
+</svg>

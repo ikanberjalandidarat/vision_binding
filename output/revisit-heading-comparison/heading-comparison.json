@@ -1,0 +1,198 @@
+{
+  "title": "Within-world place retrieval across headings",
+  "source": "output/revisit-comparison-8977923/comparison.json",
+  "dataset_sha256": "77aaa22f5a6ed290da48bf86676b14cfab5d3ca471a6bd1148a078f135066cac",
+  "protocol_sha256": "8cdfe0b3b6cfa6b097c56e224dc81cc81373d37c94fab766412b1fb1d70a8a53",
+  "schematic": true,
+  "not_contrastive_training": true,
+  "model": "Frozen V-JEPA 2 ViT-L/16",
+  "query_gallery": "Routes 4 and 5, both directions; one gallery item per site at the specified heading offset",
+  "candidates": 16,
+  "chance_accuracy": 0.0625,
+  "rows": [
+    {
+      "heading_difference_degrees": 0,
+      "label": "Same direction",
+      "queries": 128,
+      "pixel_matching": {
+        "feature": "masked_endpoint_rgb_32x20",
+        "heading_difference": 0,
+        "queries": 128,
+        "accuracy": 0.9375,
+        "mean_error_blocks": 0.6823173469324857,
+        "random_error_blocks": 16.06558276365529,
+        "directions": {
+          "4_to_5": 0.9375,
+          "5_to_4": 0.9375
+        }
+      },
+      "video_layers": [
+        {
+          "feature": "video_layer3",
+          "heading_difference": 0,
+          "queries": 128,
+          "accuracy": 0.40625,
+          "mean_error_blocks": 8.052435051942993,
+          "random_error_blocks": 16.06558276365529,
+          "directions": {
+            "4_to_5": 0.375,
+            "5_to_4": 0.4375
+          }
+        },
+        {
+          "feature": "video_layer11",
+          "heading_difference": 0,
+          "queries": 128,
+          "accuracy": 0.2890625,
+          "mean_error_blocks": 8.091424826789632,
+          "random_error_blocks": 16.06558276365529,
+          "directions": {
+            "4_to_5": 0.234375,
+            "5_to_4": 0.34375
+          }
+        },
+        {
+          "feature": "video_layer23",
+          "heading_difference": 0,
+          "queries": 128,
+          "accuracy": 0.3203125,
+          "mean_error_blocks": 8.692316176072012,
+          "random_error_blocks": 16.06558276365529,
+          "directions": {
+            "4_to_5": 0.296875,
+            "5_to_4": 0.34375
+          }
+        }
+      ],
+      "video_accuracy_range": [
+        0.2890625,
+        0.40625
+      ]
+    },
+    {
+      "heading_difference_degrees": 90,
+      "label": "Quarter turn",
+      "queries": 256,
+      "pixel_matching": {
+        "feature": "masked_endpoint_rgb_32x20",
+        "heading_difference": 90,
+        "queries": 256,
+        "accuracy": 0.00390625,
+        "mean_error_blocks": 16.708443584120907,
+        "random_error_blocks": 16.070660849608345,
+        "directions": {
+          "4_to_5": 0.0078125,
+          "5_to_4": 0.0
+        }
+      },
+      "video_layers": [
+        {
+          "feature": "video_layer3",
+          "heading_difference": 90,
+          "queries": 256,
+          "accuracy": 0.08203125,
+          "mean_error_blocks": 15.676842468310742,
+          "random_error_blocks": 16.070660849608345,
+          "directions": {
+            "4_to_5": 0.078125,
+            "5_to_4": 0.0859375
+          }
+        },
+        {
+          "feature": "video_layer11",
+          "heading_difference": 90,
+          "queries": 256,
+          "accuracy": 0.08984375,
+          "mean_error_blocks": 15.877994551309436,
+          "random_error_blocks": 16.070660849608345,
+          "directions": {
+            "4_to_5": 0.0859375,
+            "5_to_4": 0.09375
+          }
+        },
+        {
+          "feature": "video_layer23",
+          "heading_difference": 90,
+          "queries": 256,
+          "accuracy": 0.0859375,
+          "mean_error_blocks": 15.504476495219382,
+          "random_error_blocks": 16.070660849608345,
+          "directions": {
+            "4_to_5": 0.0859375,
+            "5_to_4": 0.0859375
+          }
+        }
+      ],
+      "video_accuracy_range": [
+        0.08203125,
+        0.08984375
+      ]
+    },
+    {
+      "heading_difference_degrees": 180,
+      "label": "Opposite direction",
+      "queries": 128,
+      "pixel_matching": {
+        "feature": "masked_endpoint_rgb_32x20",
+        "heading_difference": 180,
+        "queries": 128,
+        "accuracy": 0.0,
+        "mean_error_blocks": 23.573378669478874,
+        "random_error_blocks": 16.071380988130446,
+        "directions": {
+          "4_to_5": 0.0,
+          "5_to_4": 0.0
+        }
+      },
+      "video_layers": [
+        {
+          "feature": "video_layer3",
+          "heading_difference": 180,
+          "queries": 128,
+          "accuracy": 0.0,
+          "mean_error_blocks": 21.13018001786782,
+          "random_error_blocks": 16.071380988130446,
+          "directions": {
+            "4_to_5": 0.0,
+            "5_to_4": 0.0
+          }
+        },
+        {
+          "feature": "video_layer11",
+          "heading_difference": 180,
+          "queries": 128,
+          "accuracy": 0.03125,
+          "mean_error_blocks": 21.95404664958926,
+          "random_error_blocks": 16.071380988130446,
+          "directions": {
+            "4_to_5": 0.015625,
+            "5_to_4": 0.046875
+          }
+        },
+        {
+          "feature": "video_layer23",
+          "heading_difference": 180,
+          "queries": 128,
+          "accuracy": 0.0234375,
+          "mean_error_blocks": 21.428910001613644,
+          "random_error_blocks": 16.071380988130446,
+          "directions": {
+            "4_to_5": 0.015625,
+            "5_to_4": 0.03125
+          }
+        }
+      ],
+      "video_accuracy_range": [
+        0.0,
+        0.03125
+      ]
+    }
+  ],
+  "notes": [
+    "90-degree results combine +90 and -90 offsets.",
+    "Site coordinates are used to score choices, not supplied to the encoder.",
+    "Accuracy ranges show layer minima/maxima, not confidence intervals.",
+    "Pixel resolution 32x20 was specified after feature inspection; no sweep.",
+    "Schematic arrows show relative headings. Correct candidate illustrated, not necessarily the actual retrieved candidate."
+  ]
+}
