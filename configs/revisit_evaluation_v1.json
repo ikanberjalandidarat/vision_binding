@@ -1,0 +1,19 @@
+{
+  "protocol": "revisit_evaluation_v1",
+  "frames": 16,
+  "tick_step": 8,
+  "layers_zero_based": [3, 11, 23],
+  "conditions": ["video", "repeat_last_frame"],
+  "mask_fill_rgb": 127,
+  "mask_rectangles_xyxy_fraction": [[0, 0, 1, 0.16], [0, 0.88, 1, 1], [0.62, 0.58, 1, 1], [0.48, 0.48, 0.52, 0.52]],
+  "mask_reason": "Fixed screen-space top tutorial band, hotbar, lower-right hand and central crosshair; applied before official preprocessing identically for both conditions. Removes some scene pixels too.",
+  "route_splits": {"train": [0, 1], "validation": [2, 3], "test": [4, 5]},
+  "primary": "Native cosine retrieval between routes 4 and 5 in both directions; query and gallery target headings differ by exactly 180 degrees. One gallery endpoint per site. Report all three layers, no test-based layer selection.",
+  "metrics": ["site top-1 accuracy (uniform random expectation 1/16)", "measured XZ retrieval error", "held-out latent-distance versus XZ distance Spearman association"],
+  "secondary": "Report same-heading and 90-degree retrieval separately. For geometry use distinct site pairs and stratify heading differences; do not count duplicate/reversed pairs as independent observations.",
+  "controls": ["repeated last frame at every layer", "masked endpoint RGB distance", "uniform gallery selection", "site-label permutation within route/heading retaining all repeats of each site together"],
+  "ambiguity": "Train-route pixel-MSE ranking is exploratory screening only. Report all sites in primary analysis; any ambiguity subset must be recorded using training images before test feature analysis.",
+  "supervised_followup": "Train routes 0/1 only, select settings on routes 2/3 only; freeze settings before routes 4/5. No supervised fitting in extraction.",
+  "uncertainty": "Report per-site and per-direction results; any bootstrap resamples sites as clusters and is conditional on this single world and fixed routes. Do not claim independent thousands of pairs or population-level route generalization.",
+  "claim_scope": "Known-site cross-route/view generalization within one world; no persistent memory, grid/place cells or navigation claim. Shared final approaches and available distant landmarks are confounds."
+}

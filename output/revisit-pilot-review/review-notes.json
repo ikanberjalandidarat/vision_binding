@@ -1,0 +1,44 @@
+{
+  "state": "local_review_complete_with_pre_extraction_conditions",
+  "source": "runs/oscar/revisit-pilot-review/summary.json",
+  "raw_frames": 47054,
+  "visits": 384,
+  "evidence_scope": "Read Oscar audit summary and audit implementation; inspected all six measured path maps, training-route 0/1 endpoint sheets, and 12 sampled frames from three training GIF segments. Raw PNGs and visit metadata are not in this local review package. Did not rerun raw hashes locally or inspect model features.",
+  "coverage": [
+    {
+      "split": "train",
+      "near_pairs": 256,
+      "far_pairs": 3840,
+      "near_opposite_heading_pairs": 135
+    },
+    {
+      "split": "validation",
+      "near_pairs": 256,
+      "far_pairs": 3840,
+      "near_opposite_heading_pairs": 134
+    },
+    {
+      "split": "test",
+      "near_pairs": 256,
+      "far_pairs": 3840,
+      "near_opposite_heading_pairs": 143
+    }
+  ],
+  "raw_hash_check": "Passed on Oscar according to supplied summary",
+  "findings": [
+    "All six routes have all 64 site/heading targets; total 384 visits.",
+    "Route patterns differ globally; final four-block approaches are deliberately shared for each site/heading. Distinct route IDs do not establish distinct recent visual context.",
+    "Repeated floor motifs and similar distant views are visible; pillars, platform edges and perspective still identify locations.",
+    "Tutorial toast is visible in first sampled training frame; hand, crosshair and hotbar are visible. Determine whether toast enters evaluated clips and apply a fixed documented UI mask consistently to temporal and repeated-frame inputs.",
+    "Site grid spacing is eight blocks; near pairs primarily test same-site revisits, not continuous fine-scale neighborhood structure.",
+    "Pairs reuse 16 sites and six routes; pair counts are not independent sample counts."
+  ],
+  "next_gates": [
+    "Verify exact endpoint clip membership and recent-context diversity from visits.json/frames.json on Oscar.",
+    "Freeze preprocessing/UI masks, layer reporting, appearance controls, and train/validation/test protocol before inspecting test feature results.",
+    "Evaluate native cross-route cross-heading recognition against repeated-frame and pixel-appearance baselines; train supervised heads only on train routes, tune only on validation routes.",
+    "Report exact-180-degree target-heading pairs separately from near-90-degree actual-heading pairs to avoid threshold jitter."
+  ],
+  "claim_scope": "Suitable for a controlled within-world, known-site cross-route/view pilot after preprocessing gates. No cognitive map or temporal advantage established.",
+  "user_review_status": "not_overridden"
+}

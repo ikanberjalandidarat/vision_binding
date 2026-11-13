@@ -120,7 +120,23 @@ def extract_command(a):
     commit = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
     if subprocess.check_output(["git", "-C", str(repo), "status", "--porcelain"], text=True).strip():
         raise ValueError("Use a clean official V-JEPA checkout for provenance")
-    if (root / "sequences.json").exists():
+    revisit = (root / 'route-0/specification.json').exists()
+    if revisit:
+        from .revisit_video import load_revisits, mask_ui, protocol
+        if not a.verification:
+            raise ValueError('Revisit extraction requires completed clip verification')
+        windows, dataset_provenance = load_revisits(root)
+        verification = json.loads(Path(a.verification).read_text())
+        if (verification.get('state') != 'complete' or not verification.get('raw_png_hashes_verified')
+                or verification.get('dataset_sha256') != dataset_provenance['dataset_sha256']
+                or verification.get('protocol_sha256') != dataset_provenance['protocol_sha256']
+                or verification.get('clips') != 384):
+            raise ValueError('Revisit verification does not match data/protocol')
+        if a.frames != 16 or a.layers != '3,11,23':
+            raise ValueError('Use the frozen revisit frame/layer settings')
+        dataset_provenance['verification_report_sha256'] = sha256(a.verification)
+        dataset_provenance['evaluation_protocol'] = protocol()
+    elif (root / "sequences.json").exists():
         if a.verification:
             raise ValueError("Verification report is only for the diverse-v2 dataset")
         entries = json.loads((root / "sequences.json").read_text())
@@ -138,7 +154,8 @@ def extract_command(a):
             raise ValueError("Verification report missing, incomplete or from different dataset metadata")
         dataset_provenance["raw_png_hashes_verified"] = True
         dataset_provenance["verification_report_sha256"] = sha256(a.verification)
-    windows = list(clips(entries, a.frames, a.frames))
+    if not revisit:
+        windows = list(clips(entries, a.frames, a.frames))
     if not windows:
         raise ValueError("No eligible video clips")
     if a.smoke:
@@ -173,7 +190,7 @@ def extract_command(a):
         atomic_json(out / "manifest.json", dict(
             model="V-JEPA 2 ViT-L/16", frozen=True, repo_commit=commit,
             checkpoint_sha256=sha256(a.checkpoint), **dataset_provenance,
-            clip_protocol="exact_spacing_any_phase_v2",
+            clip_protocol="revisit_endpoint_v1" if revisit else "exact_spacing_any_phase_v2",
             layers_zero_based=layers, frames=a.frames, tick_step=8, label="last frame X,Z",
             extraction="raw block output; mean of spatial tokens in final temporal tubelet",
             conditions=["video", "repeat_last_frame"], tokens=a.tokens,
@@ -191,7 +208,10 @@ def extract_command(a):
                 with Image.open(path) as image:
                     pixels = np.array(image.convert("RGB"))
                 # Fixed HUD mask; no pose-dependent crop and no coordinates.
-                pixels[int(.88 * len(pixels)):] = 127
+                if revisit:
+                    pixels = mask_ui(pixels)
+                else:
+                    pixels[int(.88 * len(pixels)):] = 127
                 images.append(pixels)
             payload = {}
             for condition, buffer in [("video", images), ("repeat_last_frame", [images[-1]] * a.frames)]:
@@ -202,6 +222,8 @@ def extract_command(a):
                 for layer, value in values.items():
                     if tuple(value.shape) != (1, a.frames // 2 * 256, 1024):
                         raise ValueError(f"Unexpected ViT-L token shape {value.shape}")
+                    if not torch.isfinite(value).all():
+                        raise ValueError('Nonfinite encoder activations')
                     grid = value.reshape(a.frames // 2, 16, 16, 1024)
                     payload[f"{condition}_layer{layer}"] = grid[-1].mean((0, 1)).numpy()
                     if a.tokens and condition == "video":
