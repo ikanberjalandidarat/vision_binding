@@ -1,0 +1,12 @@
+{
+  "image": "training-vs-heldout.png",
+  "data": "figure-data.json",
+  "source_report": "/Users/lianfei/Documents/RES/Minecraft-Binding/runs/oscar/spatial-geometry-fit-audit-8967118/report.json",
+  "aggregation": "Seeds fixed to 0; mean over route directions within world, then equal mean of eight worlds",
+  "limits": [
+    "Test errors plotted for diagnosis only; no test-based tuning or checkpoint selection",
+    "Only seed 0; other settings match original pilot",
+    "Synthetic positive controls are NON-MINECRAFT; not evidence of real spatial information",
+    "For shifted-label fits, training error is measured against shifted labels; held-out labels stay correct"
+  ]
+}

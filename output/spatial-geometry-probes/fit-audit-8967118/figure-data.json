@@ -1,0 +1,2640 @@
+{
+  "job": 8967118,
+  "state": "reviewed",
+  "aggregation": "Seeds fixed to 0; mean over route directions within world, then equal mean of eight worlds",
+  "prior_reproduction_max_mae_difference": 0.0,
+  "positive_controls": {
+    "label": "NON-MINECRAFT synthetic linear spatial embedding; not a real model gate",
+    "curves": {
+      "ridge": [
+        {
+          "step": 0,
+          "train": {
+            "distance_mae": 0.13198194468919236,
+            "distance_rmse": 0.15041044638834158,
+            "coordinate_mae": 0.094806705745802
+          },
+          "heldout": {
+            "distance_mae": 0.15228250287188172,
+            "distance_rmse": 0.17778114661622274,
+            "coordinate_mae": 0.10630258008655546
+          }
+        }
+      ],
+      "orth": [
+        {
+          "step": 0,
+          "train": {
+            "distance_mae": 2.77909753335683,
+            "distance_rmse": 3.494040882392575
+          },
+          "heldout": {
+            "distance_mae": 2.8583973592662546,
+            "distance_rmse": 3.8242528771856295
+          }
+        },
+        {
+          "step": 10,
+          "train": {
+            "distance_mae": 2.3318689941174577,
+            "distance_rmse": 2.950806583352032
+          },
+          "heldout": {
+            "distance_mae": 2.889702744241362,
+            "distance_rmse": 3.8564246285735915
+          }
+        },
+        {
+          "step": 50,
+          "train": {
+            "distance_mae": 0.8897563681437836,
+            "distance_rmse": 1.1621285276897757
+          },
+          "heldout": {
+            "distance_mae": 1.6225212577382508,
+            "distance_rmse": 2.27497994930669
+          }
+        },
+        {
+          "step": 100,
+          "train": {
+            "distance_mae": 0.09574288790915272,
+            "distance_rmse": 0.12243512378858533
+          },
+          "heldout": {
+            "distance_mae": 0.16120122791969058,
+            "distance_rmse": 0.19984488054342525
+          }
+        },
+        {
+          "step": 200,
+          "train": {
+            "distance_mae": 0.0002600620662174262,
+            "distance_rmse": 0.00032643652863004793
+          },
+          "heldout": {
+            "distance_mae": 0.0004418451597618743,
+            "distance_rmse": 0.0005423505400609213
+          }
+        },
+        {
+          "step": 500,
+          "train": {
+            "distance_mae": 0.00035375842234909723,
+            "distance_rmse": 0.00039823164055206856
+          },
+          "heldout": {
+            "distance_mae": 0.00034809531521493866,
+            "distance_rmse": 0.0003933732222508743
+          }
+        },
+        {
+          "step": 1000,
+          "train": {
+            "distance_mae": 4.850376089512357e-06,
+            "distance_rmse": 5.45858177980627e-06
+          },
+          "heldout": {
+            "distance_mae": 4.772608274188978e-06,
+            "distance_rmse": 5.394322868168287e-06
+          }
+        }
+      ],
+      "linear_metric": [
+        {
+          "step": 0,
+          "train": {
+            "distance_mae": 2.77909753335683,
+            "distance_rmse": 3.494040882392575
+          },
+          "heldout": {
+            "distance_mae": 2.8583973592662546,
+            "distance_rmse": 3.8242528771856295
+          }
+        },
+        {
+          "step": 10,
+          "train": {
+            "distance_mae": 1.7463286951809984,
+            "distance_rmse": 2.280064281097117
+          },
+          "heldout": {
+            "distance_mae": 2.6501822616303605,
+            "distance_rmse": 3.535152981598746
+          }
+        },
+        {
+          "step": 50,
+          "train": {
+            "distance_mae": 0.24306730407672938,
+            "distance_rmse": 0.3056823435677493
+          },
+          "heldout": {
+            "distance_mae": 0.22017733240964849,
+            "distance_rmse": 0.27888740241388965
+          }
+        },
+        {
+          "step": 100,
+          "train": {
+            "distance_mae": 0.015548808699309934,
+            "distance_rmse": 0.020081846184378586
+          },
+          "heldout": {
+            "distance_mae": 0.025353347639061802,
+            "distance_rmse": 0.033227637871395224
+          }
+        },
+        {
+          "step": 200,
+          "train": {
+            "distance_mae": 0.0026869069952188147,
+            "distance_rmse": 0.0031776002748554995
+          },
+          "heldout": {
+            "distance_mae": 0.0035960500489015798,
+            "distance_rmse": 0.004382084801276688
+          }
+        },
+        {
+          "step": 500,
+          "train": {
+            "distance_mae": 0.0026963879302453024,
+            "distance_rmse": 0.003190695257904138
+          },
+          "heldout": {
+            "distance_mae": 0.0036331319612730754,
+            "distance_rmse": 0.00445629778053568
+          }
+        },
+        {
+          "step": 1000,
+          "train": {
+            "distance_mae": 0.002696387934168269,
+            "distance_rmse": 0.003190695261821376
+          },
+          "heldout": {
+            "distance_mae": 0.003633131966155273,
+            "distance_rmse": 0.004456297784559507
+          }
+        }
+      ]
+    }
+  },
+  "summary": [
+    {
+      "block": 4,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321292,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321293,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321292,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321293,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "ridge",
+      "k": 2,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.08760087620203508,
+          "heldout_mae": 7.355368731703151
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "ridge",
+      "k": 2,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.08778895377589871,
+          "heldout_mae": 7.631778970596722
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "ridge",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.128317483826443,
+          "heldout_mae": 7.951162634913628
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "ridge",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.12653376264048297,
+          "heldout_mae": 8.00481831455166
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 2,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.525114801483876,
+          "heldout_mae": 7.677183568656005
+        },
+        {
+          "step": 10,
+          "train_mae": 6.197199613329893,
+          "heldout_mae": 8.13424527244999
+        },
+        {
+          "step": 50,
+          "train_mae": 1.0533562922269006,
+          "heldout_mae": 7.633842779681363
+        },
+        {
+          "step": 100,
+          "train_mae": 0.44521061693658104,
+          "heldout_mae": 7.615495283095882
+        },
+        {
+          "step": 200,
+          "train_mae": 0.3647029097699305,
+          "heldout_mae": 7.604954362497944
+        },
+        {
+          "step": 500,
+          "train_mae": 0.44677624867318066,
+          "heldout_mae": 7.61782457868911
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.4960104936534125,
+          "heldout_mae": 7.695915676048365
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 2,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.484289167794423,
+          "heldout_mae": 7.669582586638554
+        },
+        {
+          "step": 10,
+          "train_mae": 5.911274610983273,
+          "heldout_mae": 7.756381790124724
+        },
+        {
+          "step": 50,
+          "train_mae": 1.0338653539568037,
+          "heldout_mae": 7.663859133635207
+        },
+        {
+          "step": 100,
+          "train_mae": 0.21259230919778901,
+          "heldout_mae": 7.756476503204777
+        },
+        {
+          "step": 200,
+          "train_mae": 0.14482094823629452,
+          "heldout_mae": 7.762594263641828
+        },
+        {
+          "step": 500,
+          "train_mae": 0.22323349296390047,
+          "heldout_mae": 7.792396998487701
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.14226097944297567,
+          "heldout_mae": 7.799939616033471
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.619190937959177,
+          "heldout_mae": 8.054667227881577
+        },
+        {
+          "step": 10,
+          "train_mae": 5.8803190327690755,
+          "heldout_mae": 7.811873793182044
+        },
+        {
+          "step": 50,
+          "train_mae": 1.2207801762719854,
+          "heldout_mae": 7.920384590718745
+        },
+        {
+          "step": 100,
+          "train_mae": 0.45836596103170707,
+          "heldout_mae": 7.923887497425376
+        },
+        {
+          "step": 200,
+          "train_mae": 0.1866930463044843,
+          "heldout_mae": 7.982833082680147
+        },
+        {
+          "step": 500,
+          "train_mae": 0.21322076813163032,
+          "heldout_mae": 8.01675810058071
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.22715415311043283,
+          "heldout_mae": 7.983826318134309
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.538588603618628,
+          "heldout_mae": 8.05057768087426
+        },
+        {
+          "step": 10,
+          "train_mae": 5.906388869383936,
+          "heldout_mae": 8.00656827992632
+        },
+        {
+          "step": 50,
+          "train_mae": 1.2146114834071218,
+          "heldout_mae": 7.636342978605093
+        },
+        {
+          "step": 100,
+          "train_mae": 0.2940895234466692,
+          "heldout_mae": 7.9955188869354785
+        },
+        {
+          "step": 200,
+          "train_mae": 0.15574953177165046,
+          "heldout_mae": 8.054836275134495
+        },
+        {
+          "step": 500,
+          "train_mae": 0.18769911330417546,
+          "heldout_mae": 8.040008036905743
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.08722083298311886,
+          "heldout_mae": 8.039034934541132
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 8,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.6643321887562585,
+          "heldout_mae": 7.258449751096643
+        },
+        {
+          "step": 10,
+          "train_mae": 3.5042978486909333,
+          "heldout_mae": 6.722036468697877
+        },
+        {
+          "step": 50,
+          "train_mae": 0.6480511415727798,
+          "heldout_mae": 6.887909311037431
+        },
+        {
+          "step": 100,
+          "train_mae": 0.30379960048476934,
+          "heldout_mae": 6.935088130643693
+        },
+        {
+          "step": 200,
+          "train_mae": 0.18118578781415748,
+          "heldout_mae": 6.927083371013122
+        },
+        {
+          "step": 500,
+          "train_mae": 0.25659734696115843,
+          "heldout_mae": 6.925473811785833
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.4163318685866911,
+          "heldout_mae": 6.910750878667647
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 8,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.707287382752268,
+          "heldout_mae": 7.2905898465439485
+        },
+        {
+          "step": 10,
+          "train_mae": 3.2649633447408046,
+          "heldout_mae": 6.401966064588608
+        },
+        {
+          "step": 50,
+          "train_mae": 0.7235670961766761,
+          "heldout_mae": 6.913382918642647
+        },
+        {
+          "step": 100,
+          "train_mae": 0.5063116285351051,
+          "heldout_mae": 6.922219898473779
+        },
+        {
+          "step": 200,
+          "train_mae": 0.15261257440241982,
+          "heldout_mae": 6.972480739931854
+        },
+        {
+          "step": 500,
+          "train_mae": 0.23960433961762118,
+          "heldout_mae": 6.922210640076858
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.3446391282837757,
+          "heldout_mae": 6.966606443023085
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.124378487464952,
+          "heldout_mae": 7.861207474553616
+        },
+        {
+          "step": 10,
+          "train_mae": 3.428802286238735,
+          "heldout_mae": 7.093004464163684
+        },
+        {
+          "step": 50,
+          "train_mae": 1.1781307170121362,
+          "heldout_mae": 7.029650244640577
+        },
+        {
+          "step": 100,
+          "train_mae": 0.7259847305466278,
+          "heldout_mae": 7.093713075945923
+        },
+        {
+          "step": 200,
+          "train_mae": 0.6881371922649931,
+          "heldout_mae": 7.1551380585433275
+        },
+        {
+          "step": 500,
+          "train_mae": 0.9374535826827582,
+          "heldout_mae": 7.343811531987527
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.47346466345210203,
+          "heldout_mae": 7.271564807023537
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.06099523844133,
+          "heldout_mae": 7.860101417149561
+        },
+        {
+          "step": 10,
+          "train_mae": 3.5364338109588216,
+          "heldout_mae": 6.9642736118115565
+        },
+        {
+          "step": 50,
+          "train_mae": 1.1557005849893436,
+          "heldout_mae": 7.447648129636947
+        },
+        {
+          "step": 100,
+          "train_mae": 0.6882692723458745,
+          "heldout_mae": 7.477870704865338
+        },
+        {
+          "step": 200,
+          "train_mae": 0.4383757747133735,
+          "heldout_mae": 7.421073536733903
+        },
+        {
+          "step": 500,
+          "train_mae": 0.3144669595453875,
+          "heldout_mae": 7.511796969511691
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.7693384990860411,
+          "heldout_mae": 7.391617970668694
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.525114801483875,
+          "heldout_mae": 7.677183568656005
+        },
+        {
+          "step": 10,
+          "train_mae": 15.520365394257336,
+          "heldout_mae": 10.508872577457122
+        },
+        {
+          "step": 50,
+          "train_mae": 2.0815778891379457,
+          "heldout_mae": 7.594609148167569
+        },
+        {
+          "step": 100,
+          "train_mae": 0.2682664676192302,
+          "heldout_mae": 7.58098656125729
+        },
+        {
+          "step": 200,
+          "train_mae": 0.1736691623706098,
+          "heldout_mae": 7.5637083437079955
+        },
+        {
+          "step": 500,
+          "train_mae": 2.0386741433403115,
+          "heldout_mae": 7.631491351588215
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.10624042587606525,
+          "heldout_mae": 7.467526442007767
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.484289167794423,
+          "heldout_mae": 7.669582586638554
+        },
+        {
+          "step": 10,
+          "train_mae": 14.691874181600486,
+          "heldout_mae": 11.470839137327825
+        },
+        {
+          "step": 50,
+          "train_mae": 2.417403590740589,
+          "heldout_mae": 7.495409864222017
+        },
+        {
+          "step": 100,
+          "train_mae": 0.6676981423105063,
+          "heldout_mae": 7.527942045051342
+        },
+        {
+          "step": 200,
+          "train_mae": 0.4657328759632335,
+          "heldout_mae": 7.511519979564189
+        },
+        {
+          "step": 500,
+          "train_mae": 0.49325664952515824,
+          "heldout_mae": 7.520545738182075
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.9740990291649825,
+          "heldout_mae": 7.543910478903898
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.619190937959177,
+          "heldout_mae": 8.054667227881577
+        },
+        {
+          "step": 10,
+          "train_mae": 15.23864837338042,
+          "heldout_mae": 12.88514021423352
+        },
+        {
+          "step": 50,
+          "train_mae": 2.784314744255206,
+          "heldout_mae": 7.4704330092199145
+        },
+        {
+          "step": 100,
+          "train_mae": 0.5260929138405193,
+          "heldout_mae": 7.891830177611491
+        },
+        {
+          "step": 200,
+          "train_mae": 0.1053340302854218,
+          "heldout_mae": 8.03852642668646
+        },
+        {
+          "step": 500,
+          "train_mae": 0.35123474127367466,
+          "heldout_mae": 7.908686012042341
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.5651735032224587,
+          "heldout_mae": 7.960093927277063
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.538588603618628,
+          "heldout_mae": 8.050577680874262
+        },
+        {
+          "step": 10,
+          "train_mae": 13.567596782880457,
+          "heldout_mae": 11.087666414683998
+        },
+        {
+          "step": 50,
+          "train_mae": 2.7414647522053683,
+          "heldout_mae": 7.1906520390708035
+        },
+        {
+          "step": 100,
+          "train_mae": 0.3732423239778405,
+          "heldout_mae": 7.724487425500747
+        },
+        {
+          "step": 200,
+          "train_mae": 0.15826685271556734,
+          "heldout_mae": 7.712357232690866
+        },
+        {
+          "step": 500,
+          "train_mae": 0.8529378697491177,
+          "heldout_mae": 7.817986874878089
+        },
+        {
+          "step": 1000,
+          "train_mae": 2.553969499392047,
+          "heldout_mae": 8.807991175720355
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.66433218875626,
+          "heldout_mae": 7.258449751096643
+        },
+        {
+          "step": 10,
+          "train_mae": 43.37658040518966,
+          "heldout_mae": 28.254408808370787
+        },
+        {
+          "step": 50,
+          "train_mae": 3.2535181476421773,
+          "heldout_mae": 6.659681487791991
+        },
+        {
+          "step": 100,
+          "train_mae": 0.17639809852350616,
+          "heldout_mae": 6.519223445803407
+        },
+        {
+          "step": 200,
+          "train_mae": 0.01116738709621355,
+          "heldout_mae": 6.544285713185536
+        },
+        {
+          "step": 500,
+          "train_mae": 0.00728867760706222,
+          "heldout_mae": 6.597427414311172
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.30184688231390594,
+          "heldout_mae": 6.622943634011442
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.70728738275227,
+          "heldout_mae": 7.290589846543947
+        },
+        {
+          "step": 10,
+          "train_mae": 43.483237206587134,
+          "heldout_mae": 30.109473572059468
+        },
+        {
+          "step": 50,
+          "train_mae": 3.2022973526750937,
+          "heldout_mae": 6.266937201060623
+        },
+        {
+          "step": 100,
+          "train_mae": 0.1885557223383432,
+          "heldout_mae": 6.578478764048832
+        },
+        {
+          "step": 200,
+          "train_mae": 0.011989964608279979,
+          "heldout_mae": 6.629538042805361
+        },
+        {
+          "step": 500,
+          "train_mae": 0.006447411739089966,
+          "heldout_mae": 6.656664087144949
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.03873264312407831,
+          "heldout_mae": 6.676989793511038
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.124378487464951,
+          "heldout_mae": 7.861207474553617
+        },
+        {
+          "step": 10,
+          "train_mae": 36.15802158338915,
+          "heldout_mae": 25.406965626419947
+        },
+        {
+          "step": 50,
+          "train_mae": 3.379380174973388,
+          "heldout_mae": 6.880637179731798
+        },
+        {
+          "step": 100,
+          "train_mae": 0.21832754819433925,
+          "heldout_mae": 7.2751266368633285
+        },
+        {
+          "step": 200,
+          "train_mae": 0.016723792635329554,
+          "heldout_mae": 7.323568925033447
+        },
+        {
+          "step": 500,
+          "train_mae": 0.008908534147438864,
+          "heldout_mae": 7.314721233795033
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.04688344881963693,
+          "heldout_mae": 7.319826159515946
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.060995238441331,
+          "heldout_mae": 7.860101417149563
+        },
+        {
+          "step": 10,
+          "train_mae": 37.85242796438538,
+          "heldout_mae": 26.821617289048795
+        },
+        {
+          "step": 50,
+          "train_mae": 3.4494706988030424,
+          "heldout_mae": 6.907574094267304
+        },
+        {
+          "step": 100,
+          "train_mae": 0.22612573953060003,
+          "heldout_mae": 7.282247669346655
+        },
+        {
+          "step": 200,
+          "train_mae": 0.0153549151454671,
+          "heldout_mae": 7.300971971866818
+        },
+        {
+          "step": 500,
+          "train_mae": 0.008433934635882972,
+          "heldout_mae": 7.324501490689684
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.041799282170786774,
+          "heldout_mae": 7.416403495971687
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321292,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321293,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321292,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321293,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "ridge",
+      "k": 2,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.031031907579815585,
+          "heldout_mae": 7.621403339796882
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "ridge",
+      "k": 2,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.03079240710337507,
+          "heldout_mae": 7.794747633888954
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "ridge",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.057755143071333594,
+          "heldout_mae": 7.829265183396025
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "ridge",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.05131433734143728,
+          "heldout_mae": 7.5958645731630785
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 2,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.389990872396939,
+          "heldout_mae": 8.03064666461477
+        },
+        {
+          "step": 10,
+          "train_mae": 6.755806974647732,
+          "heldout_mae": 8.44191706648012
+        },
+        {
+          "step": 50,
+          "train_mae": 1.089106589046568,
+          "heldout_mae": 7.981405760059437
+        },
+        {
+          "step": 100,
+          "train_mae": 0.28219396466879576,
+          "heldout_mae": 7.9667652606341
+        },
+        {
+          "step": 200,
+          "train_mae": 0.14992135737991813,
+          "heldout_mae": 7.954218620755358
+        },
+        {
+          "step": 500,
+          "train_mae": 0.14692963632203376,
+          "heldout_mae": 7.9680318879288485
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.6766012607612797,
+          "heldout_mae": 7.9013691328021896
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 2,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.798050382688022,
+          "heldout_mae": 7.98953344511628
+        },
+        {
+          "step": 10,
+          "train_mae": 6.585093604466595,
+          "heldout_mae": 7.830901682119191
+        },
+        {
+          "step": 50,
+          "train_mae": 1.2567135152660596,
+          "heldout_mae": 7.370469744066132
+        },
+        {
+          "step": 100,
+          "train_mae": 0.4902747497083924,
+          "heldout_mae": 7.356364807238835
+        },
+        {
+          "step": 200,
+          "train_mae": 0.3540303256765688,
+          "heldout_mae": 7.390002060284475
+        },
+        {
+          "step": 500,
+          "train_mae": 0.35296351220682587,
+          "heldout_mae": 7.39717599977247
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.3950451827469159,
+          "heldout_mae": 7.476176600490178
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.044909205533864,
+          "heldout_mae": 9.127218532866747
+        },
+        {
+          "step": 10,
+          "train_mae": 13.076024920243151,
+          "heldout_mae": 11.632946652280182
+        },
+        {
+          "step": 50,
+          "train_mae": 2.5373767460819834,
+          "heldout_mae": 8.30995939365818
+        },
+        {
+          "step": 100,
+          "train_mae": 0.48470757954635435,
+          "heldout_mae": 8.610471248000408
+        },
+        {
+          "step": 200,
+          "train_mae": 0.17590106092699753,
+          "heldout_mae": 8.64068276552647
+        },
+        {
+          "step": 500,
+          "train_mae": 0.07451252096585781,
+          "heldout_mae": 8.621329985021099
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.14420390455096194,
+          "heldout_mae": 8.525946353158606
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.917324938924789,
+          "heldout_mae": 9.048016844869236
+        },
+        {
+          "step": 10,
+          "train_mae": 11.97673424130623,
+          "heldout_mae": 11.34541770985216
+        },
+        {
+          "step": 50,
+          "train_mae": 2.5244073180323663,
+          "heldout_mae": 7.964753078094555
+        },
+        {
+          "step": 100,
+          "train_mae": 0.3047711225125802,
+          "heldout_mae": 7.980032562349114
+        },
+        {
+          "step": 200,
+          "train_mae": 0.07569646113270531,
+          "heldout_mae": 7.965384543470756
+        },
+        {
+          "step": 500,
+          "train_mae": 0.0884470985377062,
+          "heldout_mae": 7.977103284714748
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.08604693084397576,
+          "heldout_mae": 7.954668300405649
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 8,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.93991162754945,
+          "heldout_mae": 6.474743178120334
+        },
+        {
+          "step": 10,
+          "train_mae": 6.609406866811332,
+          "heldout_mae": 6.36158010091483
+        },
+        {
+          "step": 50,
+          "train_mae": 0.5766375872702094,
+          "heldout_mae": 6.2877149593672925
+        },
+        {
+          "step": 100,
+          "train_mae": 0.04110188856982376,
+          "heldout_mae": 6.3629385788862445
+        },
+        {
+          "step": 200,
+          "train_mae": 0.00613398237828696,
+          "heldout_mae": 6.365826546530354
+        },
+        {
+          "step": 500,
+          "train_mae": 0.1497594648232965,
+          "heldout_mae": 6.359362567938375
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.0487789748227347,
+          "heldout_mae": 6.434214894309685
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 8,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.84058129131374,
+          "heldout_mae": 6.438120245990934
+        },
+        {
+          "step": 10,
+          "train_mae": 6.501382995635706,
+          "heldout_mae": 6.467778736635019
+        },
+        {
+          "step": 50,
+          "train_mae": 0.5891864960034934,
+          "heldout_mae": 6.513940948306443
+        },
+        {
+          "step": 100,
+          "train_mae": 0.07168201380734103,
+          "heldout_mae": 6.5603363330415085
+        },
+        {
+          "step": 200,
+          "train_mae": 0.01927520564210336,
+          "heldout_mae": 6.574693364454328
+        },
+        {
+          "step": 500,
+          "train_mae": 0.07593074691923593,
+          "heldout_mae": 6.559865226075129
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.28033865445319633,
+          "heldout_mae": 6.510456190290763
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.618179091964078,
+          "heldout_mae": 8.0415599668586
+        },
+        {
+          "step": 10,
+          "train_mae": 8.126410556633637,
+          "heldout_mae": 8.971041395471733
+        },
+        {
+          "step": 50,
+          "train_mae": 1.3013947283206264,
+          "heldout_mae": 6.897959378211777
+        },
+        {
+          "step": 100,
+          "train_mae": 0.53650983017837,
+          "heldout_mae": 7.035950660896178
+        },
+        {
+          "step": 200,
+          "train_mae": 0.327900735079496,
+          "heldout_mae": 7.0580948659036675
+        },
+        {
+          "step": 500,
+          "train_mae": 0.41793230541501736,
+          "heldout_mae": 7.069297783683528
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.41115629566815304,
+          "heldout_mae": 7.142040834105469
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.164875565723113,
+          "heldout_mae": 8.038462413198294
+        },
+        {
+          "step": 10,
+          "train_mae": 7.701647396365841,
+          "heldout_mae": 8.753933642403934
+        },
+        {
+          "step": 50,
+          "train_mae": 1.253657670188702,
+          "heldout_mae": 6.87921058798975
+        },
+        {
+          "step": 100,
+          "train_mae": 0.5296846935489248,
+          "heldout_mae": 6.900997882420674
+        },
+        {
+          "step": 200,
+          "train_mae": 0.32224836672251556,
+          "heldout_mae": 6.924403491342176
+        },
+        {
+          "step": 500,
+          "train_mae": 0.24511012802704277,
+          "heldout_mae": 7.030354242309972
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.41597669041465024,
+          "heldout_mae": 6.850784951953704
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.38999087239694,
+          "heldout_mae": 8.03064666461477
+        },
+        {
+          "step": 10,
+          "train_mae": 20.304654012325276,
+          "heldout_mae": 11.464287726108973
+        },
+        {
+          "step": 50,
+          "train_mae": 3.347542293062647,
+          "heldout_mae": 7.7840514118342785
+        },
+        {
+          "step": 100,
+          "train_mae": 0.37925606313866633,
+          "heldout_mae": 7.660134007336655
+        },
+        {
+          "step": 200,
+          "train_mae": 0.0863830443975494,
+          "heldout_mae": 7.673754019302108
+        },
+        {
+          "step": 500,
+          "train_mae": 0.14235079894423425,
+          "heldout_mae": 7.683590378335715
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.42097206913192703,
+          "heldout_mae": 7.482153928114464
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.798050382688022,
+          "heldout_mae": 7.989533445116279
+        },
+        {
+          "step": 10,
+          "train_mae": 21.100503162191266,
+          "heldout_mae": 13.913825864150198
+        },
+        {
+          "step": 50,
+          "train_mae": 2.8761520159333163,
+          "heldout_mae": 7.181610456772198
+        },
+        {
+          "step": 100,
+          "train_mae": 0.29599250031501195,
+          "heldout_mae": 7.245442423059162
+        },
+        {
+          "step": 200,
+          "train_mae": 0.005382599366307222,
+          "heldout_mae": 7.305245642684206
+        },
+        {
+          "step": 500,
+          "train_mae": 0.0004391321738626714,
+          "heldout_mae": 7.369443838197833
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.5563524977991058,
+          "heldout_mae": 7.37176854187735
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.044909205533864,
+          "heldout_mae": 9.127218532866747
+        },
+        {
+          "step": 10,
+          "train_mae": 30.132606486885933,
+          "heldout_mae": 24.126923635686673
+        },
+        {
+          "step": 50,
+          "train_mae": 4.44014543676222,
+          "heldout_mae": 8.701172773596221
+        },
+        {
+          "step": 100,
+          "train_mae": 1.0795370215744882,
+          "heldout_mae": 8.972204387872065
+        },
+        {
+          "step": 200,
+          "train_mae": 0.4956533437808895,
+          "heldout_mae": 8.936608411889855
+        },
+        {
+          "step": 500,
+          "train_mae": 0.4914745535409022,
+          "heldout_mae": 8.899311591693351
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.4913948972950477,
+          "heldout_mae": 8.913049313975552
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.917324938924789,
+          "heldout_mae": 9.048016844869235
+        },
+        {
+          "step": 10,
+          "train_mae": 27.77860942691474,
+          "heldout_mae": 22.657720859172542
+        },
+        {
+          "step": 50,
+          "train_mae": 4.534598619757711,
+          "heldout_mae": 9.044403365581868
+        },
+        {
+          "step": 100,
+          "train_mae": 0.8038951317241306,
+          "heldout_mae": 9.03191211273618
+        },
+        {
+          "step": 200,
+          "train_mae": 0.2199614852396174,
+          "heldout_mae": 9.026727026935216
+        },
+        {
+          "step": 500,
+          "train_mae": 0.21771638614895553,
+          "heldout_mae": 9.175268990915189
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.21715885284236863,
+          "heldout_mae": 8.99673092413676
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.93991162754945,
+          "heldout_mae": 6.474743178120335
+        },
+        {
+          "step": 10,
+          "train_mae": 55.41954577146646,
+          "heldout_mae": 30.699231416190344
+        },
+        {
+          "step": 50,
+          "train_mae": 4.349583317288037,
+          "heldout_mae": 6.724554601584057
+        },
+        {
+          "step": 100,
+          "train_mae": 0.22996364728436716,
+          "heldout_mae": 6.409547693160213
+        },
+        {
+          "step": 200,
+          "train_mae": 0.00856306160817397,
+          "heldout_mae": 6.388044970344362
+        },
+        {
+          "step": 500,
+          "train_mae": 0.025447082328149254,
+          "heldout_mae": 6.348610211958826
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.031281841577626465,
+          "heldout_mae": 6.364626933816595
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.840581291313739,
+          "heldout_mae": 6.438120245990934
+        },
+        {
+          "step": 10,
+          "train_mae": 58.75792343057052,
+          "heldout_mae": 34.963144556675175
+        },
+        {
+          "step": 50,
+          "train_mae": 4.295341636799272,
+          "heldout_mae": 6.485872189052437
+        },
+        {
+          "step": 100,
+          "train_mae": 0.22737404035680345,
+          "heldout_mae": 6.390428726853523
+        },
+        {
+          "step": 200,
+          "train_mae": 0.009315315243851142,
+          "heldout_mae": 6.4052362641199485
+        },
+        {
+          "step": 500,
+          "train_mae": 0.004740348736620731,
+          "heldout_mae": 6.365700758352726
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.09257254242801706,
+          "heldout_mae": 6.316572765455239
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.618179091964077,
+          "heldout_mae": 8.0415599668586
+        },
+        {
+          "step": 10,
+          "train_mae": 66.69375098797703,
+          "heldout_mae": 52.02343279961082
+        },
+        {
+          "step": 50,
+          "train_mae": 6.007642631156589,
+          "heldout_mae": 8.608676149766358
+        },
+        {
+          "step": 100,
+          "train_mae": 0.41335445012842753,
+          "heldout_mae": 7.446865747506319
+        },
+        {
+          "step": 200,
+          "train_mae": 0.02475239432909719,
+          "heldout_mae": 7.429254400490101
+        },
+        {
+          "step": 500,
+          "train_mae": 0.009090301566410507,
+          "heldout_mae": 7.402541552781568
+        },
+        {
+          "step": 1000,
+          "train_mae": 1.367434958525212,
+          "heldout_mae": 7.390955034340763
+        }
+      ]
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.164875565723113,
+          "heldout_mae": 8.038462413198294
+        },
+        {
+          "step": 10,
+          "train_mae": 71.73322128361173,
+          "heldout_mae": 57.198667198977375
+        },
+        {
+          "step": 50,
+          "train_mae": 6.521005633553868,
+          "heldout_mae": 9.32885324481241
+        },
+        {
+          "step": 100,
+          "train_mae": 0.3746823056959113,
+          "heldout_mae": 7.61685412415733
+        },
+        {
+          "step": 200,
+          "train_mae": 0.02167321009155665,
+          "heldout_mae": 7.516264342693012
+        },
+        {
+          "step": 500,
+          "train_mae": 0.013667211824397807,
+          "heldout_mae": 7.471708402813504
+        },
+        {
+          "step": 1000,
+          "train_mae": 1.5728175561789774,
+          "heldout_mae": 8.558867886205224
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321292,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321293,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321292,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "mean_distance",
+      "k": 0,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 4.929308382321293,
+          "heldout_mae": 5.035641533698811
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "ridge",
+      "k": 2,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.02975671011447812,
+          "heldout_mae": 7.501812726691819
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "ridge",
+      "k": 2,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.03091219843610337,
+          "heldout_mae": 7.720153824970566
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "ridge",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.04853712363116701,
+          "heldout_mae": 7.6538930019054945
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "ridge",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 0.048258904514834125,
+          "heldout_mae": 7.443097946519202
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 2,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.081506275142486,
+          "heldout_mae": 7.9820568533088085
+        },
+        {
+          "step": 10,
+          "train_mae": 8.198941838988278,
+          "heldout_mae": 8.259436562708064
+        },
+        {
+          "step": 50,
+          "train_mae": 1.2283442331414296,
+          "heldout_mae": 7.3745872277023
+        },
+        {
+          "step": 100,
+          "train_mae": 0.33685432488495487,
+          "heldout_mae": 7.451711938867813
+        },
+        {
+          "step": 200,
+          "train_mae": 0.265321994701632,
+          "heldout_mae": 7.453845557640122
+        },
+        {
+          "step": 500,
+          "train_mae": 0.2649110993343454,
+          "heldout_mae": 7.4511574826853115
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.23879700510359048,
+          "heldout_mae": 7.356396223763385
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 2,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.84865893914785,
+          "heldout_mae": 8.140477115501037
+        },
+        {
+          "step": 10,
+          "train_mae": 8.18086711282178,
+          "heldout_mae": 8.34974047128712
+        },
+        {
+          "step": 50,
+          "train_mae": 1.3983326030349272,
+          "heldout_mae": 7.766224837875533
+        },
+        {
+          "step": 100,
+          "train_mae": 0.2787374785426787,
+          "heldout_mae": 7.749513140687744
+        },
+        {
+          "step": 200,
+          "train_mae": 0.1817954802530836,
+          "heldout_mae": 7.755040710562644
+        },
+        {
+          "step": 500,
+          "train_mae": 0.21737553127062276,
+          "heldout_mae": 7.754949904120792
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.2757362179703164,
+          "heldout_mae": 7.731354489070968
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.306249709841533,
+          "heldout_mae": 8.086241140900663
+        },
+        {
+          "step": 10,
+          "train_mae": 10.880936010173336,
+          "heldout_mae": 9.88796021478344
+        },
+        {
+          "step": 50,
+          "train_mae": 1.948210221776515,
+          "heldout_mae": 7.6908316967992025
+        },
+        {
+          "step": 100,
+          "train_mae": 0.1594597364940276,
+          "heldout_mae": 7.433214127725698
+        },
+        {
+          "step": 200,
+          "train_mae": 0.0008837173202584963,
+          "heldout_mae": 7.431517586785398
+        },
+        {
+          "step": 500,
+          "train_mae": 0.06917571759186965,
+          "heldout_mae": 7.429959023693096
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.0685749637727688,
+          "heldout_mae": 7.4176674498447
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.377316155024331,
+          "heldout_mae": 7.994369293153272
+        },
+        {
+          "step": 10,
+          "train_mae": 10.946915355742739,
+          "heldout_mae": 9.899905032622847
+        },
+        {
+          "step": 50,
+          "train_mae": 2.1288124186862647,
+          "heldout_mae": 7.673468222396564
+        },
+        {
+          "step": 100,
+          "train_mae": 0.48533889476532044,
+          "heldout_mae": 7.6329241035249495
+        },
+        {
+          "step": 200,
+          "train_mae": 0.3685351465856949,
+          "heldout_mae": 7.621639874979898
+        },
+        {
+          "step": 500,
+          "train_mae": 0.501722340491535,
+          "heldout_mae": 7.620948897034289
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.3486583407665218,
+          "heldout_mae": 7.617963023024393
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 8,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.92339475837566,
+          "heldout_mae": 6.1032355558224065
+        },
+        {
+          "step": 10,
+          "train_mae": 6.441811876715443,
+          "heldout_mae": 6.316160594101063
+        },
+        {
+          "step": 50,
+          "train_mae": 0.5479181083052592,
+          "heldout_mae": 6.336352614675183
+        },
+        {
+          "step": 100,
+          "train_mae": 0.03956336694197082,
+          "heldout_mae": 6.4118759974281545
+        },
+        {
+          "step": 200,
+          "train_mae": 0.04458485906550209,
+          "heldout_mae": 6.41640550815826
+        },
+        {
+          "step": 500,
+          "train_mae": 0.018715076408677978,
+          "heldout_mae": 6.416759029115371
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.0720280677165221,
+          "heldout_mae": 6.361172384561574
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 8,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.842126799923553,
+          "heldout_mae": 6.075222234484778
+        },
+        {
+          "step": 10,
+          "train_mae": 5.802513392286837,
+          "heldout_mae": 6.273918819422838
+        },
+        {
+          "step": 50,
+          "train_mae": 0.5776107033228893,
+          "heldout_mae": 6.5414006159062605
+        },
+        {
+          "step": 100,
+          "train_mae": 0.12369339581299345,
+          "heldout_mae": 6.6161577489046115
+        },
+        {
+          "step": 200,
+          "train_mae": 0.051254579616716416,
+          "heldout_mae": 6.617063533287289
+        },
+        {
+          "step": 500,
+          "train_mae": 0.03436588347550726,
+          "heldout_mae": 6.590414339557677
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.311907791146679,
+          "heldout_mae": 6.63238524510577
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.197107890514915,
+          "heldout_mae": 6.400548994301565
+        },
+        {
+          "step": 10,
+          "train_mae": 8.180953443963862,
+          "heldout_mae": 7.089312308871698
+        },
+        {
+          "step": 50,
+          "train_mae": 0.9431386666987889,
+          "heldout_mae": 6.497822791074078
+        },
+        {
+          "step": 100,
+          "train_mae": 0.15468943662377765,
+          "heldout_mae": 6.566948650326144
+        },
+        {
+          "step": 200,
+          "train_mae": 0.08128362107348988,
+          "heldout_mae": 6.5958013512522475
+        },
+        {
+          "step": 500,
+          "train_mae": 0.040266164669994046,
+          "heldout_mae": 6.618201762246635
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.11123052279258148,
+          "heldout_mae": 6.636547749433861
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.972521276663331,
+          "heldout_mae": 6.3858123657308
+        },
+        {
+          "step": 10,
+          "train_mae": 8.846681853242474,
+          "heldout_mae": 7.4592400096074805
+        },
+        {
+          "step": 50,
+          "train_mae": 0.9264043404268831,
+          "heldout_mae": 6.467805638515401
+        },
+        {
+          "step": 100,
+          "train_mae": 0.12034697251682036,
+          "heldout_mae": 6.545925623887217
+        },
+        {
+          "step": 200,
+          "train_mae": 0.053297039036301314,
+          "heldout_mae": 6.558398406286599
+        },
+        {
+          "step": 500,
+          "train_mae": 0.021060708465671308,
+          "heldout_mae": 6.573990914248055
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.09356553199622457,
+          "heldout_mae": 6.519339421800902
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.081506275142486,
+          "heldout_mae": 7.9820568533088085
+        },
+        {
+          "step": 10,
+          "train_mae": 28.963329998589664,
+          "heldout_mae": 18.0938835193658
+        },
+        {
+          "step": 50,
+          "train_mae": 3.572003519332279,
+          "heldout_mae": 8.255068224692794
+        },
+        {
+          "step": 100,
+          "train_mae": 0.3995474128638201,
+          "heldout_mae": 8.230960124424406
+        },
+        {
+          "step": 200,
+          "train_mae": 0.12550951904848373,
+          "heldout_mae": 8.245842024194815
+        },
+        {
+          "step": 500,
+          "train_mae": 0.12477054063298645,
+          "heldout_mae": 8.26858028250246
+        },
+        {
+          "step": 1000,
+          "train_mae": 1.1612724818348426,
+          "heldout_mae": 7.973955771267148
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.8486589391478505,
+          "heldout_mae": 8.140477115501037
+        },
+        {
+          "step": 10,
+          "train_mae": 27.54106020513322,
+          "heldout_mae": 17.734234449956883
+        },
+        {
+          "step": 50,
+          "train_mae": 3.4259831798833207,
+          "heldout_mae": 7.982419276237286
+        },
+        {
+          "step": 100,
+          "train_mae": 0.4030715426059483,
+          "heldout_mae": 7.904451988500755
+        },
+        {
+          "step": 200,
+          "train_mae": 0.11651270435418769,
+          "heldout_mae": 7.9200542937703995
+        },
+        {
+          "step": 500,
+          "train_mae": 0.5021471122328693,
+          "heldout_mae": 7.942011602345804
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.3017480499386603,
+          "heldout_mae": 8.004748033583489
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.306249709841533,
+          "heldout_mae": 8.086241140900663
+        },
+        {
+          "step": 10,
+          "train_mae": 31.17238659136578,
+          "heldout_mae": 21.564710189719346
+        },
+        {
+          "step": 50,
+          "train_mae": 4.815683189623741,
+          "heldout_mae": 7.76432574217066
+        },
+        {
+          "step": 100,
+          "train_mae": 0.6308138566565111,
+          "heldout_mae": 7.636599379036261
+        },
+        {
+          "step": 200,
+          "train_mae": 0.17291086684502938,
+          "heldout_mae": 7.646511637438642
+        },
+        {
+          "step": 500,
+          "train_mae": 0.19443717688174328,
+          "heldout_mae": 7.64245456897618
+        },
+        {
+          "step": 1000,
+          "train_mae": 1.1835137319456046,
+          "heldout_mae": 7.867474050280106
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 2,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 7.37731615502433,
+          "heldout_mae": 7.994369293153273
+        },
+        {
+          "step": 10,
+          "train_mae": 28.874943557793138,
+          "heldout_mae": 19.88757563732102
+        },
+        {
+          "step": 50,
+          "train_mae": 4.21283313550556,
+          "heldout_mae": 7.987278678561836
+        },
+        {
+          "step": 100,
+          "train_mae": 0.7528595621972936,
+          "heldout_mae": 7.603099994638365
+        },
+        {
+          "step": 200,
+          "train_mae": 0.37133978232069853,
+          "heldout_mae": 7.597766408044908
+        },
+        {
+          "step": 500,
+          "train_mae": 1.2223489951868896,
+          "heldout_mae": 7.597338298167301
+        },
+        {
+          "step": 1000,
+          "train_mae": 2.367964322429623,
+          "heldout_mae": 7.987992812606875
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "video",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.923394758375661,
+          "heldout_mae": 6.1032355558224065
+        },
+        {
+          "step": 10,
+          "train_mae": 65.91125373637564,
+          "heldout_mae": 40.327467089442706
+        },
+        {
+          "step": 50,
+          "train_mae": 4.824739374219307,
+          "heldout_mae": 6.670611579550659
+        },
+        {
+          "step": 100,
+          "train_mae": 0.26911510382362186,
+          "heldout_mae": 6.905588666460283
+        },
+        {
+          "step": 200,
+          "train_mae": 0.010669478792556041,
+          "heldout_mae": 6.885351814682737
+        },
+        {
+          "step": 500,
+          "train_mae": 0.00439457718770675,
+          "heldout_mae": 6.8492731035282155
+        },
+        {
+          "step": 1000,
+          "train_mae": 2.923700416956005,
+          "heldout_mae": 7.284180764214172
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "video",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.842126799923552,
+          "heldout_mae": 6.075222234484778
+        },
+        {
+          "step": 10,
+          "train_mae": 59.312303933575144,
+          "heldout_mae": 37.80579143231758
+        },
+        {
+          "step": 50,
+          "train_mae": 4.683317317083627,
+          "heldout_mae": 6.655469334317326
+        },
+        {
+          "step": 100,
+          "train_mae": 0.24970336015464512,
+          "heldout_mae": 6.597344135239675
+        },
+        {
+          "step": 200,
+          "train_mae": 0.010131839564293048,
+          "heldout_mae": 6.607775366290637
+        },
+        {
+          "step": 500,
+          "train_mae": 0.00807063725233017,
+          "heldout_mae": 6.6096345668772125
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.007004166676505429,
+          "heldout_mae": 6.639461985434716
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "true_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 6.197107890514914,
+          "heldout_mae": 6.400548994301564
+        },
+        {
+          "step": 10,
+          "train_mae": 79.93695410914,
+          "heldout_mae": 53.68332305813075
+        },
+        {
+          "step": 50,
+          "train_mae": 6.69478763342509,
+          "heldout_mae": 7.494237917223403
+        },
+        {
+          "step": 100,
+          "train_mae": 0.37736096466409097,
+          "heldout_mae": 6.912369988838936
+        },
+        {
+          "step": 200,
+          "train_mae": 0.019135929321605565,
+          "heldout_mae": 6.90778371913756
+        },
+        {
+          "step": 500,
+          "train_mae": 0.04339772984822544,
+          "heldout_mae": 6.860086351468407
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.18793474978978247,
+          "heldout_mae": 6.738776927401241
+        }
+      ]
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 8,
+      "condition": "repeat_last_frame",
+      "control": "shifted_training_positions",
+      "curve": [
+        {
+          "step": 0,
+          "train_mae": 5.972521276663333,
+          "heldout_mae": 6.3858123657308
+        },
+        {
+          "step": 10,
+          "train_mae": 81.64524544929003,
+          "heldout_mae": 57.757701516583715
+        },
+        {
+          "step": 50,
+          "train_mae": 6.893095135964526,
+          "heldout_mae": 7.747858359462351
+        },
+        {
+          "step": 100,
+          "train_mae": 0.4153157127088685,
+          "heldout_mae": 6.895275833882923
+        },
+        {
+          "step": 200,
+          "train_mae": 0.01859690123101633,
+          "heldout_mae": 6.91402180868158
+        },
+        {
+          "step": 500,
+          "train_mae": 0.04024732568373872,
+          "heldout_mae": 6.878165271096205
+        },
+        {
+          "step": 1000,
+          "train_mae": 0.32567228861488384,
+          "heldout_mae": 6.853961379540272
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Test errors plotted for diagnosis only; no test-based tuning or checkpoint selection",
+    "Only seed 0; other settings match original pilot",
+    "Synthetic positive controls are NON-MINECRAFT; not evidence of real spatial information",
+    "For shifted-label fits, training error is measured against shifted labels; held-out labels stay correct"
+  ]
+}

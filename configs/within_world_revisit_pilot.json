@@ -1,6 +1,6 @@
 {
   "protocol": "within_world_revisit_pilot_v1",
-  "state": "design_only_not_collected",
+  "state": "collector_implemented_not_collected",
   "purpose": "Within-world place identity across independently walked routes/headings; spatial relationships under appearance ambiguity",
   "worlds": 1,
   "world_requirement": "Flat open area with traversable connections; preserve diverse-v2 unchanged",
@@ -41,7 +41,18 @@
     "minimum_pair_separation_blocks": 8,
     "design": "Repeated local landmark layouts at distant sites; different approach context. Verify endpoint visual similarity before model evaluation."
   },
-  "capture": "Reuse synchronized RGB, pose, heading, actions, timestamps and raw-frame hashes; keep endpoint clip cadence fixed and documented",
+  "capture": {
+    "resolution": [
+      448,
+      280
+    ],
+    "raw_every_ticks": 2,
+    "model_every_ticks": 8,
+    "clip_frames": 16,
+    "clip_span_ticks": 120,
+    "tick_seconds": 0.05,
+    "raw_frame_sha256": true
+  },
   "splitting": "Split full routes before window/pair construction; no shared raw frames across splits; overlapping clips remain grouped within route",
   "evaluation": {
     "primary_pairs": "Between the two held-out routes; both endpoints unseen during fit",
@@ -58,5 +69,11 @@
     "Fit transformations on training routes; select settings using validation routes only",
     "Freeze protocol before inspecting test features/results"
   ],
-  "not_authorized_as_completed": "No new Minecraft recordings or model runs have occurred for this design"
+  "not_authorized_as_completed": "No new Minecraft recordings or model runs have occurred for this design",
+  "implementation": {
+    "module": "mc_binding.revisit_dataset",
+    "sbatch": "scripts/slurm/revisit_dataset.sbatch",
+    "world": "49 by 49 block open field; 16 repeated floor motifs; four distant perimeter landmarks",
+    "scope": "Randomized continuous scripted paths. Identical world seed/build for all six routes. Real ambiguity and rendering remain review gates."
+  }
 }
