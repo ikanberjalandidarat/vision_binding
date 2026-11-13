@@ -1,0 +1,14 @@
+{
+  "purpose": "Exploratory test of pair-loss imbalance, not confirmation of spatial maps",
+  "features": "spatial-video-features-8977130",
+  "training_routes": [0, 1],
+  "validation_routes": [2, 3],
+  "previously_inspected_test_routes": [4, 5],
+  "arms": ["uniform-retrieval", "uniform-geometry", "balanced-retrieval", "balanced-geometry"],
+  "balanced_loss": {"same_site_different_heading": 0.5, "different_site": 0.5, "same_site_same_heading": 0.0},
+  "ridge": "Unchanged pointwise coordinate regression; balancing applies only to metric probes",
+  "selection": "Validation 180-degree comparisons only. Retrieval: maximize accuracy then minimize distance MAE. Geometry: minimize distance MAE then maximize accuracy.",
+  "controls": ["repeated endpoint", "consistent permutation of training site coordinates (preserves identity)", "training-median constant distance"],
+  "fixed": {"steps": 300, "seed": 731, "ranks": [2, 8], "ridge_alphas": [1, 100]},
+  "interpretation": "Compare matched arms, not the best test score across arms. Confirmation requires fresh routes and held-out locations."
+}

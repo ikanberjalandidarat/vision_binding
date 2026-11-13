@@ -24,7 +24,7 @@ def scalar_fit(a,b):
     return max(0.,float(a@b/max(a@a,1e-12)))
 
 
-def fit_probe(x,y,method,k=2,seed=0,steps=200,callback=None,checkpoints=()):
+def fit_probe(x,y,method,k=2,seed=0,steps=200,callback=None,checkpoints=(),pair_weights=None):
     """All preprocessing/scale learned on training rows; scalar feature scaling."""
     import torch
     if len(x)<4 or not np.isfinite(x).all() or not np.isfinite(y).all():
@@ -56,6 +56,12 @@ def fit_probe(x,y,method,k=2,seed=0,steps=200,callback=None,checkpoints=()):
     # Target scale learned only from training positions; stabilizes optimization.
     unit=float(np.sqrt(np.mean(target**2)))
     truth=torch.tensor(target/unit,dtype=torch.float64)
+    weights=None
+    if pair_weights is not None:
+        pw=np.asarray(pair_weights,dtype=float)
+        if pw.shape!=target.shape or not np.isfinite(pw).all() or (pw<0).any() or pw.sum()<=0:
+            raise ValueError('Invalid pair weights')
+        weights=torch.tensor(pw/pw.sum(),dtype=torch.float64)
     w=torch.nn.Parameter(torch.tensor(q,dtype=torch.float64))
     initial=scalar_fit(np.linalg.norm((a[i]-a[j])@q,axis=1),target/unit)
     logscale=torch.nn.Parameter(torch.tensor(np.log(max(initial,1e-8)),dtype=torch.float64))
@@ -75,7 +81,7 @@ def fit_probe(x,y,method,k=2,seed=0,steps=200,callback=None,checkpoints=()):
         opt.zero_grad()
         d=torch.linalg.vector_norm(delta@w,dim=1)
         if method=='orth': d=d*logscale.exp()
-        loss=((d-truth)**2).mean()
+        loss=((d-truth)**2).mean() if weights is None else (((d-truth)**2)*weights).sum()
         if method=='linear_metric': loss=loss+1e-3*(w*w).sum()
         loss.backward(); opt.step()
         if method=='orth':

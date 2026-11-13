@@ -38,14 +38,14 @@ def load(root):
     return rows, {k: np.asarray(v, dtype=float) for k,v in features.items()}, manifest, hashes
 
 
-def score(rows, x, routes, delta):
+def score(rows, x, routes, delta,constant=None):
     ids = [i for i,r in enumerate(rows) if r['route'] in routes]
     subset = [dict(rows[i], route=4+routes.index(rows[i]['route'])) for i in ids]
     result = evaluate(subset, x[ids], delta, pixel_mse=True)
     # evaluate's pixel option ranks Euclidean distances correctly but stores 1+MSE.
     # Recompute physical-distance errors BEFORE averaging across views/directions.
     lookup = {(r['route'],r['site'],r['target_heading']):i for i,r in enumerate(subset)}
-    errors=[]
+    errors=[];baseline_errors=[]
     for q in result['records']:
         i=lookup[q['query_route'],q['site'],q['query_heading']]
         for s in range(16):
@@ -53,23 +53,36 @@ def score(rows, x, routes, delta):
             pred=float(np.linalg.norm(x[ids[i]]-x[ids[j]]))
             true=float(np.linalg.norm(np.array(subset[i]['position'])-subset[j]['position']))
             errors.append(abs(pred-true))
+            if constant is not None:baseline_errors.append(abs(constant-true))
     result['distance_mae_blocks']=float(np.mean(errors))
+    if baseline_errors:result['constant_distance_mae_blocks']=float(np.mean(baseline_errors))
     result.pop('geometry')  # Do not mislabel MSE as cosine or Euclidean distance.
     result['actual_routes']=routes
     result['route_key_note']='4/5 in records denote first/second actual_routes entry'
     return result
 
 
-def fit(x,y,spec,steps):
+def balanced_pair_weights(rows):
+    """Half the loss on same-site/different-heading; half on different sites."""
+    i,j=np.triu_indices(len(rows),1)
+    site=np.array([r['site'] for r in rows]);h=np.array([r['target_heading'] for r in rows])
+    positive=(site[i]==site[j])&(h[i]!=h[j])
+    negative=site[i]!=site[j]
+    if not positive.any() or not negative.any():raise ValueError('Missing pair strata')
+    w=np.zeros(len(i));w[positive]=.5/positive.sum();w[negative]=.5/negative.sum()
+    return w
+
+
+def fit(x,y,spec,steps,pair_weights=None):
     method,k,alpha=spec
-    model=fit_probe(x,y,method,k,seed=731,steps=steps)
+    model=fit_probe(x,y,method,k,seed=731,steps=steps,pair_weights=pair_weights)
     if method=='ridge':
         a=(x-model['center'])/model['scale']
         model['w']=a.T@np.linalg.solve(a@a.T+alpha*np.eye(len(a)),y-y.mean(0))
     return model
 
 
-def run(root,out,steps=300):
+def run(root,out,steps=300,balanced=False,selection="retrieval"):
     import torch
     torch.set_num_threads(2)
     out.mkdir(parents=True,exist_ok=False)
@@ -83,13 +96,16 @@ def run(root,out,steps=300):
         perm=np.random.default_rng(731).permutation(16)
         lookup={(r['route'],r['site'],r['target_heading']):i for i,r in enumerate(rows)}
         shuffled=np.array([y[lookup[rows[i]['route'],int(perm[rows[i]['site']]),rows[i]['target_heading']]] for i in train])
+        weights=balanced_pair_weights([rows[i] for i in train]) if balanced else None
+        ti,tj=np.triu_indices(len(train),1)
+        constant=float(np.median(np.linalg.norm(y[train[ti]]-y[train[tj]],axis=1)))
         selections=[]; results=[]; diagnostics=[]
         for key,x in features.items():
             for control,labels in [('true_positions',y[train]),('permuted_training_sites',shuffled)]:
                 for family in ('ridge','orth','linear_metric'):
                     candidates=[]
                     for spec in [s for s in SPECS if s[0]==family]:
-                        model=fit(x[train],labels,spec,steps)
+                        model=fit(x[train],labels,spec,steps,weights)
                         z=project(model,x)
                         val=score(rows,z,[2,3],180)
                         candidates.append((val['accuracy'],-val['distance_mae_blocks'],spec,model))
@@ -100,7 +116,7 @@ def run(root,out,steps=300):
                             training_pair_mae=float(np.abs(d-t)[mask].mean()),
                             validation_opposite_accuracy=val['accuracy'],validation_distance_mae=val['distance_mae_blocks']))
                     # Validation only; deterministic ordering breaks remaining ties.
-                    best=max(candidates,key=lambda c:(c[0],c[1]))
+                    best=max(candidates,key=lambda c:(c[0],c[1]) if selection=='retrieval' else (c[1],c[0]))
                     spec,model=best[2:]
                     tag=f'{key}-{control}-{family}'
                     np.savez_compressed(out/(tag+'.npz'),**model)
@@ -108,7 +124,7 @@ def run(root,out,steps=300):
                         validation_accuracy=best[0],validation_distance_mae=-best[1],artifact=tag+'.npz'))
                     z=project(model,x)
                     for delta in (180,90,0):
-                        r=score(rows,z,[4,5],delta)
+                        r=score(rows,z,[4,5],delta,constant=constant)
                         uncertainty(r)
                         # Exploratory, multiple comparisons: no uncorrected significance claims.
                         r.pop('permutation_p_one_sided');r.pop('null_accuracy_mean')
@@ -126,7 +142,12 @@ def run(root,out,steps=300):
                         video_minus_repeat_accuracy=float(d.mean()),site_bootstrap_95=np.quantile(d[boot].mean(1),[.025,.975]).tolist()))
         report=dict(state='complete',scope='Exploratory known-site readout evaluation; test routes previously inspected',
             training_routes=[0,1],validation_routes=[2,3],test_routes=[4,5],
-            selection='Per feature/control/family: maximize validation 180-degree retrieval; tie-break minimum distance MAE',
+            selection=selection,
+            selection_rule='Validation 180-degree only; retrieval maximizes accuracy then minimizes distance MAE; geometry reverses priorities',
+            balanced_pairs=balanced,
+            pair_loss='50% same-site/different-heading + 50% different-site; same-site/same-heading excluded' if balanced else 'Uniform distinct pairs',
+            ridge_note='Coordinate ridge is unchanged by pair weights; it has a pointwise objective',
+            constant_distance_prediction_blocks=constant,
             steps=steps,seed=731,permuted_sites=perm.tolist(),source_manifest=manifest,cache_hashes=hashes,
             selections=selections,training_diagnostics=diagnostics,results=results,temporal_contrasts=contrasts,
             limits=['Pose supervises readouts only; encoder stays frozen.',
@@ -136,7 +157,7 @@ def run(root,out,steps=300):
                 'No evidence of temporal advantage without video outperforming repeated frames.',
                 'Fresh routes and held-out locations required for confirmation. No grid-cell or navigation claim.'])
         atomic_json(out/'report.json',report)
-        atomic_json(out/'summary.json',dict(scope=report['scope'],selections=selections,temporal_contrasts=contrasts,
+        atomic_json(out/'summary.json',dict(scope=report['scope'],balanced_pairs=balanced,selection=selection,selections=selections,temporal_contrasts=contrasts,
             results=[{k:v for k,v in r.items() if k not in ('records','per_site')} for r in results]))
         atomic_json(out/'status.json',dict(state='complete',selected_readouts=len(selections)))
     except Exception as exc:
@@ -145,4 +166,7 @@ def run(root,out,steps=300):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('features',type=Path);p.add_argument('output',type=Path)
-    p.add_argument('--steps',type=int,default=300);a=p.parse_args();run(a.features,a.output,a.steps)
+    p.add_argument('--steps',type=int,default=300)
+    p.add_argument('--balanced',action='store_true')
+    p.add_argument('--selection',choices=['retrieval','geometry'],default='retrieval')
+    a=p.parse_args();run(a.features,a.output,a.steps,a.balanced,a.selection)
