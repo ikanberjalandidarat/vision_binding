@@ -179,3 +179,15 @@ Source, notebooks, JSON, logs, analysis and presentation-linked media were retai
 Remote copies were not rechecked. Old per-episode HTML may point to removed media.
 <a href="../output/cleanup/2026-10-20-old-results.json">Exact deletion manifest</a>.</p>
 </html>
+<section><h2>12 November: within-world geometry probe pilot</h2>
+<p>Implement the whiteboard approaches on the existing frozen 188-clip V-JEPA cache. No new encoder training or extraction. Compare video and repeated-final-frame features at blocks 4, 12 and 24, in each of eight worlds. Train route 0 → test route 1 and reverse. These are exploratory previously inspected data; two routes cannot provide an independent validation split. All settings are fixed, with no selection by test performance.</p>
+<ul><li>Ridge coordinate readout: alpha=1.</li><li>Orthonormal spatial projections Q, QᵀQ=I, ranks 2 and 8, fitted positive scalar distance calibration.</li><li>General linear spatial projections: ranks 2 and 8, squared distance-error objective and Frobenius penalty 0.001.</li><li>Baselines: training-mean distance, scalar-calibrated raw feature distance, random orthonormal subspace with fitted scale.</li><li>Train-label control: circularly shift the training route's positions by half its clips; test positions stay correct.</li></ul>
+<p>Features are centered and scaled by one scalar RMS learned only on the training route, preserving the raw Euclidean geometry up to global scale. Projections use Adam, learning rate 0.01, 200 fixed steps, seeds 0/1/2; orthonormal weights are retracted using QR after each step. No per-feature whitening is applied. Pose supervises the readouts but never enters the encoder.</p>
+<p>Primary output is distance MAE between test-route endpoints (both embeddings unseen during fitting). Secondary output is cross-route retrieval from the fitted training-route key set. Ground-plane X,Z distances are used throughout, not geodesics or elevation-sensitive 3D distance. Near/far and opposite-heading pair counts/errors, near cross-route coverage and all ranks/layers are reported. Sparse samples against 1,024 input dimensions make overfitting a major limitation; learned orthonormal projections still have many parameters. Seeds, reverse folds and pairs are not independent replications.</p>
+<pre>mkdir -p logs
+scratch="/oscar/scratch/$USER/zef-binding"
+job=$(sbatch --parsable scripts/slurm/spatial_geometry_probes.sbatch \
+  "$scratch/runs/spatial-video-features-7982818" \
+  "$scratch/runs/diverse-dataset-v2-20261022-153938")
+echo "$job"</pre>
+<p>Outputs: report.json, results.csv, summary.json, temporal-comparison.json, coverage.json, index.html and per-fit plot-ready NPZ predictions, under runs/spatial-geometry-probes-JOBID on scratch. The job stops on invalid source provenance or missing controls, writes error status on failure and progress.json during fitting. These tests cannot establish place/grid cells or navigation utility. Real Oscar execution is pending.</p></section>

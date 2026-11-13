@@ -41,3 +41,29 @@ def test_raw_calibration_preserves_distance_ratios():
     ratio=np.linalg.norm(z[0]-z[1])/np.linalg.norm(z[2]-z[3])
     expected=np.linalg.norm(x[16]-x[17])/np.linalg.norm(x[18]-x[19])
     assert ratio==pytest.approx(expected)
+
+
+def test_non_minecraft_end_to_end(tmp_path,monkeypatch):
+    import argparse,json
+    import mc_binding.spatial_geometry_probes as module
+    rng=np.random.default_rng(5)
+    rows=[]
+    for w in range(8):
+        for route in (0,1):
+            for t in range(5):
+                rows.append(dict(position=[float(t),float(t*t)/4],geometry=f'env-{w:02d}',
+                    route=route,heading=route*180,episode=f'{w}-{route}',ticks=[t*16]))
+    x=rng.normal(size=(len(rows),12))
+    x[:,:2]=np.array([r['position'] for r in rows])
+    monkeypatch.setattr(module,'FEATURES',('NON_MINECRAFT_FIXTURE',))
+    monkeypatch.setattr(module,'load_cache',lambda *_:(rows,{'NON_MINECRAFT_FIXTURE':x},{'fixture':'NON-MINECRAFT'}))
+    extraction=tmp_path/'input';extraction.mkdir();(extraction/'clips.json').write_text('[]')
+    out=tmp_path/'out'
+    module.run(argparse.Namespace(extraction=extraction,dataset=tmp_path,output=out,steps=1,seeds=[0]))
+    report=json.loads((out/'report.json').read_text())
+    assert len(report['results'])==288
+    assert len(json.loads((out/'coverage.json').read_text()))==8
+    assert (out/'index.html').is_file()
+    for r in report['results']:
+        with np.load(out/r['artifact']) as arrays:
+            assert not set(arrays['train_row_indices'])&set(arrays['test_row_indices'])

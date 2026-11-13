@@ -189,7 +189,7 @@ def run(args):
                                     train_clips=len(tr),test_clips=len(te),artifact=tag+'.npz',**scores))
                     atomic_json(args.output/'progress.json',dict(world=env,train_route=train_route,representation=name,completed_fits=len(results)))
                     print(env,train_route,name,'fits',len(results),flush=True)
-        report=dict(state='complete',protocol='within_world_geometry_fixed_v1',source_manifest=manifest,
+        report=dict(state='complete',runtime={'torch':torch.__version__,'numpy':np.__version__},protocol='within_world_geometry_fixed_v1',source_manifest=manifest,
             source_clips_sha256=hashlib.sha256((args.extraction/'clips.json').read_bytes()).hexdigest(),
             runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             config={'steps':args.steps,'seeds':args.seeds,'ridge_alpha':1.,'metric_regularization':.001,'learning_rate':.01,
@@ -217,6 +217,14 @@ def run(args):
                 subsets={c:[r['distance_mae_blocks'] for r in results if r['representation']==name and r['method']==method and r['k']==k and r['control']==c] for c in ('true_positions','shifted_training_positions')}
                 summaries.append(dict(representation=name,method=method,k=k,**{c:float(np.mean(v)) for c,v in subsets.items()}))
         atomic_json(args.output/'summary.json',{'scope':'Equal-weight world/fold/seed mean of distance MAE; no independent-replicate interpretation','rows':summaries})
+        lookup={(r['representation'],r['method'],r['k']):r for r in summaries}
+        comparisons=[]
+        for layer in (3,11,23):
+            for method,k in specs:
+                vk=(f'video_layer{layer}',method,k);rk=(f'repeat_last_frame_layer{layer}',method,k)
+                if vk in lookup and rk in lookup:
+                    comparisons.append(dict(layer_zero_based=layer,method=method,k=k,video_minus_repeated_distance_mae=lookup[vk]['true_positions']-lookup[rk]['true_positions']))
+        atomic_json(args.output/'temporal-comparison.json',{'interpretation':'Negative difference favors temporal video; descriptive, not a significance test','rows':comparisons})
         table=''.join('<tr>'+''.join('<td>'+html.escape(str(v))+'</td>' for v in r.values())+'</tr>' for r in summaries)
         (args.output/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>Geometry probes</title><style>body{font:16px system-ui;margin:35px}td,th{padding:8px;border-bottom:1px solid #ddd}table{border-collapse:collapse}</style><h1>Within-world geometry probes — exploratory</h1><p>Lower distance MAE is better. Fixed settings; all eight worlds, both route directions. Pose supervises readouts only.</p><p>'+html.escape(' '.join(report['limitations']))+'</p><table><tr><th>Representation</th><th>Method</th><th>Rank</th><th>True-label MAE</th><th>Shifted-label MAE</th></tr>'+table+'</table>')
         atomic_json(args.output/'status.json',{'state':'complete','fits':len(results)})
