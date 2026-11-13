@@ -1,0 +1,19 @@
+{
+  "image": "label-controls.png",
+  "data": "figure-data.json",
+  "source_report": "/Users/lianfei/Documents/RES/Minecraft-Binding/runs/oscar/spatial-geometry-probes-8963648/report.json",
+  "job_id": 8963648,
+  "aggregation": "Equal-world mean after within-world averaging over route directions and seeds",
+  "limitations": [
+    "Exploratory: sparse clips and only two routes per world; no independent validation route",
+    "Fixed settings, all layers and ranks reported; no best-test selection",
+    "1024 input dimensions and very few training clips: strong overfitting risk, including orthonormal probes",
+    "Metric and coordinate probes use pose supervision; encoder remains frozen",
+    "Test pairs within a route are dependent; no IID pair confidence intervals",
+    "Reverse folds and optimization seeds are not independent replicates",
+    "Previously inspected data, not a new confirmatory test set",
+    "Shifted training positions are a diagnostic control, not a significance test",
+    "Ground-plane distance hides elevation in hills/mines",
+    "No grid-cell, persistent-memory or navigation-utility claim"
+  ]
+}

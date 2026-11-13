@@ -1,0 +1,1731 @@
+{
+  "job_id": 8963648,
+  "state": "reviewed",
+  "verified_artifacts": 4032,
+  "checks": [
+    "All artifact distance MAEs reproduce report values",
+    "All stored train/test row index sets are disjoint"
+  ],
+  "aggregation": "Equal-world mean after within-world averaging over route directions and seeds",
+  "comparisons": [
+    {
+      "block": 4,
+      "method": "mean_distance",
+      "k": 0,
+      "video_mae": 5.035641533698811,
+      "repeated_mae": 5.035641533698811,
+      "shifted_mae": 5.035641533698811,
+      "video_better_than_repeated_worlds": 0,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 1,
+      "worlds": {
+        "env-00": {
+          "video_mae": 5.634482401289846,
+          "repeated_mae": 5.634482401289846,
+          "shifted_mae": 5.634482401289845,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 4.750185636181213,
+          "repeated_mae": 4.750185636181213,
+          "shifted_mae": 4.750185636181213,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 4.524255158060262,
+          "repeated_mae": 4.524255158060262,
+          "shifted_mae": 4.524255158060262,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 4.9690853622058775,
+          "repeated_mae": 4.9690853622058775,
+          "shifted_mae": 4.9690853622058775,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 4.820225646166103,
+          "repeated_mae": 4.820225646166103,
+          "shifted_mae": 4.820225646166103,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 4.61606775748651,
+          "repeated_mae": 4.61606775748651,
+          "shifted_mae": 4.61606775748651,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 5.570539748872488,
+          "repeated_mae": 5.570539748872488,
+          "shifted_mae": 5.5705397488724895,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 5.400290559328194,
+          "repeated_mae": 5.400290559328194,
+          "shifted_mae": 5.400290559328193,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 4,
+      "method": "raw",
+      "k": 0,
+      "video_mae": 6.212105279873498,
+      "repeated_mae": 7.0386870470488905,
+      "shifted_mae": 6.205006371528219,
+      "video_better_than_repeated_worlds": 8,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 3,
+      "worlds": {
+        "env-00": {
+          "video_mae": 6.7942567171944415,
+          "repeated_mae": 8.195404543490149,
+          "shifted_mae": 6.810178673536015,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 5.810244383566216,
+          "repeated_mae": 6.203864138870642,
+          "shifted_mae": 5.7642187536726635,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.005297168871084,
+          "repeated_mae": 6.5960424322079145,
+          "shifted_mae": 5.0168643289768164,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 5.463945123419147,
+          "repeated_mae": 6.130567291710846,
+          "shifted_mae": 5.458155237686921,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 6.555693217176667,
+          "repeated_mae": 7.108975739194076,
+          "shifted_mae": 6.421786196261891,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.177058629631395,
+          "repeated_mae": 5.446755115260627,
+          "shifted_mae": 5.162163323685938,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 9.034487690832083,
+          "repeated_mae": 10.206288484511706,
+          "shifted_mae": 9.001682340699634,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 5.855859308296951,
+          "repeated_mae": 6.4215986311451605,
+          "shifted_mae": 6.005002117705866,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 4,
+      "method": "ridge",
+      "k": 2,
+      "video_mae": 7.355368731703151,
+      "repeated_mae": 7.951162634913628,
+      "shifted_mae": 7.631778970596722,
+      "video_better_than_repeated_worlds": 5,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 4,
+      "worlds": {
+        "env-00": {
+          "video_mae": 8.18705833727558,
+          "repeated_mae": 8.176765432410159,
+          "shifted_mae": 8.160578897639287,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 6.442224659763726,
+          "repeated_mae": 7.5340830202167375,
+          "shifted_mae": 7.894591568795343,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.455120632577616,
+          "repeated_mae": 7.024395503264637,
+          "shifted_mae": 6.429251703405205,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.886986508568377,
+          "repeated_mae": 7.770003833106131,
+          "shifted_mae": 6.794320412994397,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 8.049616864219033,
+          "repeated_mae": 8.643543469014467,
+          "shifted_mae": 8.69443026939521,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 6.257251562580819,
+          "repeated_mae": 6.119295646157604,
+          "shifted_mae": 6.89062911138638,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 7.94102144208367,
+          "repeated_mae": 10.681173921629407,
+          "shifted_mae": 9.389780915034873,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 8.623669846556385,
+          "repeated_mae": 7.660040253509885,
+          "shifted_mae": 6.80064888612308,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 4,
+      "method": "random_orth",
+      "k": 2,
+      "video_mae": 7.900006011223629,
+      "repeated_mae": 8.28044968386401,
+      "shifted_mae": 7.876879424013222,
+      "video_better_than_repeated_worlds": 6,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 2,
+      "worlds": {
+        "env-00": {
+          "video_mae": 8.93471202580938,
+          "repeated_mae": 8.682596268632999,
+          "shifted_mae": 8.933263672765568,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 8.307485400948726,
+          "repeated_mae": 8.517029211380363,
+          "shifted_mae": 8.215828809106435,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.462858163734642,
+          "repeated_mae": 7.623388272729532,
+          "shifted_mae": 6.480317532634672,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 7.21817241471982,
+          "repeated_mae": 7.372130782605431,
+          "shifted_mae": 7.209293011810996,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 7.8812768819582635,
+          "repeated_mae": 7.9608161207183175,
+          "shifted_mae": 7.915927757832801,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 6.72089250825993,
+          "repeated_mae": 6.855086828709774,
+          "shifted_mae": 6.698206569406779,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 9.675171202616268,
+          "repeated_mae": 11.916332912798277,
+          "shifted_mae": 9.586590694812108,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 7.999479491742005,
+          "repeated_mae": 7.316217073337399,
+          "shifted_mae": 7.975607343736418,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 2,
+      "video_mae": 7.457119011807742,
+      "repeated_mae": 8.093578898798807,
+      "shifted_mae": 7.7237608917074585,
+      "video_better_than_repeated_worlds": 4,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 6,
+      "worlds": {
+        "env-00": {
+          "video_mae": 9.784494771660984,
+          "repeated_mae": 8.468566526586045,
+          "shifted_mae": 8.817205616959933,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 6.3877588355827735,
+          "repeated_mae": 7.717710552937352,
+          "shifted_mae": 7.6222569696110805,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.420992462743512,
+          "repeated_mae": 6.331079954543669,
+          "shifted_mae": 6.692912776630654,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.7575484502206455,
+          "repeated_mae": 7.8621446250449205,
+          "shifted_mae": 6.7279696358132055,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 8.32918210703504,
+          "repeated_mae": 8.23427085331796,
+          "shifted_mae": 8.598097714354498,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 6.038856063120289,
+          "repeated_mae": 5.9085585779297185,
+          "shifted_mae": 6.680400632038346,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 8.082488071499933,
+          "repeated_mae": 11.456221079950724,
+          "shifted_mae": 8.711019637225535,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 7.855631332598762,
+          "repeated_mae": 8.77007902008007,
+          "shifted_mae": 7.940224151026414,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 2,
+      "video_mae": 7.733270932141148,
+      "repeated_mae": 8.040962988929245,
+      "shifted_mae": 7.627268022597587,
+      "video_better_than_repeated_worlds": 5,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 4,
+      "worlds": {
+        "env-00": {
+          "video_mae": 9.284024634095632,
+          "repeated_mae": 8.715944449416819,
+          "shifted_mae": 8.792018431247639,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 7.228164515199295,
+          "repeated_mae": 7.768769282851822,
+          "shifted_mae": 7.551404430334955,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.407025363744762,
+          "repeated_mae": 6.8890931011753915,
+          "shifted_mae": 7.085309245012888,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 7.132844213264998,
+          "repeated_mae": 7.180689890075565,
+          "shifted_mae": 6.641275356925102,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 8.483316587737006,
+          "repeated_mae": 7.872468012415475,
+          "shifted_mae": 8.239441563650486,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.901937978646,
+          "repeated_mae": 6.051786374273103,
+          "shifted_mae": 6.663056516221727,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 8.399385409237972,
+          "repeated_mae": 11.039331029156502,
+          "shifted_mae": 8.893686408782603,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 9.029468755203526,
+          "repeated_mae": 8.80962177206927,
+          "shifted_mae": 7.15195222860529,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 4,
+      "method": "random_orth",
+      "k": 8,
+      "video_mae": 6.670860791512854,
+      "repeated_mae": 7.2580075483835,
+      "shifted_mae": 6.706348847703607,
+      "video_better_than_repeated_worlds": 8,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 4,
+      "worlds": {
+        "env-00": {
+          "video_mae": 7.385334258282801,
+          "repeated_mae": 8.032247035331837,
+          "shifted_mae": 7.444529509738612,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 6.03962133947331,
+          "repeated_mae": 6.950828788347356,
+          "shifted_mae": 5.998212173726601,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.48535240942487,
+          "repeated_mae": 6.539296742083736,
+          "shifted_mae": 5.553418583610392,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.013622471470055,
+          "repeated_mae": 6.306134638939349,
+          "shifted_mae": 6.016534517067286,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 7.006490566769287,
+          "repeated_mae": 7.650681690069853,
+          "shifted_mae": 6.922022432853986,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.536179292174224,
+          "repeated_mae": 5.749592999885408,
+          "shifted_mae": 5.517024931947673,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 9.187907419122617,
+          "repeated_mae": 9.928738234483058,
+          "shifted_mae": 9.14253108930346,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 6.712378575385667,
+          "repeated_mae": 6.906540257927399,
+          "shifted_mae": 7.056517543380843,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 4,
+      "method": "orth",
+      "k": 8,
+      "video_mae": 6.783622883350853,
+      "repeated_mae": 7.209547829035323,
+      "shifted_mae": 6.919394369798697,
+      "video_better_than_repeated_worlds": 4,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 5,
+      "worlds": {
+        "env-00": {
+          "video_mae": 7.430778930729445,
+          "repeated_mae": 7.422233407012132,
+          "shifted_mae": 6.734745076860989,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 5.967121795020451,
+          "repeated_mae": 6.539805362890253,
+          "shifted_mae": 6.4032000995333656,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.517249908813632,
+          "repeated_mae": 6.05731279177816,
+          "shifted_mae": 6.128699127530086,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.455656486689403,
+          "repeated_mae": 7.062570561696044,
+          "shifted_mae": 6.26728113944363,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 7.874226573618773,
+          "repeated_mae": 7.5413235588642955,
+          "shifted_mae": 8.396600797060737,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.558859681221448,
+          "repeated_mae": 5.486032513458931,
+          "shifted_mae": 6.182833431047733,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 7.812803185755091,
+          "repeated_mae": 9.95514525266522,
+          "shifted_mae": 8.185215735887825,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 7.652286504958585,
+          "repeated_mae": 7.611959183917548,
+          "shifted_mae": 7.05657955102521,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 4,
+      "method": "linear_metric",
+      "k": 8,
+      "video_mae": 6.504972173771984,
+      "repeated_mae": 7.247584425802616,
+      "shifted_mae": 6.6099449148191685,
+      "video_better_than_repeated_worlds": 6,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 4,
+      "worlds": {
+        "env-00": {
+          "video_mae": 6.62098377450297,
+          "repeated_mae": 7.270644478946526,
+          "shifted_mae": 5.976234171916935,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 6.011205596516354,
+          "repeated_mae": 7.316483453347243,
+          "shifted_mae": 6.766991994489399,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.474018939297802,
+          "repeated_mae": 6.297580369036241,
+          "shifted_mae": 5.971012828945876,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.5334791637661915,
+          "repeated_mae": 6.888327428650766,
+          "shifted_mae": 6.147123976872478,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 7.585193399462381,
+          "repeated_mae": 6.90104733209743,
+          "shifted_mae": 7.383866749567344,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.53262353455188,
+          "repeated_mae": 5.668192065851464,
+          "shifted_mae": 6.265264113633393,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 7.417576113992555,
+          "repeated_mae": 10.867999524354715,
+          "shifted_mae": 7.993164595244902,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 6.864696868085736,
+          "repeated_mae": 6.7704007541365385,
+          "shifted_mae": 6.375900887883016,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 12,
+      "method": "mean_distance",
+      "k": 0,
+      "video_mae": 5.035641533698811,
+      "repeated_mae": 5.035641533698811,
+      "shifted_mae": 5.035641533698811,
+      "video_better_than_repeated_worlds": 0,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 1,
+      "worlds": {
+        "env-00": {
+          "video_mae": 5.634482401289846,
+          "repeated_mae": 5.634482401289846,
+          "shifted_mae": 5.634482401289845,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 4.750185636181213,
+          "repeated_mae": 4.750185636181213,
+          "shifted_mae": 4.750185636181213,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 4.524255158060262,
+          "repeated_mae": 4.524255158060262,
+          "shifted_mae": 4.524255158060262,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 4.9690853622058775,
+          "repeated_mae": 4.9690853622058775,
+          "shifted_mae": 4.9690853622058775,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 4.820225646166103,
+          "repeated_mae": 4.820225646166103,
+          "shifted_mae": 4.820225646166103,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 4.61606775748651,
+          "repeated_mae": 4.61606775748651,
+          "shifted_mae": 4.61606775748651,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 5.570539748872488,
+          "repeated_mae": 5.570539748872488,
+          "shifted_mae": 5.5705397488724895,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 5.400290559328194,
+          "repeated_mae": 5.400290559328194,
+          "shifted_mae": 5.400290559328193,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 12,
+      "method": "raw",
+      "k": 0,
+      "video_mae": 5.692832398634877,
+      "repeated_mae": 7.024418163222073,
+      "shifted_mae": 5.648000257835156,
+      "video_better_than_repeated_worlds": 8,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 4,
+      "worlds": {
+        "env-00": {
+          "video_mae": 5.902016745158487,
+          "repeated_mae": 8.025167276927252,
+          "shifted_mae": 5.957693069298363,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 5.4809839713928135,
+          "repeated_mae": 6.166415841068208,
+          "shifted_mae": 5.483746750851024,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.179838788083707,
+          "repeated_mae": 6.623183782667985,
+          "shifted_mae": 5.192325664302732,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 5.263308807683179,
+          "repeated_mae": 7.075474756350235,
+          "shifted_mae": 5.2648269687417635,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 5.565708385008609,
+          "repeated_mae": 5.986822186124836,
+          "shifted_mae": 5.525378867427898,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.13647164324847,
+          "repeated_mae": 6.359944052586869,
+          "shifted_mae": 5.113719065643683,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 6.746278073647447,
+          "repeated_mae": 7.888781198616218,
+          "shifted_mae": 6.702541868321834,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 6.2680527748563,
+          "repeated_mae": 8.069556211434982,
+          "shifted_mae": 5.943769808093947,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 12,
+      "method": "ridge",
+      "k": 2,
+      "video_mae": 7.621403339796882,
+      "repeated_mae": 7.829265183396025,
+      "shifted_mae": 7.794747633888954,
+      "video_better_than_repeated_worlds": 5,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 4,
+      "worlds": {
+        "env-00": {
+          "video_mae": 9.54397106183201,
+          "repeated_mae": 8.773767937597924,
+          "shifted_mae": 9.972028662563652,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 9.742021706404884,
+          "repeated_mae": 7.481905207367253,
+          "shifted_mae": 8.65935373079774,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.990414983063287,
+          "repeated_mae": 6.524159894761635,
+          "shifted_mae": 6.276048575105005,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.791008044874863,
+          "repeated_mae": 8.057122822537131,
+          "shifted_mae": 6.645412773925049,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 7.056161789036366,
+          "repeated_mae": 8.424811828356269,
+          "shifted_mae": 8.624235257689644,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.7069257374225,
+          "repeated_mae": 5.895833574381292,
+          "shifted_mae": 7.058030605351192,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 8.223851797385858,
+          "repeated_mae": 9.586006164170403,
+          "shifted_mae": 7.513847624854922,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 7.916871598355288,
+          "repeated_mae": 7.8905140379962955,
+          "shifted_mae": 7.609023840824429,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 12,
+      "method": "random_orth",
+      "k": 2,
+      "video_mae": 7.822951015094727,
+      "repeated_mae": 8.403331856086734,
+      "shifted_mae": 7.793057027088361,
+      "video_better_than_repeated_worlds": 6,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 4,
+      "worlds": {
+        "env-00": {
+          "video_mae": 8.864284585015003,
+          "repeated_mae": 10.7139506155736,
+          "shifted_mae": 8.734187718811453,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 7.830756693681219,
+          "repeated_mae": 7.9403677821028325,
+          "shifted_mae": 7.848402875527332,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.487652773820663,
+          "repeated_mae": 7.2964142413535376,
+          "shifted_mae": 6.497221285382314,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 7.1235754556312285,
+          "repeated_mae": 7.233287192630126,
+          "shifted_mae": 7.121988958746036,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 8.175695104780495,
+          "repeated_mae": 7.872336520677305,
+          "shifted_mae": 8.11903332362648,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 6.528518203943343,
+          "repeated_mae": 6.758289143713167,
+          "shifted_mae": 6.54595703096427,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 8.647784000937003,
+          "repeated_mae": 8.151042005545795,
+          "shifted_mae": 8.668599413814597,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 8.925341302948866,
+          "repeated_mae": 11.260967347097512,
+          "shifted_mae": 8.80906560983441,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 2,
+      "video_mae": 7.559631076038465,
+      "repeated_mae": 8.12017822131465,
+      "shifted_mae": 7.5684650975258245,
+      "video_better_than_repeated_worlds": 5,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 5,
+      "worlds": {
+        "env-00": {
+          "video_mae": 9.119848417015332,
+          "repeated_mae": 8.862742409622273,
+          "shifted_mae": 8.271891675683575,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 7.811468907407382,
+          "repeated_mae": 8.102991686408023,
+          "shifted_mae": 8.018034683784942,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.138283830046735,
+          "repeated_mae": 6.610349114808101,
+          "shifted_mae": 6.21235843291774,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.867776994848094,
+          "repeated_mae": 8.360707899423831,
+          "shifted_mae": 7.171337896311436,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 7.83696330812862,
+          "repeated_mae": 7.787082885651962,
+          "shifted_mae": 8.149132100257594,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 6.132831998812926,
+          "repeated_mae": 6.120099697785978,
+          "shifted_mae": 7.183375297271915,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 8.283570639952613,
+          "repeated_mae": 8.863701510753742,
+          "shifted_mae": 7.839434753209723,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 8.286304512096018,
+          "repeated_mae": 10.253750566063296,
+          "shifted_mae": 7.702155940769672,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 2,
+      "video_mae": 7.598156082185826,
+      "repeated_mae": 8.337067187562226,
+      "shifted_mae": 7.712560618286914,
+      "video_better_than_repeated_worlds": 7,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 6,
+      "worlds": {
+        "env-00": {
+          "video_mae": 8.721791074965775,
+          "repeated_mae": 8.51104010678455,
+          "shifted_mae": 8.797159676974154,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 7.338062119515495,
+          "repeated_mae": 8.146124075040156,
+          "shifted_mae": 7.653145268278574,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.189408886089527,
+          "repeated_mae": 6.482259384609676,
+          "shifted_mae": 6.254975498315559,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 7.171524321702311,
+          "repeated_mae": 8.794932267025896,
+          "shifted_mae": 7.201847978025218,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 8.530656972663744,
+          "repeated_mae": 8.939833992490732,
+          "shifted_mae": 7.942988746964105,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 6.052866043818564,
+          "repeated_mae": 6.353420549236394,
+          "shifted_mae": 7.06186483366965,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 8.435366310752322,
+          "repeated_mae": 9.54514549078218,
+          "shifted_mae": 7.793436620379571,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 8.345572927978862,
+          "repeated_mae": 9.923781634528225,
+          "shifted_mae": 8.995066323688478,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 12,
+      "method": "random_orth",
+      "k": 8,
+      "video_mae": 6.232382293598999,
+      "repeated_mae": 7.728484352149586,
+      "shifted_mae": 6.241587320907042,
+      "video_better_than_repeated_worlds": 8,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 5,
+      "worlds": {
+        "env-00": {
+          "video_mae": 6.154373956367547,
+          "repeated_mae": 8.391093650849891,
+          "shifted_mae": 6.226322440103183,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 5.974278832477345,
+          "repeated_mae": 7.23978967345052,
+          "shifted_mae": 6.003952407332626,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.649371019509906,
+          "repeated_mae": 7.37729625632451,
+          "shifted_mae": 5.653484771983124,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 5.647660566020061,
+          "repeated_mae": 7.464181761031496,
+          "shifted_mae": 5.646048459841285,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 6.553822275500487,
+          "repeated_mae": 6.703739145563983,
+          "shifted_mae": 6.559303927926905,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.747375706966646,
+          "repeated_mae": 6.924563369932625,
+          "shifted_mae": 5.68932510907188,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 7.2031245579708,
+          "repeated_mae": 8.34991918962398,
+          "shifted_mae": 7.162532840400027,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 6.929051433979198,
+          "repeated_mae": 9.37729177041968,
+          "shifted_mae": 6.991728610597312,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 12,
+      "method": "orth",
+      "k": 8,
+      "video_mae": 6.217648256314812,
+      "repeated_mae": 7.221968993839206,
+      "shifted_mae": 6.392322290802879,
+      "video_better_than_repeated_worlds": 7,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 5,
+      "worlds": {
+        "env-00": {
+          "video_mae": 6.504861068404575,
+          "repeated_mae": 7.7850564846453,
+          "shifted_mae": 6.882390403514059,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 5.750488240486452,
+          "repeated_mae": 7.0643059005141735,
+          "shifted_mae": 6.198896411839247,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.3829094546525935,
+          "repeated_mae": 5.9695536168869845,
+          "shifted_mae": 5.65165801842236,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 5.984393927213783,
+          "repeated_mae": 7.806170423230597,
+          "shifted_mae": 6.163907073253704,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 6.619508141104635,
+          "repeated_mae": 7.521508993360592,
+          "shifted_mae": 6.589288299549704,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.415685142916387,
+          "repeated_mae": 5.140104204903644,
+          "shifted_mae": 6.283815086914182,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 7.206910772171135,
+          "repeated_mae": 8.733076700008063,
+          "shifted_mae": 6.779355513776998,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 6.876429303568926,
+          "repeated_mae": 7.755975627164292,
+          "shifted_mae": 6.589267519152773,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 12,
+      "method": "linear_metric",
+      "k": 8,
+      "video_mae": 6.282277612585453,
+      "repeated_mae": 7.343845881091643,
+      "shifted_mae": 6.488250521289576,
+      "video_better_than_repeated_worlds": 8,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 4,
+      "worlds": {
+        "env-00": {
+          "video_mae": 6.469278325984025,
+          "repeated_mae": 7.195863757983628,
+          "shifted_mae": 7.17168334254464,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 5.391485965935444,
+          "repeated_mae": 7.068960682764799,
+          "shifted_mae": 6.281795949790695,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.128878807646358,
+          "repeated_mae": 5.554180338875116,
+          "shifted_mae": 5.776093245229414,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.2727129394499705,
+          "repeated_mae": 8.487847981043936,
+          "shifted_mae": 6.236623481106871,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 6.911087225442344,
+          "repeated_mae": 7.252120014726739,
+          "shifted_mae": 6.136288342336851,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.576818618532815,
+          "repeated_mae": 6.108913598449888,
+          "shifted_mae": 6.659578613648321,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 6.9903595665512235,
+          "repeated_mae": 8.333479901305745,
+          "shifted_mae": 6.345044855940454,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 7.5175994511414475,
+          "repeated_mae": 8.749400773583297,
+          "shifted_mae": 7.298896339719362,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 24,
+      "method": "mean_distance",
+      "k": 0,
+      "video_mae": 5.035641533698811,
+      "repeated_mae": 5.035641533698811,
+      "shifted_mae": 5.035641533698811,
+      "video_better_than_repeated_worlds": 0,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 1,
+      "worlds": {
+        "env-00": {
+          "video_mae": 5.634482401289846,
+          "repeated_mae": 5.634482401289846,
+          "shifted_mae": 5.634482401289845,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 4.750185636181213,
+          "repeated_mae": 4.750185636181213,
+          "shifted_mae": 4.750185636181213,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 4.524255158060262,
+          "repeated_mae": 4.524255158060262,
+          "shifted_mae": 4.524255158060262,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 4.9690853622058775,
+          "repeated_mae": 4.9690853622058775,
+          "shifted_mae": 4.9690853622058775,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 4.820225646166103,
+          "repeated_mae": 4.820225646166103,
+          "shifted_mae": 4.820225646166103,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 4.61606775748651,
+          "repeated_mae": 4.61606775748651,
+          "shifted_mae": 4.61606775748651,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 5.570539748872488,
+          "repeated_mae": 5.570539748872488,
+          "shifted_mae": 5.5705397488724895,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 5.400290559328194,
+          "repeated_mae": 5.400290559328194,
+          "shifted_mae": 5.400290559328193,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 24,
+      "method": "raw",
+      "k": 0,
+      "video_mae": 5.6970923721395526,
+      "repeated_mae": 5.845970979603529,
+      "shifted_mae": 5.63762868082024,
+      "video_better_than_repeated_worlds": 7,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 6,
+      "worlds": {
+        "env-00": {
+          "video_mae": 5.869794695552899,
+          "repeated_mae": 6.689159959692294,
+          "shifted_mae": 5.888275954608119,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 5.4631916162621,
+          "repeated_mae": 5.504034812505925,
+          "shifted_mae": 5.49300133627008,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.192590739643899,
+          "repeated_mae": 5.45448623591823,
+          "shifted_mae": 5.195339756715356,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 5.489580930669266,
+          "repeated_mae": 6.065725289912052,
+          "shifted_mae": 5.498983030254648,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 5.481947096423975,
+          "repeated_mae": 5.4903047629309425,
+          "shifted_mae": 5.486993510093517,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.003026664379256,
+          "repeated_mae": 5.387893279976617,
+          "shifted_mae": 5.005363397578205,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 6.19667724727802,
+          "repeated_mae": 7.04952390325707,
+          "shifted_mae": 6.17556255803661,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 6.879929986907004,
+          "repeated_mae": 5.126639592635101,
+          "shifted_mae": 6.357509903005383,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 24,
+      "method": "ridge",
+      "k": 2,
+      "video_mae": 7.501812726691819,
+      "repeated_mae": 7.6538930019054945,
+      "shifted_mae": 7.720153824970566,
+      "video_better_than_repeated_worlds": 4,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 5,
+      "worlds": {
+        "env-00": {
+          "video_mae": 10.034946844121066,
+          "repeated_mae": 9.707512121763392,
+          "shifted_mae": 9.097141951574239,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 7.090956501733464,
+          "repeated_mae": 6.146386494789041,
+          "shifted_mae": 8.22406817082057,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.777719740857556,
+          "repeated_mae": 8.308047530774752,
+          "shifted_mae": 6.3046381599307715,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 7.39920723967279,
+          "repeated_mae": 7.445323808288793,
+          "shifted_mae": 6.973573640341261,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 7.066548415552704,
+          "repeated_mae": 9.105948126829546,
+          "shifted_mae": 8.6356647109293,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.99063999958259,
+          "repeated_mae": 5.227096484896931,
+          "shifted_mae": 6.226597802110656,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 7.684150862780793,
+          "repeated_mae": 7.860424456167637,
+          "shifted_mae": 7.737565925917568,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 7.970332209233588,
+          "repeated_mae": 7.4304049917338695,
+          "shifted_mae": 8.561980238140166,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 24,
+      "method": "random_orth",
+      "k": 2,
+      "video_mae": 7.99103445989328,
+      "repeated_mae": 7.969711705289729,
+      "shifted_mae": 8.030703854996823,
+      "video_better_than_repeated_worlds": 5,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 5,
+      "worlds": {
+        "env-00": {
+          "video_mae": 7.895313654609502,
+          "repeated_mae": 9.872446083437366,
+          "shifted_mae": 7.763617470035281,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 7.389983631923475,
+          "repeated_mae": 6.94639166665613,
+          "shifted_mae": 7.364025892273472,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.533435295112448,
+          "repeated_mae": 7.137071129510801,
+          "shifted_mae": 6.544187657628577,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 7.625802005650848,
+          "repeated_mae": 8.351673748446066,
+          "shifted_mae": 7.668567025248998,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 7.6176300903889205,
+          "repeated_mae": 8.021470754562438,
+          "shifted_mae": 7.830571887985125,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 6.323244769326664,
+          "repeated_mae": 6.742467873068239,
+          "shifted_mae": 6.358232246120816,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 8.415541306850528,
+          "repeated_mae": 8.02661256067213,
+          "shifted_mae": 8.388960039649332,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 12.127324925283853,
+          "repeated_mae": 8.659559825964665,
+          "shifted_mae": 12.327468621032985,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 2,
+      "video_mae": 7.397766192315621,
+      "repeated_mae": 7.526840151002357,
+      "shifted_mae": 7.683522103088433,
+      "video_better_than_repeated_worlds": 4,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 6,
+      "worlds": {
+        "env-00": {
+          "video_mae": 9.145448827349394,
+          "repeated_mae": 8.615076702773088,
+          "shifted_mae": 8.266595661245583,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 7.052430120948835,
+          "repeated_mae": 6.94277026178474,
+          "shifted_mae": 7.944121444616847,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.692046865765634,
+          "repeated_mae": 8.115407207772204,
+          "shifted_mae": 6.313391190132862,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.686831104679883,
+          "repeated_mae": 7.745829491702945,
+          "shifted_mae": 6.855004756868539,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 7.139770572729662,
+          "repeated_mae": 8.72082774341917,
+          "shifted_mae": 7.798987732648925,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 6.1379674538957785,
+          "repeated_mae": 5.11226486724782,
+          "shifted_mae": 6.180139933437523,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 7.4494202272266845,
+          "repeated_mae": 7.80083174097791,
+          "shifted_mae": 8.317387825366094,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 8.878214365929098,
+          "repeated_mae": 7.161713192340984,
+          "shifted_mae": 9.792548280391093,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 2,
+      "video_mae": 7.865245034138636,
+      "repeated_mae": 7.882955562878437,
+      "shifted_mae": 7.928128654036739,
+      "video_better_than_repeated_worlds": 5,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 6,
+      "worlds": {
+        "env-00": {
+          "video_mae": 8.376461483084553,
+          "repeated_mae": 8.78111635648329,
+          "shifted_mae": 8.6115271527156,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 7.5793549921956656,
+          "repeated_mae": 7.285603865300254,
+          "shifted_mae": 7.887643114939231,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.657571898007419,
+          "repeated_mae": 8.56456254344072,
+          "shifted_mae": 6.699164681341016,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 7.509029298201074,
+          "repeated_mae": 8.42283323138023,
+          "shifted_mae": 7.138566673635011,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 8.37385657039474,
+          "repeated_mae": 9.05211019937004,
+          "shifted_mae": 8.201595133511008,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 6.141674416342245,
+          "repeated_mae": 5.507848935328528,
+          "shifted_mae": 6.233025735152876,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 7.962135099851449,
+          "repeated_mae": 7.9916495067235935,
+          "shifted_mae": 8.004618600799345,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 10.321876515031938,
+          "repeated_mae": 7.457919865000844,
+          "shifted_mae": 10.64888814019982,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 24,
+      "method": "random_orth",
+      "k": 8,
+      "video_mae": 6.301899878483358,
+      "repeated_mae": 6.328660547332481,
+      "shifted_mae": 6.259829705719866,
+      "video_better_than_repeated_worlds": 7,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 4,
+      "worlds": {
+        "env-00": {
+          "video_mae": 6.233318743436134,
+          "repeated_mae": 7.309453197067839,
+          "shifted_mae": 6.229720068241022,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 5.979265941858742,
+          "repeated_mae": 6.388818383525892,
+          "shifted_mae": 5.971264882757054,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 5.568188161866668,
+          "repeated_mae": 5.806911139485204,
+          "shifted_mae": 5.565304476910723,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 5.937537601747604,
+          "repeated_mae": 6.275952472492416,
+          "shifted_mae": 5.9526600060046775,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 6.160348481769375,
+          "repeated_mae": 6.41844624229154,
+          "shifted_mae": 6.178211590023448,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.523995783929872,
+          "repeated_mae": 5.622300893228842,
+          "shifted_mae": 5.533651410613678,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 6.4507283005131875,
+          "repeated_mae": 6.887196416529206,
+          "shifted_mae": 6.479607269216868,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 8.561816012745277,
+          "repeated_mae": 5.92020563403891,
+          "shifted_mae": 8.168217941991456,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 24,
+      "method": "orth",
+      "k": 8,
+      "video_mae": 6.46008695575399,
+      "repeated_mae": 6.628715889272655,
+      "shifted_mae": 6.597257522406693,
+      "video_better_than_repeated_worlds": 5,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 5,
+      "worlds": {
+        "env-00": {
+          "video_mae": 6.875234287036471,
+          "repeated_mae": 7.402317886639357,
+          "shifted_mae": 6.365171001544346,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 6.4201643734931055,
+          "repeated_mae": 5.855799206118399,
+          "shifted_mae": 6.766998524878987,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.176957298921049,
+          "repeated_mae": 7.586015863657835,
+          "shifted_mae": 5.6513909835336635,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.491070744648906,
+          "repeated_mae": 7.120142691227996,
+          "shifted_mae": 6.439820388856286,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 5.564311351531342,
+          "repeated_mae": 8.14171956763481,
+          "shifted_mae": 6.319482720380088,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.694753696557857,
+          "repeated_mae": 4.664427522071431,
+          "shifted_mae": 5.952771297782017,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 6.448044566653334,
+          "repeated_mae": 6.962339293711119,
+          "shifted_mae": 6.972360727093853,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 8.01015932718986,
+          "repeated_mae": 5.296965083120296,
+          "shifted_mae": 8.310064535184308,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    },
+    {
+      "block": 24,
+      "method": "linear_metric",
+      "k": 8,
+      "video_mae": 7.008741136263352,
+      "repeated_mae": 7.212434949472458,
+      "shifted_mae": 6.9026169983757075,
+      "video_better_than_repeated_worlds": 5,
+      "video_better_than_constant_worlds": 0,
+      "true_better_than_shifted_worlds": 3,
+      "worlds": {
+        "env-00": {
+          "video_mae": 7.9501155119849996,
+          "repeated_mae": 6.920288864301164,
+          "shifted_mae": 6.987583398216306,
+          "constant_mae": 5.634482401289846
+        },
+        "env-01": {
+          "video_mae": 6.60984686029214,
+          "repeated_mae": 6.779176364149804,
+          "shifted_mae": 6.464416465969154,
+          "constant_mae": 4.750185636181213
+        },
+        "env-02": {
+          "video_mae": 6.341027537796936,
+          "repeated_mae": 7.300673063686157,
+          "shifted_mae": 5.430485874336463,
+          "constant_mae": 4.524255158060262
+        },
+        "env-03": {
+          "video_mae": 6.456346766585692,
+          "repeated_mae": 8.197667276965566,
+          "shifted_mae": 6.347256932193825,
+          "constant_mae": 4.9690853622058775
+        },
+        "env-04": {
+          "video_mae": 5.935605040140377,
+          "repeated_mae": 8.84745092226167,
+          "shifted_mae": 7.031637334075525,
+          "constant_mae": 4.820225646166103
+        },
+        "env-05": {
+          "video_mae": 5.912893299989108,
+          "repeated_mae": 4.817346850429334,
+          "shifted_mae": 6.222159504292378,
+          "constant_mae": 4.61606775748651
+        },
+        "env-06": {
+          "video_mae": 6.527875225453582,
+          "repeated_mae": 7.537835619975056,
+          "shifted_mae": 7.724654460719777,
+          "constant_mae": 5.570539748872488
+        },
+        "env-07": {
+          "video_mae": 10.336218847863982,
+          "repeated_mae": 7.299040634010912,
+          "shifted_mae": 9.012742017202232,
+          "constant_mae": 5.400290559328194
+        }
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "world": "env-00",
+      "route0_clips": 9,
+      "route1_clips": 8,
+      "near_crossroute_pairs": 1,
+      "near_opposite_heading_pairs": 1,
+      "far_same_heading_pairs": 15
+    },
+    {
+      "world": "env-01",
+      "route0_clips": 9,
+      "route1_clips": 9,
+      "near_crossroute_pairs": 5,
+      "near_opposite_heading_pairs": 2,
+      "far_same_heading_pairs": 15
+    },
+    {
+      "world": "env-02",
+      "route0_clips": 17,
+      "route1_clips": 16,
+      "near_crossroute_pairs": 16,
+      "near_opposite_heading_pairs": 9,
+      "far_same_heading_pairs": 55
+    },
+    {
+      "world": "env-03",
+      "route0_clips": 14,
+      "route1_clips": 14,
+      "near_crossroute_pairs": 10,
+      "near_opposite_heading_pairs": 2,
+      "far_same_heading_pairs": 39
+    },
+    {
+      "world": "env-04",
+      "route0_clips": 9,
+      "route1_clips": 8,
+      "near_crossroute_pairs": 4,
+      "near_opposite_heading_pairs": 4,
+      "far_same_heading_pairs": 16
+    },
+    {
+      "world": "env-05",
+      "route0_clips": 20,
+      "route1_clips": 20,
+      "near_crossroute_pairs": 31,
+      "near_opposite_heading_pairs": 15,
+      "far_same_heading_pairs": 85
+    },
+    {
+      "world": "env-06",
+      "route0_clips": 10,
+      "route1_clips": 10,
+      "near_crossroute_pairs": 6,
+      "near_opposite_heading_pairs": 2,
+      "far_same_heading_pairs": 20
+    },
+    {
+      "world": "env-07",
+      "route0_clips": 7,
+      "route1_clips": 8,
+      "near_crossroute_pairs": 0,
+      "near_opposite_heading_pairs": 0,
+      "far_same_heading_pairs": 9
+    }
+  ],
+  "interpretation": [
+    "All tested video probe mean distance errors exceed the constant-distance baseline",
+    "Temporal improvement versus repeated frame does not establish successful spatial geometry recovery",
+    "Sparse opposite-heading revisits constrain place-identity conclusions",
+    "Training losses and convergence traces were not saved; cannot isolate optimization failure from data/generalization limitations"
+  ]
+}

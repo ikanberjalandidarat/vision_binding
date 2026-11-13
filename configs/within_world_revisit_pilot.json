@@ -1,0 +1,62 @@
+{
+  "protocol": "within_world_revisit_pilot_v1",
+  "state": "design_only_not_collected",
+  "purpose": "Within-world place identity across independently walked routes/headings; spatial relationships under appearance ambiguity",
+  "worlds": 1,
+  "world_requirement": "Flat open area with traversable connections; preserve diverse-v2 unchanged",
+  "target_sites": 16,
+  "target_headings_degrees": [
+    0,
+    90,
+    180,
+    270
+  ],
+  "independent_routes": 6,
+  "route_split": {
+    "train": [
+      0,
+      1
+    ],
+    "validation": [
+      2,
+      3
+    ],
+    "test": [
+      4,
+      5
+    ]
+  },
+  "target_visits_per_route": 64,
+  "target_total_visits": 384,
+  "acceptance": {
+    "position_radius_blocks": 0.75,
+    "heading_tolerance_degrees": 10,
+    "all_splits_visit_all_sites_and_headings": true,
+    "actual_pose_not_planned_pose_defines_labels": true,
+    "no_teleport_within_evaluated_clips": true,
+    "routes_continuous_and_no_stuck_segments": true
+  },
+  "appearance_control": {
+    "minimum_ambiguous_site_pairs": 4,
+    "minimum_pair_separation_blocks": 8,
+    "design": "Repeated local landmark layouts at distant sites; different approach context. Verify endpoint visual similarity before model evaluation."
+  },
+  "capture": "Reuse synchronized RGB, pose, heading, actions, timestamps and raw-frame hashes; keep endpoint clip cadence fixed and documented",
+  "splitting": "Split full routes before window/pair construction; no shared raw frames across splits; overlapping clips remain grouped within route",
+  "evaluation": {
+    "primary_pairs": "Between the two held-out routes; both endpoints unseen during fit",
+    "same_place_threshold_blocks": 2,
+    "far_threshold_blocks": 6,
+    "opposite_heading_threshold_degrees": 90,
+    "report": "Actual site/heading occupancy and available matched near/far pairs per split before feature probing",
+    "claim_scope": "Known-site recognition across new routes/views, not extrapolation to unvisited sites"
+  },
+  "gates": [
+    "Review actual first-person recordings and allocentric paths",
+    "Check accepted visits, realized positions/headings and route independence",
+    "Check ambiguity controls with endpoint images",
+    "Fit transformations on training routes; select settings using validation routes only",
+    "Freeze protocol before inspecting test features/results"
+  ],
+  "not_authorized_as_completed": "No new Minecraft recordings or model runs have occurred for this design"
+}

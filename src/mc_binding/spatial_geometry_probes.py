@@ -24,7 +24,7 @@ def scalar_fit(a,b):
     return max(0.,float(a@b/max(a@a,1e-12)))
 
 
-def fit_probe(x,y,method,k=2,seed=0,steps=200):
+def fit_probe(x,y,method,k=2,seed=0,steps=200,callback=None,checkpoints=()):
     """All preprocessing/scale learned on training rows; scalar feature scaling."""
     import torch
     if len(x)<4 or not np.isfinite(x).all() or not np.isfinite(y).all():
@@ -65,7 +65,13 @@ def fit_probe(x,y,method,k=2,seed=0,steps=200):
     elif method=='orth': parameters=[w,logscale]
     else: raise ValueError(method)
     opt=torch.optim.Adam(parameters,lr=.01)
-    for _ in range(steps):
+    def observe(step):
+        if callback is not None and step in checkpoints:
+            snapshot=dict(out,w=w.detach().numpy().copy(),
+                s=unit*(float(logscale.detach().exp()) if method=='orth' else 1.))
+            callback(step,snapshot)
+    observe(0)
+    for iteration in range(steps):
         opt.zero_grad()
         d=torch.linalg.vector_norm(delta@w,dim=1)
         if method=='orth': d=d*logscale.exp()
@@ -77,6 +83,7 @@ def fit_probe(x,y,method,k=2,seed=0,steps=200):
                 q,r=torch.linalg.qr(w,mode='reduced')
                 signs=torch.where(torch.diag(r)<0,-1.,1.)
                 w.copy_(q*signs)
+        observe(iteration+1)
     weight=w.detach().numpy()
     if not np.isfinite(weight).all(): raise ValueError('Nonfinite fitted projection')
     if method=='orth' and not np.allclose(weight.T@weight,np.eye(k),atol=1e-8):
