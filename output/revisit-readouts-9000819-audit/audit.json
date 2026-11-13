@@ -1,0 +1,1136 @@
+{
+  "state": "complete",
+  "source_report_sha256": "7425c78b79146b0dfcef3d124beddd6d5b567a6cbfa480f2e8e9585355604cc0",
+  "dataset_sha256": "77aaa22f5a6ed290da48bf86676b14cfab5d3ca471a6bd1148a078f135066cac",
+  "coordinate_oracle_scope": "Recorded pose used as features to test evaluator only; not a V-JEPA result",
+  "coordinate_oracle": [
+    {
+      "actual_routes": [
+        2,
+        3
+      ],
+      "heading_difference": 0,
+      "accuracy": 1.0,
+      "mean_error_blocks": 0.18896316754138878,
+      "distance_mae_blocks": 0.0,
+      "queries": 128
+    },
+    {
+      "actual_routes": [
+        2,
+        3
+      ],
+      "heading_difference": 90,
+      "accuracy": 1.0,
+      "mean_error_blocks": 0.2561715592009139,
+      "distance_mae_blocks": 0.0,
+      "queries": 256
+    },
+    {
+      "actual_routes": [
+        2,
+        3
+      ],
+      "heading_difference": 180,
+      "accuracy": 1.0,
+      "mean_error_blocks": 0.25789733244007873,
+      "distance_mae_blocks": 0.0,
+      "queries": 128
+    },
+    {
+      "actual_routes": [
+        4,
+        5
+      ],
+      "heading_difference": 0,
+      "accuracy": 1.0,
+      "mean_error_blocks": 0.16748583856153154,
+      "distance_mae_blocks": 0.0,
+      "queries": 128
+    },
+    {
+      "actual_routes": [
+        4,
+        5
+      ],
+      "heading_difference": 90,
+      "accuracy": 1.0,
+      "mean_error_blocks": 0.24244471949394622,
+      "distance_mae_blocks": 0.0,
+      "queries": 256
+    },
+    {
+      "actual_routes": [
+        4,
+        5
+      ],
+      "heading_difference": 180,
+      "accuracy": 1.0,
+      "mean_error_blocks": 0.24684584282830752,
+      "distance_mae_blocks": 0.0,
+      "queries": 128
+    }
+  ],
+  "training_pairs": {
+    "total": 8128,
+    "same_site": 448,
+    "same_site_fraction": 0.05511811023622047,
+    "same_site_different_heading": 384,
+    "same_site_opposite_heading": 128,
+    "same_site_distance_range": [
+      0.0058585638785063196,
+      0.632443746169057
+    ],
+    "different_site": 7680,
+    "weighting": "All distinct training-row pairs equally weighted by metric losses"
+  },
+  "constant_baseline": [
+    {
+      "routes": [
+        2,
+        3
+      ],
+      "heading_difference": 0,
+      "constant_prediction_blocks": 16.273488422817813,
+      "pair_distance_mae_blocks": 6.376976591163688,
+      "same_site_mae_blocks": 16.084525255276425,
+      "different_site_mae_blocks": 5.729806680222837
+    },
+    {
+      "routes": [
+        2,
+        3
+      ],
+      "heading_difference": 90,
+      "constant_prediction_blocks": 16.273488422817813,
+      "pair_distance_mae_blocks": 6.372649479719982,
+      "same_site_mae_blocks": 16.017316863616898,
+      "different_site_mae_blocks": 5.7296716541268555
+    },
+    {
+      "routes": [
+        2,
+        3
+      ],
+      "heading_difference": 180,
+      "constant_prediction_blocks": 16.273488422817813,
+      "pair_distance_mae_blocks": 6.375010418638038,
+      "same_site_mae_blocks": 16.015591090377733,
+      "different_site_mae_blocks": 5.732305040522058
+    },
+    {
+      "routes": [
+        4,
+        5
+      ],
+      "heading_difference": 0,
+      "constant_prediction_blocks": 16.273488422817813,
+      "pair_distance_mae_blocks": 6.377077914232878,
+      "same_site_mae_blocks": 16.10600258425628,
+      "different_site_mae_blocks": 5.728482936231317
+    },
+    {
+      "routes": [
+        4,
+        5
+      ],
+      "heading_difference": 90,
+      "constant_prediction_blocks": 16.273488422817813,
+      "pair_distance_mae_blocks": 6.371988166874612,
+      "same_site_mae_blocks": 16.031043703323867,
+      "different_site_mae_blocks": 5.728051131111328
+    },
+    {
+      "routes": [
+        4,
+        5
+      ],
+      "heading_difference": 180,
+      "constant_prediction_blocks": 16.273488422817813,
+      "pair_distance_mae_blocks": 6.374694082636944,
+      "same_site_mae_blocks": 16.026642579989506,
+      "different_site_mae_blocks": 5.731230849480108
+    }
+  ],
+  "selected_readout_comparisons": [
+    {
+      "feature": "video_layer3",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 10.183524047537514,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -3.8088299649005695
+    },
+    {
+      "feature": "video_layer3",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 10.227894685224594,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -3.8559065183499825
+    },
+    {
+      "feature": "video_layer3",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 10.243807646579423,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -3.8667297323465455
+    },
+    {
+      "feature": "video_layer3",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 8.545041370799506,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.170347288162562
+    },
+    {
+      "feature": "video_layer3",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 8.569440846854576,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.197452679979964
+    },
+    {
+      "feature": "video_layer3",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 8.391171443291938,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.0140935290590605
+    },
+    {
+      "feature": "video_layer3",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 9.103667707975728,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.7289736253387833
+    },
+    {
+      "feature": "video_layer3",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 8.817088490800575,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.4451003239259634
+    },
+    {
+      "feature": "video_layer3",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 8.343242441182815,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.966164526949937
+    },
+    {
+      "feature": "video_layer3",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 8.781455418501615,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.4067613358646707
+    },
+    {
+      "feature": "video_layer3",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 8.830616442796615,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.4586282759220026
+    },
+    {
+      "feature": "video_layer3",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 8.698349748825741,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.3212718345928636
+    },
+    {
+      "feature": "video_layer3",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 8.809051670038436,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.4343575874014913
+    },
+    {
+      "feature": "video_layer3",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 8.662517336404544,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.2905291695299326
+    },
+    {
+      "feature": "video_layer3",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 8.68816895739237,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.311091043159493
+    },
+    {
+      "feature": "video_layer3",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 8.960317026148257,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.5856229435113125
+    },
+    {
+      "feature": "video_layer3",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 8.827044619831817,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.455056452957205
+    },
+    {
+      "feature": "video_layer3",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 8.818983120043491,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.441905205810613
+    },
+    {
+      "feature": "video_layer11",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 7.8562119616696915,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -1.4815178790327472
+    },
+    {
+      "feature": "video_layer11",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 7.993358893218607,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -1.6213707263439954
+    },
+    {
+      "feature": "video_layer11",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 7.983606114741956,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.6065282005090786
+    },
+    {
+      "feature": "video_layer11",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 7.021269162916711,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -0.6465750802797672
+    },
+    {
+      "feature": "video_layer11",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 7.028593185176607,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -0.6566050183019954
+    },
+    {
+      "feature": "video_layer11",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 6.96127835347481,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -0.5842004392419327
+    },
+    {
+      "feature": "video_layer11",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 8.242581780116055,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -1.8678876974791105
+    },
+    {
+      "feature": "video_layer11",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 8.17550265714717,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -1.8035144902725584
+    },
+    {
+      "feature": "video_layer11",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 8.34297850762916,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.9659005933962828
+    },
+    {
+      "feature": "video_layer11",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 9.324653107382694,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.94995902474575
+    },
+    {
+      "feature": "video_layer11",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 9.425163531701465,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -3.0531753648268527
+    },
+    {
+      "feature": "video_layer11",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 9.49314693244254,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -3.1160690182096626
+    },
+    {
+      "feature": "video_layer11",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 7.173834981563438,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -0.7991408989264936
+    },
+    {
+      "feature": "video_layer11",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 7.109263770377968,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -0.7372756035033561
+    },
+    {
+      "feature": "video_layer11",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 6.99405379492616,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -0.6169758806932819
+    },
+    {
+      "feature": "video_layer11",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 8.872652881829566,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.497958799192622
+    },
+    {
+      "feature": "video_layer11",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 8.573693537894435,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.2017053710198233
+    },
+    {
+      "feature": "video_layer11",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 8.558398849440593,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.181320935207715
+    },
+    {
+      "feature": "video_layer23",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 9.514217350702875,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -3.139523268065931
+    },
+    {
+      "feature": "video_layer23",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 9.640045555210335,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -3.2680573883357233
+    },
+    {
+      "feature": "video_layer23",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 9.780582443444846,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -3.4035045292119683
+    },
+    {
+      "feature": "video_layer23",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 8.414024334644978,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.0393302520080336
+    },
+    {
+      "feature": "video_layer23",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 8.470104873608317,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.0981167067337054
+    },
+    {
+      "feature": "video_layer23",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 8.69141916427975,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.3143412500468727
+    },
+    {
+      "feature": "video_layer23",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 7.709501529311904,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -1.3348074466749598
+    },
+    {
+      "feature": "video_layer23",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 7.907108018648277,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -1.5351198517736648
+    },
+    {
+      "feature": "video_layer23",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 8.131375186446403,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.7542972722135257
+    },
+    {
+      "feature": "video_layer23",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 9.184754928693238,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.8100608460562935
+    },
+    {
+      "feature": "video_layer23",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 9.509278295291356,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -3.137290128416744
+    },
+    {
+      "feature": "video_layer23",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 9.16487153273568,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.7877936185028016
+    },
+    {
+      "feature": "video_layer23",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 7.044893703122006,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -0.6701996204850618
+    },
+    {
+      "feature": "video_layer23",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 7.277663651783939,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -0.9056754849093274
+    },
+    {
+      "feature": "video_layer23",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 6.990880136469849,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -0.6138022222369717
+    },
+    {
+      "feature": "video_layer23",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 8.080811049730347,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -1.7061169670934024
+    },
+    {
+      "feature": "video_layer23",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 8.39353265540133,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.021544488526718
+    },
+    {
+      "feature": "video_layer23",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 8.042705560540206,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.6656276463073283
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 11.726903720354427,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -5.352209637717483
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 11.775554466019164,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -5.403566299144552
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 11.698580415840095,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -5.321502501607217
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 8.3527878971232,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -1.9780938144862557
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 8.597847573775027,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.2258594069004154
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 8.613215596308422,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.236137682075544
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 7.706350197602193,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -1.3316561149652486
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 7.866987291694265,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -1.4949991248196532
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 7.856643244200854,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.4795653299679765
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 8.533663520045227,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.158969437408283
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 8.528418799400823,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.1564306325262113
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 8.521370957103137,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.1442930428702596
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 8.627577143881211,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.252883061244267
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 8.460974074980605,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.088985908105993
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 8.593721115037809,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.2166432008049313
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 7.48454280142789,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -1.1098487187909454
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 7.497405923793829,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -1.1254177569192167
+    },
+    {
+      "feature": "repeat_last_frame_layer3",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 7.638162780305887,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.2610848660730092
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 9.239981646008754,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.86528756337181
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 9.207989751657472,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.83600158478286
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 8.938325910117992,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.5612479958851146
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 7.310882703153657,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -0.9361886205167131
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 7.328150184764741,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -0.9561620178901293
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 7.225780054755047,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -0.8487021405221693
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 8.633628304992031,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.2589342223550872
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 8.63003644283658,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.2580482759619684
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 8.324899793862375,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.9478218796294975
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 9.396275847686336,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -3.021581765049392
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 9.629983885600783,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -3.257995718726171
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 9.3466297908248,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.9695518765919218
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 7.29044058501586,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -0.9157465023789157
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 7.456645304433799,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -1.0846571375591871
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 7.270019278943509,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -0.892941364710631
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 8.911499514178239,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.5368054315412945
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 9.094013710996594,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.7220255441219816
+    },
+    {
+      "feature": "repeat_last_frame_layer11",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 8.63713240877302,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.2600544945401424
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 8.807626495767394,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.43293241313045
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 8.577100922438348,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.2051127555637358
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "true_positions",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 8.128637305270821,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.7515593910379437
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 7.168397490674407,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -0.7937034080374623
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 6.871957353354768,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -0.49996918648015587
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "true_positions",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 6.168072546022733,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": 0.20900536821014448
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 8.775225328197397,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.400531245560453
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 8.430643349707019,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.058655182832407
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "true_positions",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 7.573441109771688,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.1963631955388099
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 180,
+      "readout_mae": 8.705115028189223,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.3304209455522784
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 90,
+      "readout_mae": 9.119109746228752,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.7471215793541397
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "permuted_training_sites",
+      "family": "ridge",
+      "heading_difference": 0,
+      "readout_mae": 8.598905553186913,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -2.2218276389540357
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 180,
+      "readout_mae": 8.857656377372866,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -2.4829622947359216
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 90,
+      "readout_mae": 8.646949951726334,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -2.2749617848517225
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "permuted_training_sites",
+      "family": "orth",
+      "heading_difference": 0,
+      "readout_mae": 8.281767068676064,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -1.9046891544431865
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 180,
+      "readout_mae": 7.650157268751348,
+      "constant_mae": 6.374694082636944,
+      "improvement_blocks": -1.2754631861144041
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 90,
+      "readout_mae": 7.493077338069016,
+      "constant_mae": 6.371988166874612,
+      "improvement_blocks": -1.121089171194404
+    },
+    {
+      "feature": "repeat_last_frame_layer23",
+      "control": "permuted_training_sites",
+      "family": "linear_metric",
+      "heading_difference": 0,
+      "readout_mae": 6.944493477256703,
+      "constant_mae": 6.377077914232878,
+      "improvement_blocks": -0.5674155630238253
+    }
+  ],
+  "limits": [
+    "Geometry comparisons use retrieval-selected saved models, not geometry-selected models.",
+    "Unselected candidate weights were not saved: separate geometry selection requires a new explicitly exploratory training run.",
+    "A consistent permutation of site coordinates preserves identity across views; it is a geometry control, not a no-identity null.",
+    "Coordinate oracle checks metadata and evaluator, not RGB/pose synchronization or feature extraction.",
+    "Known sites and previously inspected test routes; no independent confirmation."
+  ]
+}

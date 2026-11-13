@@ -1,0 +1,29 @@
+{
+  "label": "NON-MINECRAFT synthetic linear spatial signal; not model evidence",
+  "results": [
+    {
+      "spec": [
+        "ridge",
+        2,
+        1.0
+      ],
+      "heldout_distance_mae": 0.15271838447815078
+    },
+    {
+      "spec": [
+        "orth",
+        2,
+        null
+      ],
+      "heldout_distance_mae": 1.4858415230540194e-07
+    },
+    {
+      "spec": [
+        "linear_metric",
+        2,
+        null
+      ],
+      "heldout_distance_mae": 0.0032776425421506186
+    }
+  ]
+}
